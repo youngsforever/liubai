@@ -1,5 +1,7 @@
 # 如何在微信对话框中，同时召唤三种大模型？
 
+<br>
+
 <img src="./assets1222/cover.gif" alt="three assistants" width="380" >
 
 <br>
