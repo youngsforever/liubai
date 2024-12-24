@@ -1,8 +1,12 @@
 # 给你三个助手，我想放大你的能力
 
-![cover](./assets1220/cover.jpeg)
+<br>
 
-## 一句话介绍
+<div align="center">
+  <img src="./assets1220/cover.jpeg" width="600" alt="cover" >
+</div>
+
+## 一句话介绍 {#intro}
 
 留白记事 = 给你三个助手的超级记事本！
 
