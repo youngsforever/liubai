@@ -86,7 +86,7 @@ const {
     <!-- 更多 -->
     <div class="liu-hover cct-more"
       :class="{ 'cct-more_show': expandMore }"
-      :aria-label="t('editor.more')"
+      :aria-label="t('common.more')"
     >
       <LiuMenu
         :menu="footerMenu"

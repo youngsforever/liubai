@@ -67,7 +67,8 @@
     "check_it_out": "去看看",
     "privacy": "隱私",
     "back_home": "回首頁",
-    "scan_with_wx": "請用微信掃描"
+    "scan_with_wx": "請用微信掃描",
+    "more": "更多"
   },
   "editor": {
     "when": "什麼時候",
@@ -87,7 +88,6 @@
     "bold": "粗體",
     "italic": "斜體",
     "strike": "删除線",
-    "more": "更多",
     "expand": "展開",
     "restore": "恢復",
     "tag": "標籤",
@@ -225,7 +225,7 @@
     "sms_ph": "請輸入驗證代號",
     "send_sms": "發送驗證代號",
     "agree_1": "我已閱讀並同意",
-    "agree_2": "《服務條款》",
+    "agree_2": "《服務協議》",
     "agree_3": "以及",
     "agree_4": "《隱私政策》",
     "turn_into_phone": "切換至簡訊驗證碼登入",
@@ -398,7 +398,7 @@
     "export": "匯出",
     "other": "其它",
     "terms": "條款",
-    "service_terms": "服務條款",
+    "service_terms": "服務協議",
     "privacy_policy": "隱私政策",
     "logout": "登出",
     "logout_bd": "確定要登出嗎?",

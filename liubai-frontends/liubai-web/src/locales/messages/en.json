@@ -67,7 +67,8 @@
     "check_it_out": "Check it out",
     "privacy": "Privacy",
     "back_home": "Back to Home",
-    "scan_with_wx": "Please scan with WeChat"
+    "scan_with_wx": "Please scan with WeChat",
+    "more": "More"
   },
   "editor": {
     "when": "When",
@@ -87,7 +88,6 @@
     "bold": "Bold",
     "italic": "Italic",
     "strike": "Strikethrough",
-    "more": "More",
     "expand": "Expand",
     "restore": "Restore",
     "tag": "Tag",
@@ -417,6 +417,7 @@
     "font_medium": "Medium",
     "font_size": "Font Size",
     "font_select": "Please select your font size",
+    "accounts_management": "My Accounts",
     "wechat": "WeChat",
     "email": "Email",
     "phone": "Phone",

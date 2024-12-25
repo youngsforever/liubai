@@ -67,7 +67,7 @@ const icon_color = "var(--main-normal)"
     <div class="liu-hover cet-item"
       :class="{ 'cet-item_selected': more }"
       @click="onTapMore"
-      :aria-label="t('editor.more')"
+      :aria-label="t('common.more')"
     >
       <svg-icon name="more" class="ceti-icon ceti-more" 
         :class="{ 'ceti-more_open': more }"

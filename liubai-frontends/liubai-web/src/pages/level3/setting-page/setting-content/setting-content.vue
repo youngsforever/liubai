@@ -278,94 +278,8 @@ const iconColor = "var(--main-normal)"
 
       </div>
 
-
-
-      <!-- 导入 & 导出 -->
-      <div class="liu-no-user-select sc-title">
-        <span>{{ t('setting.import_export') }}</span>
-      </div>
-      <div class="sc-box">
-        <!-- 导入 -->
-        <AppLink :to="prefix + 'import'">
-          <div class="liu-no-user-select liu-hover sc-bar">
-            <div class="scb-hd">
-              <span>{{ t('setting.import') }}</span>
-            </div>
-            <div class="scb-footer">
-              <div class="scb-footer-icon">
-                <svg-icon class="scbf-svg-icon scbf-import"
-                  name="arrow_outward"
-                  :color="iconColor"
-                ></svg-icon>
-              </div>
-            </div>
-          </div>
-        </AppLink>
-
-        <!-- 导出 -->
-        <AppLink :to="prefix + 'export'">
-          <div class="liu-no-user-select liu-hover sc-bar">
-            <div class="scb-hd">
-              <span>{{ t('setting.export') }}</span>
-            </div>
-            <div class="scb-footer">
-              <div class="scb-footer-icon">
-                <svg-icon class="scbf-svg-icon"
-                  name="arrow_outward"
-                  :color="iconColor"
-                ></svg-icon>
-              </div>
-            </div>
-          </div>
-        </AppLink>
-        
-
-      </div>
-
       <!-- 其他 -->
-      <div class="liu-no-user-select sc-title">
-        <span>{{ t('setting.other') }}</span>
-      </div>
       <div class="sc-box">
-        <!-- 条款 -->
-        <!-- <div class="liu-no-user-select liu-hover sc-bar" 
-          @click.stop="onTapTerms"
-        >
-          <div class="scb-hd">
-            <span>{{ t('setting.terms') }}</span>
-          </div>
-          <div class="scb-footer">
-
-            <div class="scb-footer-icon">
-              <svg-icon class="scbf-back"
-                :class="{ 'scbfb_rotated': data.openTerms }"
-                name="arrow-right2"
-                :color="iconColor"
-              ></svg-icon>
-            </div>
-          </div>
-        </div> -->
-        <!-- 条款们 -->
-        <!-- <div class="sc-pad" :class="{ 'sc-pad_opened': data.openTerms }">
-          <div class="sc-pad-box" :class="{ 'sc-pad-box_opened': data.openTerms }">
-            <template v-for="(item, index) in data.termsList"
-              :key="item.text"
-            >
-              <a :href="item.link" target="_blank" 
-                class="liu-no-user-select liu-hover sc-pad-item"
-              >
-                <div class="sc-pad-title">
-                  <span>{{ item.text }}</span>
-                </div>
-                <div class="sc-pad-icon">
-                  <svg-icon class="scti-back"
-                    name="arrow-right2"
-                  ></svg-icon>
-                </div>
-              </a>
-            </template>
-          </div>
-        </div> -->
 
         <!-- 开发调试 -->
         <div v-if="data.debugBtn" 
@@ -472,7 +386,6 @@ const iconColor = "var(--main-normal)"
           </div>
         </div>
         
-
         <!-- Contact -->
         <div v-if="data.contactLink" class="liu-no-user-select liu-hover sc-bar"
           @click.stop="onTapContact"
@@ -505,7 +418,24 @@ const iconColor = "var(--main-normal)"
           </div>
         </a>
 
-        <!-- 退出 -->
+        <!-- membership -->
+        <AppLink to="/settings/more">
+          <div class="liu-no-user-select liu-hover sc-bar">
+            <div class="scb-hd">
+              <span>{{ t('common.more') }}</span>
+            </div>
+            <div class="scb-footer">
+              <div class="scb-footer-icon">
+                <svg-icon class="scbf-back"
+                  name="arrow-right2"
+                  :color="iconColor"
+                ></svg-icon>
+              </div>
+            </div>
+          </div>
+        </AppLink>
+
+        <!-- Logout -->
         <div class="liu-no-user-select liu-hover sc-bar" 
           @click.stop="onTapLogout"
         >
@@ -654,10 +584,6 @@ const iconColor = "var(--main-normal)"
 .scbf-svg-icon {
   width: 22px;
   height: 22px;
-}
-
-.scbf-import {
-  transform: rotate(180deg);
 }
 
 .scbf-back {
