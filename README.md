@@ -35,6 +35,11 @@
 
 ✅ 富文本编辑器，支持轻量 Markdown
 
+## 快速开始 🚀
+
+👉 [直接使用](https://my.liubai.cc)
+
+📲 [前往安装](https://docs.liubai.cc/guide/install)
 
 ## 概览 📂
 
@@ -108,7 +113,7 @@
 
 </div>
 
-## 开源许可
+## 开源许可 📝
 
 AGPLv3
 
