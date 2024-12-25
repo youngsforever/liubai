@@ -29,6 +29,7 @@ import APIs from "~/requests/APIs"
 import liuUtil from "~/utils/liu-util"
 import { useNetworkStore } from "~/hooks/stores/useNetworkStore"
 import { useQRCode } from "~/hooks/useVueUse"
+import thirdLink from "~/config/third-link"
 
 export function useSettingContent() {
 
@@ -48,6 +49,10 @@ export function useSettingContent() {
     openTerms: false,
     termsList: getTermsList(),
     hasBackend,
+
+    redLink: thirdLink.RED_FOLLOW_URL,
+    openSourceLink: thirdLink.OPEN_SOURCE_URL,
+
     debugBtn: Boolean(_env.DEBUG_BTN),
     openDebug: false,
     mobileDebug: Boolean(onceData.mobile_debug),
@@ -82,16 +87,14 @@ export function useSettingContent() {
   const onTapContact = () => {
     if(!contactLink) return
     window.open(contactLink, "_blank")
-    // const cha = liuApi.getCharacteristic()
-    // if(cha.isWeChat || cha.isPC) {
-    //   window.open(contactLink, "_blank")
-    //   return
-    // }
-    // const src = contactQR.value
-    // cui.previewImage({
-    //   imgs: [{ src, id: "contact-qrcode", width: 250, height: 250 }]
-    // })
-    // cui.showSnackBar({ text_key: "common.scan_with_wx" })
+  }
+
+  const onTapWxGzh = () => {
+    const src = "/images/third-party/follow-on-weixin.png"
+    cui.previewImage({
+      imgs: [{ src, id: "gzh-qrcode", width: 500, height: 150 }]
+    })
+    cui.showSnackBar({ text_key: "common.scan_with_wx" })
   }
 
   return {
@@ -110,6 +113,7 @@ export function useSettingContent() {
     onTapVersionUpdate: () => whenTapVersionUpdate(hasNewVersion),
     onTapA2HS,
     onTapContact,
+    onTapWxGzh,
     version,
     appName,
   }

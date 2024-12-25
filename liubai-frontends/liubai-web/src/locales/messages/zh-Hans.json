@@ -67,7 +67,8 @@
     "check_it_out": "去查看",
     "privacy": "隐私",
     "back_home": "回首页",
-    "scan_with_wx": "请用微信扫一扫"
+    "scan_with_wx": "请用微信扫一扫",
+    "more": "更多"
   },
   "editor": {
     "when": "什么时候",
@@ -87,7 +88,6 @@
     "bold": "粗体",
     "italic": "斜体",
     "strike": "删除线",
-    "more": "更多",
     "expand": "展开",
     "restore": "恢复",
     "tag": "标签",
@@ -225,7 +225,7 @@
     "sms_ph": "请输入验证码",
     "send_sms": "发送验证码",
     "agree_1": "我已阅读并同意",
-    "agree_2": "《服务条款》",
+    "agree_2": "《服务协议》",
     "agree_3": "以及",
     "agree_4": "《隐私政策》",
     "turn_into_phone": "切换至手机号登录",
@@ -398,7 +398,7 @@
     "export": "导出",
     "other": "其它",
     "terms": "条款",
-    "service_terms": "服务条款",
+    "service_terms": "服务协议",
     "privacy_policy": "隐私政策",
     "logout": "退出",
     "logout_bd": "确定要退出吗？",
@@ -423,7 +423,10 @@
     "phone": "手机号",
     "bound": "已绑定",
     "not_yet_bound": "尚未绑定",
-    "unbind_unsupported": "暂不支持解绑"
+    "unbind_unsupported": "暂不支持解绑",
+    "community": "社区",
+    "wx_gzh": "微信公众号",
+    "xhs": "小红书"
   },
   "export": {
     "markdown": "导出成 markdown 文件",
