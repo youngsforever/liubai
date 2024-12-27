@@ -8,6 +8,8 @@ import {
   DAY, 
   WEEK, 
   localizeStamp,
+  currentHoursOfSpecificTimezone,
+  formatTimezone,
 } from "@/common-time"
 import type { 
   Config_WeCom_Qynb,
@@ -20,6 +22,7 @@ import type {
 } from '@/common-types'
 import { 
   checkIfUserSubscribed, 
+  LiuDateUtil, 
   liuFetch, 
   liuReq, 
   valTool, 
@@ -29,7 +32,11 @@ import {
   wxpay_apiclient_key, 
   wxpay_apiclient_serial_no,
 } from "@/secret-config"
-import { differenceInCalendarMonths } from "date-fns"
+import { 
+  differenceInCalendarMonths, 
+  set as date_fn_set, 
+  addDays,
+} from "date-fns"
 
 const API_WECHAT_ACCESS_TOKEN = "https://api.weixin.qq.com/cgi-bin/token"
 const API_WX_JSAPI_TICKET = "https://api.weixin.qq.com/cgi-bin/ticket/getticket"
@@ -70,6 +77,9 @@ export async function main(ctx: FunctionContext) {
 
   // 7. update user's quota on 1st day of each month
   await updateUserQuota()
+
+  // 8. statistics
+  await handleStatistics()
 
   // console.log("---------- End clock-one-hr ----------")
   // console.log("                                      ")
@@ -438,4 +448,40 @@ async function handleWxpayCerts(): Promise<LiuWxpayCert[] | undefined> {
 
   return certs
 }
+
+/** Using NocoDB to get app statistics */
+async function handleStatistics() {
+
+  // 1. only trigger once a day in midnight
+  const _env = process.env
+  const envTimezone = _env.LIU_TIMEZONE ?? "0"
+  const tz = formatTimezone(envTimezone)
+  const hrs = currentHoursOfSpecificTimezone(tz)
+  if(hrs !== 0) return
+
+  // 2. get nocodb params
+  const baseURL = _env.LIU_NOCODB_BASEURL
+  const token = _env.LIU_NOCODB_TOKEN
+  const tableId = _env.LIU_NOCODB_TABLE_1
+  if(!baseURL || !token || !tableId) return
+
+  // 3. get yesterday
+  const now = getNowStamp()
+  const appStamp = localizeStamp(now, envTimezone)
+  const currentDate = new Date(appStamp)
+  const todayDate = date_fn_set(currentDate, {
+    hours: 0, minutes: 0, seconds: 0, milliseconds: 0,
+  })
+  const yesterdayDate = addDays(todayDate, -1)
+  const date = LiuDateUtil.getYYYYMMDD(yesterdayDate.getTime())
+  console.log("see date in handleStatistics:::", date)
+
+  
+
+}
+
+async function _getOverviewStatistics() {
+
+}
+
 

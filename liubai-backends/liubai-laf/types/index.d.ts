@@ -173,7 +173,8 @@ declare global {
       /** Statistic */
       LIU_NOCODB_BASEURL?: string            // like https://app.nocodb.com
       LIU_NOCODB_TOKEN?: string              // get it from https://app.nocodb.com/#/account/tokens
-
+      LIU_NOCODB_TABLE_1?: string            // overview table
+      LIU_NOCODB_TABLE_2?: string            // AiStatistic table
     }
   }
 }
