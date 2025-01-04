@@ -89,7 +89,7 @@ export default defineConfig({
     ],
 
     footer: {
-      copyright: "Copyright  2024 <a href='https://my.liubai.cc'>Liubai</a>",
+      copyright: "Copyright © 2025 <a href='https://my.liubai.cc'>Liubai</a>",
     },
 
     docFooter: {

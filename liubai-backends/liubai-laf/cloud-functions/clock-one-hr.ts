@@ -8,6 +8,8 @@ import {
   DAY, 
   WEEK, 
   localizeStamp,
+  currentHoursOfSpecificTimezone,
+  formatTimezone,
 } from "@/common-time"
 import type { 
   Config_WeCom_Qynb,
@@ -20,6 +22,7 @@ import type {
 } from '@/common-types'
 import { 
   checkIfUserSubscribed, 
+  LiuDateUtil, 
   liuFetch, 
   liuReq, 
   valTool, 
@@ -29,7 +32,11 @@ import {
   wxpay_apiclient_key, 
   wxpay_apiclient_serial_no,
 } from "@/secret-config"
-import { differenceInCalendarMonths } from "date-fns"
+import { 
+  differenceInCalendarMonths, 
+  set as date_fn_set, 
+  addDays,
+} from "date-fns"
 
 const API_WECHAT_ACCESS_TOKEN = "https://api.weixin.qq.com/cgi-bin/token"
 const API_WX_JSAPI_TICKET = "https://api.weixin.qq.com/cgi-bin/ticket/getticket"
@@ -70,6 +77,9 @@ export async function main(ctx: FunctionContext) {
 
   // 7. update user's quota on 1st day of each month
   await updateUserQuota()
+
+  // 8. statistics
+  await handleStatistics()
 
   // console.log("---------- End clock-one-hr ----------")
   // console.log("                                      ")
@@ -438,4 +448,150 @@ async function handleWxpayCerts(): Promise<LiuWxpayCert[] | undefined> {
 
   return certs
 }
+
+/** Using NocoDB to get app statistics */
+async function handleStatistics() {
+
+  // 1. only trigger once a day in midnight
+  const _env = process.env
+  const appTimezone = _env.LIU_TIMEZONE ?? "0"
+  const tz = formatTimezone(appTimezone)
+  const hrs = currentHoursOfSpecificTimezone(tz)
+  if(hrs !== 0) return
+
+  // 2. get nocodb params
+  const baseURL = _env.LIU_NOCODB_BASEURL
+  const token = _env.LIU_NOCODB_TOKEN
+  const tableId = _env.LIU_NOCODB_TABLE_1
+  if(!baseURL || !token || !tableId) return
+
+  // 3. get yesterday
+  const now = getNowStamp()
+  const appStamp = localizeStamp(now, appTimezone)
+  const currentDate = new Date(appStamp)
+  const todayDate = date_fn_set(currentDate, {
+    hours: 0, minutes: 0, seconds: 0, milliseconds: 0,
+  })
+  const yesterdayDate = addDays(todayDate, -1)
+  const date = LiuDateUtil.getYYYYMMDD(yesterdayDate.getTime())
+  console.log("see date in handleStatistics:::", date)
+
+  // 4. get overview
+  const data4 = await _getStatisticForOverview()
+
+  // 5. fetch to nocodb
+  const body = {
+    ...data4,
+    "Date": date,
+  }
+  const url = `${baseURL}/api/v2/tables/${tableId}/records`
+  const headers = { "xc-token": token }
+  const res = await liuReq(url, body, { method: "POST", headers })
+  console.log("see result from nocodb: ")
+  console.log(res)
+  return res
+}
+
+// get D1 / D2 .......
+async function _getStatisticForOverview() {
+  const uCol = db.collection("User")
+
+  // 1. get DAU
+  const now = getNowStamp()
+  const ONE_DAY_AGO = now - DAY
+  const w = {
+    oState: "NORMAL",
+    activeStamp: _.gte(ONE_DAY_AGO),
+  }
+  const res1 = await uCol.where(w).count()
+  if(!res1.ok) {
+    console.warn("get DAU err::")
+    console.log(res1)
+  }
+  const D1 = res1.total
+
+  // 2. get D2
+  const TWO_DAY_AGO = ONE_DAY_AGO - DAY
+  w.activeStamp = _.gte(TWO_DAY_AGO)
+  const res2 = await uCol.where(w).count()
+  const D2 = res2.total
+
+  // 3. get D3
+  const THREE_DAY_AGO = TWO_DAY_AGO - DAY
+  w.activeStamp = _.gte(THREE_DAY_AGO)
+  const res3 = await uCol.where(w).count()
+  const D3 = res3.total
+
+  // 4. get D5
+  const FIVE_DAY_AGO = THREE_DAY_AGO - DAY - DAY
+  w.activeStamp = _.gte(FIVE_DAY_AGO)
+  const res4 = await uCol.where(w).count()
+  const D5 = res4.total
+
+  // 5. get D7
+  const WEEK_AGO = FIVE_DAY_AGO - DAY - DAY
+  w.activeStamp = _.gte(WEEK_AGO)
+  const res5 = await uCol.where(w).count()
+  const D7 = res5.total
+
+  // 6. get D14
+  const TWO_WEEK_AGO = WEEK_AGO - (DAY * 7)
+  w.activeStamp = _.gte(TWO_WEEK_AGO)
+  const res6 = await uCol.where(w).count()
+  const D14 = res6.total
+
+  // 7. get D30
+  const ONE_MONTH_AGO = ONE_DAY_AGO - (DAY * 30)
+  w.activeStamp = _.gte(ONE_MONTH_AGO)
+  const res7 = await uCol.where(w).count()
+  const D30 = res7.total
+
+  // 8. get E1
+  const w2 = {
+    oState: "NORMAL",
+    lastEnterStamp: _.gte(ONE_DAY_AGO),
+  }
+  const res8 = await uCol.where(w2).count()
+  if(!res8.ok) {
+    console.warn("get E1 err::")
+    console.log(res8)
+  }
+  const E1 = res8.total
+
+  // 9. get E2
+  w2.lastEnterStamp = _.gte(TWO_DAY_AGO)
+  const res9 = await uCol.where(w2).count()
+  const E2 = res9.total
+
+  // 10. get E3
+  w2.lastEnterStamp = _.gte(THREE_DAY_AGO)
+  const res10 = await uCol.where(w2).count()
+  const E3 = res10.total
+
+  // 11. get E5
+  w2.lastEnterStamp = _.gte(FIVE_DAY_AGO)
+  const res11 = await uCol.where(w2).count()
+  const E5 = res11.total
+
+  // 12. get E7
+  w2.lastEnterStamp = _.gte(WEEK_AGO)
+  const res12 = await uCol.where(w2).count()
+  const E7 = res12.total
+
+  // 13. get E14
+  w2.lastEnterStamp = _.gte(TWO_WEEK_AGO)
+  const res13 = await uCol.where(w2).count()
+  const E14 = res13.total
+
+  // 14. get E30
+  w2.lastEnterStamp = _.gte(ONE_MONTH_AGO)
+  const res14 = await uCol.where(w2).count()
+  const E30 = res14.total
+
+  return {
+    D1, D2, D3, D5, D7, D14, D30,
+    E1, E2, E3, E5, E7, E14, E30,
+  }
+}
+
 

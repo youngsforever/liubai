@@ -170,6 +170,11 @@ declare global {
       LIU_WXGZH_KF_YUEWEN?: string           // kf_account of yuewen
       LIU_WXGZH_KF_ZHIPU?: string            // kf_account of zhipu
 
+      /** Statistic */
+      LIU_NOCODB_BASEURL?: string            // like https://app.nocodb.com
+      LIU_NOCODB_TOKEN?: string              // get it from https://app.nocodb.com/#/account/tokens
+      LIU_NOCODB_TABLE_1?: string            // overview table
+      LIU_NOCODB_TABLE_2?: string            // AiStatistic table
     }
   }
 }
