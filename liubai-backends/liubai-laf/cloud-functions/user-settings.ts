@@ -127,8 +127,6 @@ async function handle_unbind(
 
   // 3. update
   const res3 = await col_user.doc(userId).update(u)
-  console.log("handle_unbind update res3: ")
-  console.log(res3)
   updateUserInCache(userId)
   
   return { code: "0000" }

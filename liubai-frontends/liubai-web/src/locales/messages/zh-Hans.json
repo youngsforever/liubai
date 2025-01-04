@@ -429,7 +429,9 @@
     "xhs": "小红书",
     "unbind": "解绑",
     "modify": "修改",
-    "rebind": "重新绑定"
+    "rebind": "重新绑定",
+    "unbind_tip_1": "确定要解除绑定{name}吗？该操作可能造成帐号遗失。",
+    "unbind_2": "确定解绑"
   },
   "export": {
     "markdown": "导出成 markdown 文件",

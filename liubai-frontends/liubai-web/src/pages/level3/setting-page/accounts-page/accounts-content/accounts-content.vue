@@ -9,6 +9,7 @@ const {
   onTapPhone,
   onTapWeChat,
   onTapEmail,
+  onMenuItemForPhone,
 } = useAccountsContent()
 
 const { t } = useI18n()
@@ -26,7 +27,9 @@ const menus2: MenuItem[] = [{ text_key: "setting.modify" }, { text_key: "setting
   <div v-if="acData.pageState < 0" class="ac-container">
 
     <!-- Phone -->
-    <LiuMenu :menu="menus2" v-if="acData.phone_pixelated" min-width-str="90px">
+    <LiuMenu :menu="menus2" v-if="acData.phone_pixelated" min-width-str="90px"
+      @tapitem="onMenuItemForPhone"
+    >
       <div class="liu-no-user-select liu-hover ac-item">
         <AcItem icon-name="emojis-mobile_phone_color"
           :hd="t('setting.phone')"
@@ -39,7 +42,7 @@ const menus2: MenuItem[] = [{ text_key: "setting.modify" }, { text_key: "setting
     </div>
 
     <!-- WeChat -->
-    <LiuMenu :menu="menus1" v-if="acData.wx_gzh_openid" min-width-str="60px"
+    <LiuMenu :menu="menus1" v-if="acData.wx_gzh_openid" min-width-str="90px"
       @tapitem="onTapWeChat"
     >
       <div class="liu-no-user-select liu-hover ac-item">

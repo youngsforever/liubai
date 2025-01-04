@@ -5,6 +5,10 @@ import liuEnv from "~/utils/liu-env"
 import cui from "~/components/custom-ui"
 import { useAwakeNum } from "~/hooks/useCommon"
 import { CloudEventBus } from "~/utils/cloud/CloudEventBus"
+import { MenuItem } from "~/components/common/liu-menu/tools/types"
+import { i18n } from "~/locales"
+import APIs from "~/requests/APIs"
+import liuReq from "~/requests/liu-req"
 
 export function useAccountsContent() {
 
@@ -23,10 +27,6 @@ export function useAccountsContent() {
   }
 
   const onTapPhone = () => {
-    if(acData.phone_pixelated) {
-      _showUnsupported()
-      return
-    }
     toBindPhone(acData)
   }
 
@@ -46,13 +46,52 @@ export function useAccountsContent() {
     })
   }
 
+  const onMenuItemForPhone = async (item: MenuItem, index: number) => {
+    if(index === 0) {
+      // Re-link
+      toBindPhone(acData)
+    }
+    else if(index === 1) {
+      toUnlinkPhone(acData)
+    }
+  }
+
   return {
     acData,
     onTapPhone,
     onTapWeChat,
     onTapEmail,
+    onMenuItemForPhone,
   }
 }
+
+
+async function toUnlinkPhone(
+  acData: AcData,
+) {
+  const t = i18n.global.t
+  const name = t("setting.phone")
+  const res1 = await cui.showModal({ 
+    title: "⚠️",
+    content_key: "setting.unbind_tip_1",
+    content_opt: { name },
+    confirm_key: "setting.unbind_2",
+    isTitleEqualToEmoji: true,
+    modalType: "warning",
+  })
+  if(!res1.confirm) return
+  const url = APIs.BIND_DATA
+  const body = { operateType: "unbind-phone" }
+  cui.showLoading()
+  const res2 = await liuReq.request(url, body)
+  cui.hideLoading()
+  console.log("res2 for toUnlinkPhone: ")
+  console.log(res2)
+  if(res2.code === "0000") {
+    CloudEventBus.addSyncNumManually()
+  }
+}
+
 
 async function toBindPhone(
   acData: AcData,
