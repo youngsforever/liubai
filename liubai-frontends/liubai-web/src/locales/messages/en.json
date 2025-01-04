@@ -426,7 +426,12 @@
     "unbind_unsupported": "Unbinding has not been supported yet",
     "community": "Community",
     "wx_gzh": "WeChat Public Account",
-    "xhs": "RED"
+    "xhs": "RED",
+    "unbind": "Unlink",
+    "modify": "Modify",
+    "rebind": "Re-link",
+    "unbind_tip_1": "Are you sure to unlink {name}? This operation may result in the loss of your account.",
+    "unbind_2": "Yes, Unlink"
   },
   "export": {
     "markdown": "Export as markdown files",

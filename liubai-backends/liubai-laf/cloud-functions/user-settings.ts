@@ -87,13 +87,51 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "bind-phone") {
     res = await handle_bind_phone(vRes, body)
   }
+  else if(oT === "unbind-phone") {
+    res = await handle_unbind(vRes, "phone")
+  }
+  else if(oT === "unbind-email") {
+    res = await handle_unbind(vRes, "email")
+  }
 
-  const stamp2 = getNowStamp()
-  const diffS = stamp2 - stamp1
-  console.log(`调用 user-settings for ${oT} 耗时: ${diffS}ms`)
+  // const stamp2 = getNowStamp()
+  // const diffS = stamp2 - stamp1
+  // console.log(`调用 user-settings for ${oT} 耗时: ${diffS}ms`)
 
   return res
 }
+
+async function handle_unbind(
+  vRes: VerifyTokenRes_B,
+  unbindType: "phone" | "email",
+) {
+  // 1. get the user
+  const userId = vRes.userData._id
+  const col_user = db.collection("User")
+  const res = await col_user.doc(userId).get<Table_User>()
+  const user = res.data
+  if(!user) {
+    return { code: "E4004", errMsg: "user not found" }
+  }
+  
+  // 2. set undefined
+  const u: Record<string, any> = {}
+  if(unbindType === "phone") {
+    if(!user.phone) return { code: "0001" }
+    u.phone = _.remove()
+  }
+  if(unbindType === "email") {
+    if(!user.email) return { code: "0001" }
+    u.email = _.remove()
+  }
+
+  // 3. update
+  const res3 = await col_user.doc(userId).update(u)
+  updateUserInCache(userId)
+  
+  return { code: "0000" }
+}
+
 
 async function handle_bind_phone(
   vRes: VerifyTokenRes_B,
