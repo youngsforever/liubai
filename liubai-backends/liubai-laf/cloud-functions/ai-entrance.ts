@@ -1943,10 +1943,10 @@ class AiController {
     // 4. add warning into suffixMessage
     suffixMessage += t("generative_ai_warning")
 
-    console.warn("ready to send menu........")
-    console.log(prefixMessage)
-    console.log(menuList)
-    console.log(suffixMessage)
+    // console.warn("ready to send menu........")
+    // console.log(prefixMessage)
+    // console.log(menuList)
+    // console.log(suffixMessage)
 
     // 5. send
     await valTool.waitMilli(500)
