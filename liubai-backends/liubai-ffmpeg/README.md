@@ -3,3 +3,11 @@
 一个将 `.amr` 文件转为 `.mp3` 的后端服务。
 
 使用到了 `ffmpeg` 和 `devbox`。
+
+## 安装
+
+```shell
+sudo apt update && sudo apt upgrade    # press Y to continue
+sudo apt install ffmpeg                # press Y to continue
+ffmpeg -version                        # verify if installed successfully
+```
