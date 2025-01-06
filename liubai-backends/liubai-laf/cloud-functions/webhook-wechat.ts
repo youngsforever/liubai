@@ -39,6 +39,7 @@ import {
   tagWxUserLang,
   getWxGzhUserInfo,
   valTool,
+  liuReq,
 } from "@/common-util";
 import {
   useI18n, 
@@ -199,22 +200,52 @@ async function handle_voice(
   const wx_gzh_openid = msgObj.FromUserName
   const wx_media_id = msgObj.MediaId
   const wx_media_id_16k = msgObj.MediaId16K
+  const _env = process.env
+  const ffmpegDomain = _env.LIU_FFMPEG_BASEURL
+  if(!ffmpegDomain) {
+    console.warn("there is no ffmpeg domain")
+    return
+  }
 
   // 2. send unsupported message
   const msg = _getUnsupportedMsg("voice_unsupported")
   sendText(wx_gzh_openid, msg)
 
-  // // 2.1 TODO: temporarily check out test openid
-  // const _env = process.env
-  // const testOpenId = _env.LIU_WX_GZ_TEST_OPENID
-  // if(!testOpenId || testOpenId !== wx_gzh_openid) {
-  //   console.warn("interrupt handle_image!")
-  //   return
-  // }
+  // 3. get user
+  const user = await getUserByWxGzhOpenid(wx_gzh_openid)
+  if(!user) return
 
-  // // 3. get user
-  // const user = await getUserByWxGzhOpenid(wx_gzh_openid)
-  // if(!user) return
+  // 4. get voice link
+  const amrUrl = await getVoiceLink(wx_media_id)
+  if(!amrUrl) {
+    console.warn("we cannot get amrUrl")
+    return
+  }
+  const amrId = String(getNowStamp())
+
+  console.log("amrUrl: ")
+  console.log(amrUrl)
+  console.log("amrId: ")
+  console.log(amrId)
+
+  // 5. my amr to mp3 service
+  const url5 = new URL(`${ffmpegDomain}/new`)
+  const sP5 = url5.searchParams
+  sP5.set("id", amrId)
+  sP5.set("url", amrUrl)
+  try {
+    const res5 = await liuReq(url5.toString(), undefined, { 
+      method: "GET" 
+    })
+    const data5 = res5?.data
+    console.warn("see result of amr to mp3:::")
+    console.log(res5)
+    console.log(data5)
+  }
+  catch(err) {
+    console.warn("my amr to mp3 service fails")
+    console.log(err)
+  }
 
   // // 4. download voice
   // const res4 = await downloadVoice(wx_media_id)
@@ -717,6 +748,24 @@ async function make_user_subscribed(
 
 
 /***************** helper functions *************/
+
+async function getVoiceLink(
+  media_id: string,
+) {
+  // 1. get accessToken for wx gzh
+  const res1 = await checkAccessToken()
+  if(!res1) return
+
+  // 2. construct link
+  const url = new URL(API_MEDIA_DOWNLOAD)
+  const sP = url.searchParams
+  sP.set("access_token", res1)
+  sP.set("media_id", media_id)
+  const link = url.toString()
+
+  return link
+}
+
 
 async function downloadVoice(
   media_id: string,
