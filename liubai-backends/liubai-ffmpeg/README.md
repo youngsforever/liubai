@@ -24,6 +24,7 @@ pnpm dev
 接着运行以下命令，安装依赖:
 
 ```shell
+chmod +x entrypoint.sh    # 为 entrypoint.sh 添加可执行的权限
 cd ./liubai/liubai-backends/liubai-ffmpeg
 pnpm i
 ```
