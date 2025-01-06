@@ -55,7 +55,7 @@ function transformIntoMP3(id) {
   })
 }
 
-app.get("new", async (req, res) => {
+app.get("/new", async (req, res) => {
   // 1. check out params
   const amrUrl = req.query.url
   const amrId = req.query.id
@@ -102,6 +102,10 @@ app.get("new", async (req, res) => {
   // 5. send mp3
   const mp3Path = "/" + getPath(amrId, "mp3")
   res.send({ code: "0000", data: { mp3Path } })
+})
+
+app.get("/hello", (req, res) => {
+  res.send("this is liubai-ffmpeg with devbox & fluent-ffmpeg!")
 })
 
 
