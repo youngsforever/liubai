@@ -5,6 +5,7 @@ const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const fs2 = require('fs').promises
+const { Readable } = require('stream')
 
 const app = express()
 const port = 3000
@@ -35,7 +36,8 @@ async function downloadAMR(url, id) {
 
   // 2. write
   const writer = fs.createWriteStream(filePath)
-  response.body.pipe(writer)
+  const readableStream = Readable.from(response.body)
+  readableStream.pipe(writer)
 
   return new Promise((resolve, reject) => {
     writer.on("finish", resolve)
@@ -65,7 +67,7 @@ app.get("/new", async (req, res) => {
   }
 
   // 2. check out id
-  const stamp2 = Number(id)
+  const stamp2 = Number(amrId)
   const now2 = Date.now()
   if(!stamp2 || isNaN(stamp2)) {
     res.send({ code: "E4000", errMsg: "id is invalid" })
