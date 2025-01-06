@@ -57,6 +57,7 @@ function transformIntoMP3(id) {
   })
 }
 
+/************************* entry for transform AMR into MP3 ***************************/
 app.get("/new", async (req, res) => {
   // 1. check out params
   const amrUrl = req.query.url
@@ -110,7 +111,7 @@ app.get("/hello", (req, res) => {
   res.send("this is liubai-ffmpeg with devbox & fluent-ffmpeg!")
 })
 
-
+/**************************** check out dir ********************************/
 async function checkDir() {
   // 1. create ./static/amr
   try {
@@ -132,8 +133,54 @@ async function checkDir() {
     console.log(err)
   }
 }
-
 checkDir()
+
+
+/**************************** clear expired files ********************************/
+async function clearExpiredFiles(folderPath) {
+  const now = Date.now()
+  const MIN_10_AGO = now - 10 * 60 * 1000
+
+  let files
+  try {
+    files = await fs2.readdir(folderPath)
+  }
+  catch(err) {
+    console.warn("fail to read dir......")
+    console.log(err)
+    return
+  }
+
+  for(let i=0; i<files.length; i++) {
+    const file = files[i]
+
+    const filePath = path.join(folderPath, file)
+    const fileStamp = parseInt(file.split(".")[0], 10)
+    if(isNaN(fileStamp)) {
+      console.warn("cannot parse fileStamp: ")
+      console.log(file)
+      continue
+    }
+    if(fileStamp >= MIN_10_AGO) {
+      continue
+    }
+
+    try {
+      const deleteRes = await fs2.unlink(filePath)
+    }
+    catch(err) {
+      console.warn("fail to delete file: ")
+      console.log(err)
+    }
+  }
+
+}
+
+setInterval(() => {
+  clearExpiredFiles("./static/amr")
+  clearExpiredFiles("./static/mp3")
+}, 5 * 60 * 1000)
+
 
 app.listen(port, () => {
   console.log(`app is running on ${port}`)
