@@ -208,6 +208,7 @@ interface PostRunParam {
 interface TurnChatsIntoPromptOpt {
   abilities?: AiAbility[]
   metaData?: AiBotMetaData
+  character?: AiCharacter
 }
 
 interface BaseLLMChatOpt {
@@ -935,6 +936,7 @@ class BaseBot {
     const chatIntoPrompter = new ChatIntoPrompter(user, { 
       abilities: bot.abilities, 
       metaData: bot.metaData,
+      character: bot.character,
     })
     const prompts = chatIntoPrompter.run(chats)
 
@@ -1258,10 +1260,21 @@ class BaseBot {
         t,
         assistantName,
       )
-      console.warn("see newPrompts in _continueAfterWebSearch: ")
-      console.log(newPrompts)
       if(newPrompts.length < 1) return
       prompts.push(...newPrompts)
+    }
+
+    // print last 3 prompts
+    const msgLength = prompts.length
+    console.log(`last 3 prompts in _continueAfterWebSearch: `)
+    if(msgLength > 3) {
+      const messages2 = prompts.slice(msgLength - 3)
+      const printMsg = valTool.objToStr({ messages: messages2 })
+      console.log(printMsg)
+    }
+    else {
+      const printMsg = valTool.objToStr({ messages: prompts })
+      console.log(printMsg)
     }
 
     // 4. new chat create param
@@ -1282,7 +1295,7 @@ class BaseBot {
     const choice5 = res4.choices?.[0]
     const msg5 = choice5?.message
     console.log(msg5)
-    if(msg5.tool_calls) {
+    if(msg5?.tool_calls) {
       console.log(msg5.tool_calls[0])
     }
 
@@ -1416,7 +1429,10 @@ class BaseBot {
       return
     }
     let { finish_reason, message } = firstChoice
-    if(!message) return
+    if(!message) {
+      console.warn(`${c} no message! see firstChoice: `)
+      console.log(firstChoice)
+    }
     let { tool_calls } = message
 
     // 1.1 try to transform text into tool
@@ -1592,15 +1608,18 @@ class BotMiniMax extends BaseBot {
     const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
 
     // 5. to chat
-    const chatParam: OpenAI.Chat.ChatCompletionCreateParams = {
+    const chatParam: OaiCreateParam = {
       messages: prompts,
       max_tokens: maxToken,
       model,
       tools,
     }
     const chatCompletion = await this.chat(chatParam, bot)
+
+    // 6. handle audio result
+    this.handleAudio(chatParam, chatCompletion)
     
-    // 6. post run
+    // 7. post run
     const postParam: PostRunParam = {
       aiParam,
       chatParam,
@@ -1610,6 +1629,56 @@ class BotMiniMax extends BaseBot {
     const res6 = await this.postRun(postParam)
     return res6
   }
+
+  /** remove audio prompt from user 
+   * and replace it with choice[0].messages[0]
+  */
+  private handleAudio(
+    chatParam: OaiCreateParam,
+    chatCompletion?: OaiChatCompletion,
+  ) {
+    // 1. check out if there is message
+    const choice = chatCompletion?.choices[0]
+    if(!choice || choice.message) {
+      return
+    }
+    const choice2 = choice as any
+    const messages = choice2?.messages as OaiPrompt[] | undefined
+    if(!messages) return
+
+    // 2. get assistant message
+    const assistantMsg = messages.find(v => v.role === "assistant")
+    if(assistantMsg) {
+      console.warn("update assistant message: ")
+      console.log(assistantMsg)
+      delete assistantMsg.name
+      choice.message = assistantMsg as OaiMessage
+    }
+
+    // 3. get last user message whose type if input_audio
+    const prompts = chatParam.messages
+    const pLength = prompts.length
+    if(pLength < 1) return
+    const lastPrompt = prompts[pLength - 1]
+    if(!lastPrompt) return
+    if(lastPrompt.role !== "user") return
+    const lastContent = lastPrompt.content
+    if(!Array.isArray(lastContent)) return
+
+    const lastPart = lastContent[0]
+    if(lastPart.type !== "input_audio") return
+
+    const userMsg = messages.find(v => v.role === "user")
+    if(userMsg) {
+      console.warn("update last prompt: ")
+      console.log(userMsg)
+      delete userMsg.name
+      prompts[pLength - 1] = userMsg
+    }
+  }
+
+
+
 }
 
 class BotMoonshot extends BaseBot {
@@ -4123,12 +4192,13 @@ class ChatIntoPrompter {
     const _this = this
     const messages: OaiPrompt[] = []
     const opt = _this._opt
+    const cLength = chats.length
     
-    for(let i=0; i<chats.length; i++) {
+    for(let i=0; i<cLength; i++) {
       const v = chats[i]
 
       if(v.infoType === "user") {
-        const userPrompt = _this.turnForUser(v)
+        const userPrompt = _this.turnForUser(v, i, cLength)
         if(userPrompt) messages.push(userPrompt)
       }
       else if(v.infoType === "assistant") {
@@ -4315,7 +4385,11 @@ class ChatIntoPrompter {
     return toolMsg
   }
 
-  private turnForUser(v: Table_AiChat): OaiPrompt | undefined {
+  private turnForUser(
+    v: Table_AiChat,
+    index: number,
+    chatsLength: number,
+  ): OaiPrompt | undefined {
     const {
       text, 
       imageUrl,
@@ -4323,6 +4397,7 @@ class ChatIntoPrompter {
       msgType,
     } = v
     const canInputAudio = this._canInputAudio
+    const c = this._opt?.character
 
     if(imageUrl) {
       return {
@@ -4331,7 +4406,7 @@ class ChatIntoPrompter {
       }
     }
     if(msgType === "voice" && audioBase64 && canInputAudio) {
-      return {
+      const audioPrompt: OaiPrompt = {
         role: "user",
         content: [
           {
@@ -4342,6 +4417,10 @@ class ChatIntoPrompter {
             }
           }
         ]
+      }
+      if(!c) return audioPrompt
+      if(c === "hailuo" && index === 0) {
+        return audioPrompt
       }
     }
 
