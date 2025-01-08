@@ -208,10 +208,6 @@ async function handle_voice(
     return
   }
 
-  // // 2. send unsupported message
-  // const msg = _getUnsupportedMsg("voice_unsupported")
-  // sendText(wx_gzh_openid, msg)
-
   // 3. get user
   const user = await getUserByWxGzhOpenid(wx_gzh_openid)
   if(!user) return
