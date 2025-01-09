@@ -1,5 +1,6 @@
 {
   "name": "liubai-docs",
+  "private": true,
   "version": "0.6.0",
   "description": "It's the docs center for Liubai",
   "author": {
