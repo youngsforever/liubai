@@ -21,9 +21,12 @@ import cfg from "~/config"
 import ider from "~/utils/basic/ider"
 import liuUtil from "~/utils/liu-util"
 import localCache from "~/utils/system/local-cache"
-import { type SyncGet_CheckContents } from "~/types/cloud/sync-get/types"
+import { 
+  type LiuDownloadParcel, 
+  type SyncGet_ThreadList, 
+  type SyncGet_CheckContents,
+} from "~/types/cloud/sync-get/types"
 import { CloudMerger } from "~/utils/cloud/CloudMerger"
-import valTool from "~/utils/basic/val-tool"
 import { CloudEventBus } from "~/utils/cloud/CloudEventBus"
 import { useAwakeNum } from "~/hooks/useCommon"
 
@@ -271,6 +274,7 @@ function initKanbanColumns(
   const spaceIdRef = storeToRefs(wStore).spaceId
 
   const _getData = () => {
+    // console.log("initKanbanColumns......")
     toGetColumns(ctx)
     toGetThreads(ctx)
   }
@@ -291,78 +295,84 @@ async function toGetThreads(
   cloud: boolean = true,
 ) {
   const { kanban } = ctx
-  const unknown_ids: string[] = []
   for(let i=0; i<kanban.columns.length; i++) {
     const col = kanban.columns[i]
-
     const opt = {
       stateId: col.id, 
       excludeInKanban: false,
     }
-    const data = await stateController.getThreadsOfAState(opt)
-
+    const data = await stateController.getThreads(opt)
     col.hasMore = data.hasMore
     col.threads = data.threads
-
-    if(data.unknown_ids) {
-      unknown_ids.push(...data.unknown_ids)
-    }
   }
 
-  // console.log("unknown_ids in useStatePage:::")
-  // console.log(unknown_ids)
-  // console.log(" ")
-
   if(cloud) {
-    loadCloud(ctx, unknown_ids)
+    loadCloud(ctx)
   }
 }
 
 
 async function loadCloud(
   ctx: StatePageCtx,
-  unknown_ids: string[],
 ) {
+  // 1. check if we has logged in
   const hasBE = localCache.hasLoginWithBackend()
   if(!hasBE) return
-  if(unknown_ids.length < 1) return
+  const { kanban } = ctx
+  const wStore = useWorkspaceStore()
+  const spaceId = wStore.spaceId
+  if(!spaceId) {
+    console.warn("no spaceId!")
+    return
+  }
+  const ids: string[] = []
 
-  const MAX_TIMES = 8
-  let runTimes = 0
-  let loadAgain = false
+  // 2. to fetch
+  const promises: Array<Promise<LiuDownloadParcel[] | undefined>> = []
+  for(let i=0; i<kanban.columns.length; i++) {
+    const col = kanban.columns[i]
+    const param: SyncGet_ThreadList = {
+      taskType: "thread_list",
+      spaceId,
+      viewType: "STATE",
+      limit: cfg.max_kanban_thread,
+      stateId: col.id,
+    }
+    const pro = CloudMerger.request(param, { maxStackNum: 5 })
+    promises.push(pro)
+    ids.push(...col.threads.map(v => v._id))
+  }
 
-  console.log("start to poll cloud................")
-  console.time("useStatePage::loadCloud")
+  // 3. wait all promises
+  const res3 = await Promise.all(promises)
+  // console.warn("loadCloud in useStatePage: ")
+  // console.log(res3)
 
-  // 1. sync with cloud using while loops
-  while(true) {
-    runTimes += 1
-    if(runTimes > MAX_TIMES) break
+  // 4. handle ids which are not synced
+  for(let i=0; i<res3.length; i++) {
+    const parcels = res3[i]
+    if(!parcels) continue
+    for(let j=0; j<parcels.length; j++) {
+      const v = parcels[j]
+      const idx = ids.indexOf(v.id)
+      if(idx >= 0){
+        ids.splice(idx, 1)
+      }
+    }
+  }
 
-    let tmpList = unknown_ids.splice(0, 16)
-    if(tmpList.length < 1) break
-
-    const param: SyncGet_CheckContents = {
+  // 5. sync ids
+  if(ids.length > 0) {
+    const param5: SyncGet_CheckContents = {
       taskType: "check_contents",
-      ids: tmpList,
+      ids,
     }
-    const res = await CloudMerger.request(param, { delay: 16 })
-    if(!res) break
-    
-    loadAgain = true
-
-    if(unknown_ids.length < 1) {
-      break
-    }
-
-    await valTool.waitMilli(1000)
+    const res5 = await CloudMerger.request(param5)
+    console.log("check ids res5: ")
+    console.log(res5)
   }
 
-  console.timeEnd("useStatePage::loadCloud")
-
-  if(loadAgain) {
-    toGetThreads(ctx, false)
-  }
+  toGetThreads(ctx, false)
 }
 
 
