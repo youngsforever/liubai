@@ -11,9 +11,9 @@ export interface MenuItem {
   [otherKey: string]: any
 }
 
-export type MenuTrigger = "click" | "hover" | "focus" | "touch"
+type MenuTrigger = "click" | "hover" | "focus" | "touch"
 
-export type MenuPlacement = "bottom" | "bottom-start" | "bottom-end" 
+type MenuPlacement = "bottom" | "bottom-start" | "bottom-end" 
 | "auto" | "top" | "top-start" | "top-end"
 
 export interface LiuMenuProps {
