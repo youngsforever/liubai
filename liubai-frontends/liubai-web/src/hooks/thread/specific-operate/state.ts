@@ -92,7 +92,6 @@ export async function selectState(
 
   // 7. upload
   cloudOp.saveContentToCloud(newThread, operateStamp)
-  cloudOp.saveWorkspaceToCloud(workspace_id)
 
   // 8. 显示 snack-bar
   const t = i18n.global.t
@@ -145,7 +144,6 @@ export async function undoState(
 
   // 4. upload
   cloudOp.saveContentToCloud(oldThread, operateStamp, true)
-  cloudOp.saveWorkspaceToCloud(workspace_id, true)
 }
 
 // 浮上去
@@ -228,16 +226,32 @@ export async function setNewStateForThread(
   return true
 }
 
-// triggered by custom-editor
-export async function setStateForNewThread(
-  thread: ThreadShow,
+export async function updateStateForThread(
+  oldThread: ThreadShow,
+  newStateId: string,
+  newStateStamp: number,
 ) {
   const wStore = useWorkspaceStore()
-  const workspace_id = await handleWorkspace(wStore, thread)
-  if(!workspace_id) return
+  const newThread = liuUtil.copy.newData(oldThread)
 
-  cloudOp.saveWorkspaceToCloud(workspace_id)
-  
+  newThread.stateId = newStateId
+  newThread.stateStamp = newStateStamp
+  newThread.stateShow = commonPack.getStateShow(newStateId, wStore)
+
+  // 1. update local db
+  const operateStamp = await dbOp.setStateId(
+    newThread._id,
+    newThread.stateId,
+    newStateStamp,
+  )
+
+  // 2. notify globally
+  const tsStore = useThreadShowStore()
+  tsStore.setUpdatedThreadShows([newThread], "state")
+
+  // 3. upload
+  cloudOp.saveContentToCloud(newThread, operateStamp)
+
   return true
 }
 
