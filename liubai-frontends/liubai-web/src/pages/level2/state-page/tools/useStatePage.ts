@@ -351,9 +351,11 @@ async function loadCloud(
   // console.log(res3)
 
   // 4. handle ids which are not synced
+  let hasAnyPromiseSuccess = false
   for(let i=0; i<res3.length; i++) {
     const parcels = res3[i]
     if(!parcels) continue
+    hasAnyPromiseSuccess = true
     for(let j=0; j<parcels.length; j++) {
       const v = parcels[j]
       const idx = ids.indexOf(v.id)
@@ -364,7 +366,9 @@ async function loadCloud(
   }
 
   // 5. sync ids
-  if(ids.length > 0) {
+  if(hasAnyPromiseSuccess && ids.length > 0) {
+    console.warn("check ids: ")
+    console.log(ids)
     const param5: SyncGet_CheckContents = {
       taskType: "check_contents",
       ids,
@@ -374,7 +378,9 @@ async function loadCloud(
     console.log(res5)
   }
 
-  toGetThreads(ctx, false)
+  if(hasAnyPromiseSuccess) {
+    toGetThreads(ctx, false)
+  }
 }
 
 

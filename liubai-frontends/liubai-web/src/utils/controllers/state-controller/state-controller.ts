@@ -53,8 +53,6 @@ async function getThreads(
   if(excludeInKanban && !lastItemStamp) {
     const tmpOpt = { ...listOpt }
     const res2 = await threadController.getList(tmpOpt)
-    console.log("see res2 in getThreads of state-controller: ")
-    console.log(res2)
     const len2 = res2.length
     if(len2 < 1) return NOTHING_DATA
     const lastOne2 = res2[len2 - 1]

@@ -139,7 +139,7 @@ function whenColumnsSorted(
     return
   }
 
-  console.log("次序有发生变化哦..........")
+  // console.warn("次序有发生变化哦..........")
 
   stateController.stateListSorted(newStateIds)
 }
