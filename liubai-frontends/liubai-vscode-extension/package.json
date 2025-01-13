@@ -1,24 +1,45 @@
 {
   "name": "liubai-vscode-extension",
-  "displayName": "Liubai",
-  "description": "Liubai for VS-Code-Based IDE",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "ptsd",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.91.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "Ai-Native",
+    "Local-First",
+    "serverless",
+    "cross-platform",
+    "calendar",
+    "todo",
+    "notes",
+    "memo"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onUri"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "liubai-vscode-extension.helloWorld",
-        "title": "Hello World"
+        "command": "ptsd.liubai-vscode-extension.helloWorld",
+        "title": "%liubai.helloWorld.title%"
+      },
+      {
+        "command": "ptsd.liubai-vscode-extension.openBrowser",
+        "title": "Liubai: See console"
       }
     ]
   },
+  "extensionKind": [
+    "ui", "workspace"
+  ],
   "scripts": {
     "vscode:prepublish": "pnpm run package",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
