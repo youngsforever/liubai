@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import cfg from "../config"; 
 import valTool from '../utils/val-tool';
 import type { LiuAuthStatus } from '../types';
+import liuInfo from '../utils/liu-info';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 
@@ -25,16 +26,53 @@ export class AuthenticationManager {
     const _this = this
     this._context = context
 
-    // to register uri handler
+    // 1. to register uri handler
     const handler = {
       "handleUri": async (uri: vscode.Uri) => {
+        const uriPath = uri.path
+        console.warn("see uriPath: ")
+        console.log(uriPath)
+        if(uriPath !== "/auth-complete") {
+          console.warn("当前 uriPath 不是 /auth-complete")
+          return
+        }
+        console.log("see uri.query:")
+        console.log(uri.query)
 
+        const q = new URLSearchParams(uri.query)
+        const code = q.get("code")
+        const state = q.get("state")
+        console.log("see code: ", code)
+        console.log("see state: ", state)
       }
     }
+    vscode.window.registerUriHandler(handler)
+
+    // 2. to register `openBrowser` command
+    const info = liuInfo.getInfo()
+    const extId = info.extensionId
+    const uriScheme = info.uriScheme
+
+    const commandName = `${extId}.openBrowser`
+    const disposable2 = vscode.commands.registerCommand(commandName, async () => {
+      const callbackLink = `${uriScheme}://${extId}/auth-complete`;
+      const callbackUri = vscode.Uri.parse(callbackLink);
+      console.log(`callback uri: `, callbackUri);
+      console.log(`callback uri toString(): `, callbackUri.toString())
+  
+      const externalUri = await vscode.env.asExternalUri(callbackUri)
+      console.log(`external uri: `, externalUri)
+      console.log(`external uri toString(): `, externalUri.toString())
+
+      
+
+
+    })
+    context.subscriptions.push(disposable2)
   }
 
   private afterGettingCode() {
-    
+
   }
 
 

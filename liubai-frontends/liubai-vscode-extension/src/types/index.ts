@@ -10,8 +10,21 @@ export const liuIDETypes = [
   "vscode-insiders",
   "cursor",
   "windsurf",
+  "vscodium",
   "github.dev",
   "vscode.dev",
 ] as const
 
-export type LiuIDEType = typeof liuIDETypes[number] // hi
+export type LiuIDEType = typeof liuIDETypes[number]
+
+export interface LiuInfo {
+  ideType: LiuIDEType
+  isDesktop: boolean
+  isWeb: boolean
+  extensionId: string
+  extensionVersion: string
+  machineId: string
+  sessionId: string
+  uriScheme: string
+  remoteName?: string
+}

@@ -1,7 +1,38 @@
 const esbuild = require("esbuild");
+const dotenv = require('dotenv');
+const path = require('path');
+const { version } = require("./package.json")
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
+
+function handleEnv() {
+	// load .env
+	const cfg1 = dotenv.config().parsed || {}
+
+	// load .env.production or .env.development
+	const envFile = `.env.${process.env.NODE_ENV || 'development'}`
+	const cfg2 = dotenv.config({ 
+		path: path.resolve(__dirname, envFile),
+	}).parsed || {}
+	
+	// load .env.local
+  const cfg3 = dotenv.config({ 
+		path: path.resolve(__dirname, '.env.local')
+	}).parsed || {}
+	const mergedEnvConfig = { ...cfg1, ...cfg2, ...cfg3 }
+
+	// handle LIU_ENV
+	const _liuEnv = {
+		"LIU_ENV.EXT_VERSION": JSON.stringify(version),
+	}
+	for(const key in mergedEnvConfig) {
+		_liuEnv[`LIU_ENV.${key}`] = JSON.stringify(mergedEnvConfig[key])
+	}
+	return _liuEnv
+}
+
+const liuEnv = handleEnv()
 
 /**
  * @type {import('esbuild').Plugin}
@@ -35,6 +66,9 @@ async function buildNodeExtension() {
     outfile: 'dist/node/extension.js',
     external: ['vscode'],
     logLevel: 'silent',
+		define: {
+			...liuEnv,
+		},
     plugins: [esbuildProblemMatcherPlugin],
   })
   if (watch) {
@@ -58,9 +92,12 @@ async function buildWebExtension() {
 		external: ['vscode'],
 		logLevel: 'silent',
 		define: {
+			...liuEnv,
       global: 'globalThis',
     },
-		plugins: [esbuildProblemMatcherPlugin]
+		plugins: [
+			esbuildProblemMatcherPlugin,
+		]
 	})
 	if (watch) {
     await ctx.watch()

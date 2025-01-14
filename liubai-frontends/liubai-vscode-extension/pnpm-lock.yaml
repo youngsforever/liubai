@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@esbuild-plugins/node-globals-polyfill':
+        specifier: ^0.2.3
+        version: 0.2.3(esbuild@0.24.2)
       '@types/mocha':
         specifier: ^10.0.10
         version: 10.0.10
@@ -32,6 +35,9 @@ importers:
       '@vscode/test-web':
         specifier: ^0.0.65
         version: 0.0.65(bare-buffer@3.0.1)
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
       esbuild:
         specifier: ^0.24.0
         version: 0.24.2
@@ -49,6 +55,11 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@esbuild-plugins/node-globals-polyfill@0.2.3':
+    resolution: {integrity: sha512-r3MIryXDeXDOZh7ih1l/yE9ZLORCd5e8vWg02azWRGj5SPTuoh69A2AIyn0Z31V/kHBfZ4HgWJ+OK3GTTwLmnw==}
+    peerDependencies:
+      esbuild: '*'
 
   '@esbuild/aix-ppc64@0.24.2':
     resolution: {integrity: sha512-thpVCb/rhxE/BnMLQ7GReQLLN8q9qbHmI55F4489/ByVg2aQaQ6kbcLb6FHkocZzQhxc4gx0sCk0tJkKBFzDhA==}
@@ -686,6 +697,10 @@ packages:
   diff@5.2.0:
     resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
     engines: {node: '>=0.3.1'}
+
+  dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
+    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -1974,6 +1989,10 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@esbuild-plugins/node-globals-polyfill@0.2.3(esbuild@0.24.2)':
+    dependencies:
+      esbuild: 0.24.2
+
   '@esbuild/aix-ppc64@0.24.2':
     optional: true
 
@@ -2610,6 +2629,8 @@ snapshots:
   destroy@1.2.0: {}
 
   diff@5.2.0: {}
+
+  dotenv@16.4.7: {}
 
   dunder-proto@1.0.1:
     dependencies:
