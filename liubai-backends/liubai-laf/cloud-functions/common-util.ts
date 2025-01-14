@@ -532,7 +532,7 @@ export class LiuDateUtil {
     const d = new Date(newStamp)
     const currentStamp = localizeStamp(getNowStamp(), timezone)
     const d2 = new Date(currentStamp)
-    const { t } = useI18n(dateLang, { locale})
+    const { t } = useI18n(dateLang, { locale })
     
     const yyyy = valTool.format0(d.getFullYear())
     let mm = String(d.getMonth() + 1)
