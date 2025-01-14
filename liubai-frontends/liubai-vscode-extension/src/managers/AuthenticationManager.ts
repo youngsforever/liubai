@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import cfg from "../config"; 
 import valTool from '../utils/val-tool';
 import type { LiuAuthStatus } from '../types';
-import liuInfo from '../utils/liu-info';
+import liuInfo from '~/utils/liu-info';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
