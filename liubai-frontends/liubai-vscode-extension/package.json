@@ -42,6 +42,7 @@
     "ui",
     "workspace"
   ],
+  "logo": "images/logo_256x256_v3.png",
   "scripts": {
     "vscode:prepublish": "pnpm run package",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
