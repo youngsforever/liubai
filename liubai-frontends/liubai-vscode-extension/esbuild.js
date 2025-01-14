@@ -10,17 +10,26 @@ function handleEnv() {
 	// load .env
 	const cfg1 = dotenv.config().parsed || {}
 
-	// load .env.production or .env.development
-	const envFile = `.env.${process.env.NODE_ENV || 'development'}`
-	const cfg2 = dotenv.config({ 
-		path: path.resolve(__dirname, envFile),
-	}).parsed || {}
-	
 	// load .env.local
-  const cfg3 = dotenv.config({ 
+  const cfg2 = dotenv.config({ 
 		path: path.resolve(__dirname, '.env.local')
 	}).parsed || {}
-	const mergedEnvConfig = { ...cfg1, ...cfg2, ...cfg3 }
+
+	// load .env.production or .env.development
+	const proOrDev = production ? "production" : "development"
+	const envFile3 = `.env.${proOrDev}`
+	const cfg3 = dotenv.config({ 
+		path: path.resolve(__dirname, envFile3),
+	}).parsed || {}
+
+	// load .env.development.local or .env.production.local
+	const envFile4 = `.env.${proOrDev}.local`
+	const cfg4 = dotenv.config({ 
+		path: path.resolve(__dirname, envFile4),
+	}).parsed || {}
+	
+	// merge environment variables
+	const mergedEnvConfig = { ...cfg1, ...cfg2, ...cfg3, ...cfg4 }
 
 	// handle LIU_ENV
 	const _liuEnv = {
