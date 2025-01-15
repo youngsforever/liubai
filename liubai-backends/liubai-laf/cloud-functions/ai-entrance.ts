@@ -788,6 +788,7 @@ class BaseLLM {
       costBaseUrl: this._baseUrl,
       userId: opt?.user?._id,
       choices: chatCompletion.choices,
+      model: chatCompletion.model,
     }
     logCol.add(aLog)
   }
