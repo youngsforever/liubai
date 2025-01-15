@@ -3,5 +3,6 @@
   "appPrefix": "[Liubai] ",
   "login.h1": "You have not logged in yet",
   "login.sign_in": "Sign in",
-  "common.cancel": "Cancel"
+  "common.cancel": "Cancel",
+  "common.env_unsupported": "The current environment does not support running this extension"
 }

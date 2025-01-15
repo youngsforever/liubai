@@ -1,7 +1,8 @@
+const polyfill = require("esbuild-plugin-polyfill-node");
 const esbuild = require("esbuild");
 const dotenv = require('dotenv');
 const path = require('path');
-const { version } = require("./package.json")
+const { version } = require("./package.json");
 
 const production = process.argv.includes('--production');
 const watch = process.argv.includes('--watch');
@@ -105,6 +106,17 @@ async function buildWebExtension() {
       global: 'globalThis',
     },
 		plugins: [
+			polyfill.polyfillNode({
+				globals: {
+					"buffer": false,
+					"process": false,
+					"Buffer": false,
+				},
+				polyfills: {
+					"buffer": false,
+					"crypto": true,
+				}
+			}),
 			esbuildProblemMatcherPlugin,
 		]
 	})

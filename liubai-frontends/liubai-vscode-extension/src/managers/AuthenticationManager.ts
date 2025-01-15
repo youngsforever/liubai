@@ -12,10 +12,6 @@ export class AuthenticationManager {
   private static _instance: AuthenticationManager;
   private _context: vscode.ExtensionContext;
 
-  // data after logging in
-  private _serial = "";
-  private _token = "";
-
   // data before logging in
   private _state: string | undefined;
   private _credential: string | undefined;
@@ -105,24 +101,13 @@ export class AuthenticationManager {
     return AuthenticationManager._instance
   }
 
-  public async checkAuthStatus() {
+  public async getAuthStatus() {
     const res = await this._context.secrets.get(LOGIN_DATA_KEY)
-    if(!res) return false
+    if(!res) return
     const data = valTool.strToObj<LiuAuthStatus>(res)
-    if(!data || !data.serial || !data.token) return false
-    this._serial = data.serial
-    this._token = data.token
-
-    return true
+    if(!data || !data.serial || !data.token) return
+    return data
   }
-
-  public getAuthStatus(): LiuAuthStatus {
-    return {
-      serial: this._serial,
-      token: this._token,
-    }
-  }
-
 
 
 }

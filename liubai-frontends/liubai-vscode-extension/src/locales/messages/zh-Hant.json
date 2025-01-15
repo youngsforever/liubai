@@ -3,5 +3,6 @@
   "appPrefix": "[留白記事] ",
   "login.h1": "尚未登入，請先登入",
   "login.sign_in": "登入",
-  "common.cancel": "取消"
+  "common.cancel": "取消",
+  "common.env_unsupported": "當前環境不支援執行本延伸模組"
 }

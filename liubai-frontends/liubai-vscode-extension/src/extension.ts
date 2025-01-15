@@ -4,6 +4,30 @@ import * as vscode from 'vscode';
 import { AuthenticationManager } from './managers/AuthenticationManager';
 import liuInfo from './utils/liu-info';
 import { i18n } from './locales/i18n';
+import liuUtil from './utils/liu-util';
+
+function isSafeEnvironment() {
+	const theCrypto = liuUtil.crypto.getCrypto()
+
+	if(!theCrypto) {
+		console.warn("the crypto object is undefined")
+		return false
+	}
+
+	if(!theCrypto.subtle) {
+		console.warn("the subtle object is undefined")
+		return false
+	}
+
+	return true
+}
+
+async function testCrypto() {
+	console.log("try to create key with AES")
+	const key = await liuUtil.crypto.createKeyWithAES()
+	console.log("key: ", key)
+}
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -13,6 +37,12 @@ export function activate(context: vscode.ExtensionContext) {
 	i18n.init()
 	console.log("see custom info: ")
 	console.log(info)
+
+	if(!isSafeEnvironment()) {
+		vscode.window.showWarningMessage(i18n.t("common.env_unsupported"))
+		return
+	}
+	testCrypto()
 
 	const authManager = AuthenticationManager.getInstance(context)
 
