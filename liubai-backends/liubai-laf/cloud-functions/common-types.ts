@@ -1283,6 +1283,7 @@ export interface Table_LogAi extends BaseTable {
   costBaseUrl?: string
   userId?: string
   choices?: any
+  model?: string
 }
 
 /** User表 */

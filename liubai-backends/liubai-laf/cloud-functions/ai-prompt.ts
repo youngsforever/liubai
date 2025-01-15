@@ -44,10 +44,10 @@ export const aiBots: AiBot[] = [
     name: "海螺",
     character: "hailuo",
     provider: "minimax",
-    model: "abab6.5s-chat",
+    model: "MiniMax-Text-01",
     abilities: ["chat", "tool_use", "image_to_text", "input_audio"],
     alias: ["MM智能助理", "海螺AI"],
-    maxWindowTokenK: 245,
+    maxWindowTokenK: 1000,
     metaData: {
       onlyOneSystemRoleMsg: true,
     }
