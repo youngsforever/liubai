@@ -50,10 +50,20 @@ const objToStr = <T = any>(obj: T): string => {
   return str
 }
 
+const format0 = (val: string | number): string => {
+  if(typeof val === "number") {
+    if(val < 10) return "0" + val
+    return "" + val  
+  }
+  if(val.length < 2) return "0" + val
+  return val
+}
+
 
 export default {
   waitMilli,
   copyObject,
   strToObj,
   objToStr,
+  format0,
 }

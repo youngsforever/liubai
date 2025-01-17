@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import cfg from "../config"; 
-import valTool from '../utils/val-tool';
+import valTool from '../utils/basic/val-tool';
 import type { LiuAuthStatus } from '../types';
 import liuInfo from '~/utils/liu-info';
+import liuReq from '~/requests/liu-req';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
@@ -106,6 +107,7 @@ export class AuthenticationManager {
     if(!res) return
     const data = valTool.strToObj<LiuAuthStatus>(res)
     if(!data || !data.serial || !data.token) return
+    liuReq.setAuthStatus(data)
     return data
   }
 
