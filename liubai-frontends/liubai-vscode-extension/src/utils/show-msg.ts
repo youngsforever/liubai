@@ -2,6 +2,44 @@ import { i18n } from "~/locales/i18n"
 import type { LiuErrReturn } from "~/types"
 import * as vscode from 'vscode';
 
+
+function _getCustomerServiceLink() {
+  const customerService = LIU_ENV.CUSTOMER_SERVICE
+  const devEmail = LIU_ENV.DEVELOPER_EMAIL
+  let link: string | undefined
+  if(customerService) {
+    link = customerService
+  }
+  else if(devEmail) {
+    link = `mailto:${devEmail}`
+  }
+  return link
+}
+
+export async function showWarning(
+  msg: string,
+) {
+  const link = _getCustomerServiceLink()
+
+  // 1. show without link
+  const w = vscode.window
+  if(!link) {
+    w.showWarningMessage(msg)
+    return true
+  }
+
+  // 2. show with link
+  const contactUs = i18n.t("tip.contact_us")
+  const cancelTxt = i18n.t("common.cancel")
+  const res2 = await w.showWarningMessage(msg, contactUs, cancelTxt)
+  if(res2 === contactUs) {
+    const externalUri = vscode.Uri.parse(link)
+    vscode.env.openExternal(externalUri)
+  }
+  
+  return true
+}
+
 export async function showErrMsg(
   theType: "login" | "other",
   res: LiuErrReturn,
@@ -32,31 +70,6 @@ export async function showErrMsg(
   msg += i18n.t(content_key, content_opt)
 
   // 5. handle customer service link
-  const customerService = LIU_ENV.CUSTOMER_SERVICE
-  const devEmail = LIU_ENV.DEVELOPER_EMAIL
-  let link: string | undefined
-  if(customerService) {
-    link = customerService
-  }
-  else if(devEmail) {
-    link = `mailto:${devEmail}`
-  }
-
-  // 6. show without link
-  if(!link) {
-    vscode.window.showWarningMessage(msg)
-    return true
-  }
-
-  // 7. show with link
-  const contactUs = i18n.t("tip.contact_us")
-  const cancelTxt = i18n.t("common.cancel")
-  const w = vscode.window
-  const res1 = await w.showWarningMessage(msg, contactUs, cancelTxt)
-  if(res1 === contactUs) {
-    const externalUri = vscode.Uri.parse(link)
-    vscode.env.openExternal(externalUri)
-  }
-  
-  return true
+  const res5 = showWarning(msg)
+  return res5
 }

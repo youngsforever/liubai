@@ -108,12 +108,9 @@ async function buildWebExtension() {
 		plugins: [
 			polyfill.polyfillNode({
 				globals: {
-					"buffer": false,
 					"process": false,
-					"Buffer": false,
 				},
 				polyfills: {
-					"buffer": false,
 					"crypto": true,
 				}
 			}),

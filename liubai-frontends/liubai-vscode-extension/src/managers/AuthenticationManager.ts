@@ -8,7 +8,8 @@ import APIs from '~/requests/APIs';
 import time from '~/utils/basic/time';
 import type { Res_HelloWorld, Res_UserLoginInit } from '~/types/types-req';
 import { i18n } from '~/locales/i18n';
-import { showErrMsg } from '~/utils/show-msg';
+import { showErrMsg, showWarning } from '~/utils/show-msg';
+import { createClientKey } from "./tools/common-tools"
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
@@ -21,6 +22,8 @@ export class AuthenticationManager {
 
   // data before logging in
   private _state: string | undefined;
+  private _client_key: string | undefined;
+  private _enc_client_key: string | undefined;
   private _credential: string | undefined;
   private _code: string | undefined;
 
@@ -76,6 +79,8 @@ export class AuthenticationManager {
 
 
   private async startToLogin() {
+    const _this = this
+
     // 1. show message and wait user confirm
     const res1 = await this.showLoginFirst()
     if(!res1) return
@@ -94,11 +99,25 @@ export class AuthenticationManager {
     })
     const { data: data3 } = res3
     const pk = data3?.publicKey
-    if(!pk) {
+    const state = data3?.state
+    if(!data3 || !pk || !state) {
       showErrMsg("login", res3)
       return
     }
 
+    // 4. client_key, enc_client_key, and state
+    _this._state = state
+    const { aesKey, cipher } = await createClientKey(pk)
+    console.log("see aesKey: ")
+    console.log(aesKey)
+    console.log("see cipher: ")
+    console.log(cipher)
+    if(!aesKey || !cipher) {
+      showWarning("Fail to create client key")
+      return
+    }
+    _this._client_key = aesKey
+    _this._enc_client_key = cipher
 
   }
 
@@ -112,7 +131,6 @@ export class AuthenticationManager {
 		const confirmTxt = i18n.t("login.sign_in")
 		const cancelTxt = i18n.t("common.cancel")
     const res = await vscode.window.showInformationMessage(title, confirmTxt, cancelTxt)
-    console.log("res of showLoginFirst: ", res)
 		return Boolean(res === confirmTxt)
   }
 

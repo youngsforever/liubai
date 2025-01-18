@@ -1,16 +1,6 @@
 import * as crypto from "crypto";
 import type { CryptoCipherAndIV } from "~/types";
 
-/** 将字符串转换为 ArrayBuffer */
-function str2ab(str: string) {
-  const buf = new ArrayBuffer(str.length);
-  const bufView = new Uint8Array(buf);
-  for (let i = 0, strLen = str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
-}
-
 function trimPemContents(
   str: string,
   direction: 1 | -1,      // 1: 由前往后; -1 由后往前
@@ -61,24 +51,11 @@ async function importRsaPublicKey(pem: string) {
   const pemFooter = "-----END PUBLIC KEY-----"
   const pemContents = getPemContents(pem, pemHeader, pemFooter)
 
-  let binaryDerString = ""
-  let binaryDer: ArrayBuffer | undefined
-
   try {
-    binaryDerString = handleAtob(pemContents)
-    binaryDer = str2ab(binaryDerString)
-  }
-  catch(err1) {
-    console.warn("err1: ")
-    console.log(err1)
-    console.log(" ")
-    return null
-  }
-
-  let key: crypto.webcrypto.CryptoKey
-  const theCrypto = getCrypto()
-  try {
-    key = await theCrypto.subtle.importKey(
+    // 直接从 base64 转换为 Uint8Array
+    const binaryDer = Buffer.from(pemContents, 'base64');
+    const theCrypto = getCrypto()
+    const key = await theCrypto.subtle.importKey(
       "spki",
       binaryDer,
       {
@@ -87,16 +64,14 @@ async function importRsaPublicKey(pem: string) {
       },
       true,
       ["encrypt"],
-    )
-  }
-  catch(err2) {
-    console.warn(err2)
-    console.log(err2)
-    console.log(" ")
+    );
+
+    return key;
+  } catch(err) {
+    console.warn("Key import failed:")
+    console.log(err)
     return null
   }
-
-  return key
 }
 
 /**
@@ -114,12 +89,8 @@ function arrayBufferToBase64(arrayBuffer: ArrayBuffer) {
   return b64
 }
 
-function handleBtoa(str: string) {
-  return Buffer.from(str, 'utf8').toString('base64');
-}
-
 function handleAtob(str: string) {
-  return Buffer.from(str, 'base64').toString('utf8');
+  return Buffer.from(str, 'base64').toString('binary');
 }
 
 /**
@@ -275,6 +246,7 @@ async function encryptWithRSA(
 
 export default {
   getCrypto,
+  importRsaPublicKey,
   createKeyWithAES,
   encryptWithAES,
   decryptWithAES,
