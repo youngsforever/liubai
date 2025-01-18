@@ -4,6 +4,9 @@ import valTool from '../utils/basic/val-tool';
 import type { LiuAuthStatus } from '../types';
 import liuInfo from '~/utils/liu-info';
 import liuReq from '~/requests/liu-req';
+import APIs from '~/requests/APIs';
+import time from '~/utils/basic/time';
+import { Res_HelloWorld } from '~/types/types-req';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
@@ -12,6 +15,7 @@ export class AuthenticationManager {
 
   private static _instance: AuthenticationManager;
   private _context: vscode.ExtensionContext;
+  private _calibrated: boolean = false;
 
   // data before logging in
   private _state: string | undefined;
@@ -48,6 +52,38 @@ export class AuthenticationManager {
 
     })
     context.subscriptions.push(disposable2)
+
+    // 4. init async
+    this.initAsync()
+  }
+
+  private async initAsync() {
+    // 1. calibrate time
+    await this.timeCalibrate()
+
+    // 2. check out auth status
+    await this.getAuthStatus()
+
+  
+  }
+
+
+  private async timeCalibrate() {
+    const url = APIs.TIME
+    const t1 = time.getLocalTime()
+    const res = await liuReq.request<Res_HelloWorld>(url)
+    const t2 = time.getLocalTime()
+    const { code, data } = res
+    if(code !== "0000") return
+    if(!data) return
+
+    const clientStamp = Math.round((t2 + t1) / 2)
+    const theStamp = data.stamp
+    const diff = theStamp - clientStamp
+    time.setDiff(diff)
+
+    this._calibrated = true
+    return true
   }
 
 
