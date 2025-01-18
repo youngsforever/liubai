@@ -1,6 +1,9 @@
 import { i18n } from "~/locales/i18n"
 import type { LiuErrReturn } from "~/types"
 import * as vscode from 'vscode';
+import time from "./basic/time";
+import valTool from "./basic/val-tool";
+import type { ReturnPromise } from "./basic/type-tool";
 
 
 function _getCustomerServiceLink() {
@@ -15,6 +18,48 @@ function _getCustomerServiceLink() {
   }
   return link
 }
+
+export interface LiuProgressOpt {
+  location: vscode.ProgressLocation
+  titleKey?: string
+  titleOpt?: Record<string, string | number>
+  cancellable?: boolean
+  minMillis?: number       // by default 1000
+}
+
+export async function showProgress<R>(
+  opt: LiuProgressOpt,
+  fn: ReturnPromise<R>,
+) {
+  const w = vscode.window
+  let title: string | undefined
+  if(opt.titleKey) {
+    title = i18n.t(opt.titleKey, opt.titleOpt)
+  }
+  const minMillis = opt.minMillis ?? 600
+
+  const res2 = await w.withProgress({
+    title,
+    location: opt.location,
+    cancellable: opt.cancellable,
+  }, async (progress, token) => {
+    const t1 = time.getLocalTime()
+    const res = await fn()
+    const t2 = time.getLocalTime()
+    if(token.isCancellationRequested) return
+
+    const diff = t2 - t1
+    if(diff < minMillis) {
+      const ms = Math.max(minMillis - diff, 60)
+      await valTool.waitMilli(ms)
+    }
+    
+    return res
+  })
+
+  return res2
+}
+
 
 export async function showWarning(
   msg: string,

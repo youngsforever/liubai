@@ -8,7 +8,7 @@ import APIs from '~/requests/APIs';
 import time from '~/utils/basic/time';
 import type { Res_HelloWorld, Res_UserLoginInit } from '~/types/types-req';
 import { i18n } from '~/locales/i18n';
-import { showErrMsg, showWarning } from '~/utils/show-msg';
+import { showErrMsg, showProgress, showWarning } from '~/utils/show-msg';
 import { createClientKey } from "./tools/common-tools"
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
@@ -92,20 +92,30 @@ export class AuthenticationManager {
       return
     }
 
-    // 3. request data before logging in
-    const url3 = APIs.LOGIN
-    let res3 = await liuReq.request<Res_UserLoginInit>(url3, { 
-      operateType: "init",
+    // 3. show progress and then fetch data for init
+    const res3_2 = await showProgress({
+      titleKey: "login.preparing",
+      cancellable: true,
+      location: vscode.ProgressLocation.Notification,
+    }, async () => {
+      const url3_1 = APIs.LOGIN
+      const res3_1 = await liuReq.request<Res_UserLoginInit>(url3_1, { 
+        operateType: "init",
+      })
+      return res3_1
     })
-    const { data: data3 } = res3
-    const pk = data3?.publicKey
-    const state = data3?.state
-    if(!data3 || !pk || !state) {
-      showErrMsg("login", res3)
+    if(!res3_2) return
+    
+    // 4. get pk
+    const { data: data4 } = res3_2
+    const pk = data4?.publicKey
+    const state = data4?.state
+    if(!data4 || !pk || !state) {
+      showErrMsg("login", res3_2)
       return
     }
 
-    // 4. client_key, enc_client_key, and state
+    // 5. client_key, enc_client_key, and state
     _this._state = state
     const { aesKey, cipher } = await createClientKey(pk)
     console.log("see aesKey: ")
