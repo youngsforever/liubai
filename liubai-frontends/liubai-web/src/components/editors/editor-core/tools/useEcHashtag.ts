@@ -14,7 +14,8 @@ export function useEcHashtag(
 
   let lastTriggerStamp = 0
   let lastProcessStamp = 0   // 注音鍵盤會出現 Process 這個 e.key
-  let lastHashAndThreeStamp = 0
+  let lastThreeStamp = 0
+  let lastHashStamp = 0
   let lastShiftStamp = 0
 
   const _canTriggerThenGetEditor = () => {
@@ -42,37 +43,64 @@ export function useEcHashtag(
     const now = time.getTime()
     const key = e.key
     if(key === "Process") {
+      // console.log("this is process")
       lastProcessStamp = now
       return
     }
-    else if(key === "3" || key === "#") {
-      lastHashAndThreeStamp = now
+    else if(key === "3") {
+      // console.log("this is three")
+      lastThreeStamp = now
+    }
+    else if(key === "#") {
+      // console.log("this is hash")
+      lastHashStamp = now
     }
     else if(key === "Shift") {
+      // console.log("this is shift")
       lastShiftStamp = now
     }
     else {
       return
     }
     const diff1 = Math.abs(lastShiftStamp - lastProcessStamp)
-    const diff2 = Math.abs(lastHashAndThreeStamp - lastProcessStamp)
-    if(diff1 < 250 && diff2 < 10) {
-      lastTriggerStamp = time.getTime()
+    const diff2 = Math.abs(lastThreeStamp - lastProcessStamp)
+
+    // console.log("diff1: ", diff1)
+    // console.log("diff2: ", diff2)
+
+    if(diff1 < 250 && diff2 < 250) {
+      lastTriggerStamp = now
       triggerHashTagEditor(editor, emits)
+      return
     }
+
+    const diff3 = Math.abs(now - lastHashStamp)
+    // console.log("diff3: ", diff3)
+    if(diff3 < 250) {
+      lastTriggerStamp = now
+      triggerHashTagEditor(editor, emits)
+      return
+    }
+
   }
 
   const whenKeyDown = (e: KeyboardEvent) => {
     if(!props.hashTrigger) return
 
     const key = e.key
-    if(key !== "#") return
+    if(key === "#" || key === "＃") {
+      // console.warn("we found # when key down")
+      lastHashStamp = time.getTime() 
+    }
+    else if(key === "Shift") {
+      // console.warn("we found Shift when key down")
+      lastShiftStamp = time.getTime()
+    }
+    else if(key === "Process") {
+      // console.warn("we found Process when key down")
+      lastProcessStamp = time.getTime()
+    }
 
-    const editor = _canTriggerThenGetEditor()
-    if(!editor) return
-
-    lastTriggerStamp = time.getTime()
-    triggerHashTagEditor(editor, emits)
   }
 
   useKeyboard({ whenKeyDown, whenKeyUp })
@@ -90,15 +118,21 @@ async function triggerHashTagEditor(
 
   if(res.text) emits("addhashtag", res)
 
-  // 查看是否要删掉 #
+  // check if the textarea is empty or not
   const { state } = editor
   const { selection } = state
   const { $from, empty } = selection
   if(!empty) return
+
+  // Check if the previous character is '#'"
+  const pos = $from.pos
+  const prevChar = state.doc.textBetween(pos - 1, pos)
+  if(prevChar !== "#" && prevChar !== "＃") return
+  
   editor.chain()
     .focus()
     .command(({ tr }) => {
-      tr.delete($from.pos - 1, $from.pos)
+      tr.delete(pos - 1, pos)
       return true
     })
     .run()
