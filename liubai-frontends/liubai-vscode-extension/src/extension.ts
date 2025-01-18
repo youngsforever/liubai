@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	const disposable1 = vscode.commands.registerCommand(`${info.extensionId}.helloWorld`, async () => {
-		const title = i18n.t("appPrefix") + i18n.t("login.h1")
+		const title = i18n.t("login.h1")
 		const confirmTxt = i18n.t("login.sign_in")
 		const cancelTxt = i18n.t("common.cancel")
 		const res = await vscode.window.showInformationMessage(title, confirmTxt, cancelTxt)

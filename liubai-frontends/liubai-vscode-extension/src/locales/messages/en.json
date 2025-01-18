@@ -1,8 +1,15 @@
 {
-  "appName": "Liubai",
-  "appPrefix": "[Liubai] ",
   "login.h1": "You have not logged in yet",
+  "login.has_signed_in": "🎉 You have logged in!",
   "login.sign_in": "Sign in",
+  "login.preparing": "Preparing for login...",
+  "login.logging": "Logging in...\nPlease complete the authorization in the browser...",
+  "login.err": "[Login Error] ",
   "common.cancel": "Cancel",
-  "common.env_unsupported": "The current environment does not support running this extension"
+  "common.env_unsupported": "The current environment does not support running this extension",
+  "tip.err_1": "An unknown error occurred. Please try again later.\n(Code: {code})",
+  "tip.err_2": "{errMsg}\n(Code: {code})",
+  "tip.unknown_err": "[Unknown Error] ",
+  "tip.try_again_later": "Please try again later",
+  "tip.contact_us": "Contact us"
 }

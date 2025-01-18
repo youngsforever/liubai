@@ -6,7 +6,9 @@ import liuInfo from '~/utils/liu-info';
 import liuReq from '~/requests/liu-req';
 import APIs from '~/requests/APIs';
 import time from '~/utils/basic/time';
-import { Res_HelloWorld } from '~/types/types-req';
+import type { Res_HelloWorld, Res_UserLoginInit } from '~/types/types-req';
+import { i18n } from '~/locales/i18n';
+import { showErrMsg } from '~/utils/show-msg';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
@@ -62,9 +64,56 @@ export class AuthenticationManager {
     await this.timeCalibrate()
 
     // 2. check out auth status
-    await this.getAuthStatus()
+    const res2 = await this.getAuthStatus()
+    if(res2) {
+      console.log("it is already logged in")
+      return
+    }
 
-  
+    // 3. request login first to user
+    this.startToLogin()
+  }
+
+
+  private async startToLogin() {
+    // 1. show message and wait user confirm
+    const res1 = await this.showLoginFirst()
+    if(!res1) return
+
+    // 2. check out auth status again
+    const res2 = await this.getAuthStatus()
+    if(res2) {
+      this.showLoggedIn(res2)
+      return
+    }
+
+    // 3. request data before logging in
+    const url3 = APIs.LOGIN
+    let res3 = await liuReq.request<Res_UserLoginInit>(url3, { 
+      operateType: "init",
+    })
+    const { data: data3 } = res3
+    const pk = data3?.publicKey
+    if(!pk) {
+      showErrMsg("login", res3)
+      return
+    }
+
+
+  }
+
+  private showLoggedIn(authStatus: LiuAuthStatus) {
+    const title_1 = i18n.t("login.has_signed_in")
+    vscode.window.showInformationMessage(title_1)
+  }
+
+  private async showLoginFirst() {
+    const title = i18n.t("login.h1")
+		const confirmTxt = i18n.t("login.sign_in")
+		const cancelTxt = i18n.t("common.cancel")
+    const res = await vscode.window.showInformationMessage(title, confirmTxt, cancelTxt)
+    console.log("res of showLoginFirst: ", res)
+		return Boolean(res === confirmTxt)
   }
 
 
