@@ -173,7 +173,7 @@ export function createSignInCredential() {
 }
 
 export function createAuthCode() {
-  return "ac0" + createRandom(32)
+  return createEmailCode()
 }
 
 export function createCredential2() {
