@@ -83,6 +83,10 @@ export function showProgressWithStop(
   let _resolve: ProgressResolver | undefined
   const notiLocation = opt.location ?? vscode.ProgressLocation.Notification
 
+  const stop = () => {
+    _resolve?.(true)
+  }
+
   w.withProgress({
     title,
     location: notiLocation,
@@ -90,16 +94,13 @@ export function showProgressWithStop(
   }, (progress, token) => {
     token.onCancellationRequested(() => {
       opt.onCancellationRequested?.()
+      stop()
     })
     const _wait = (a: ProgressResolver) => {
       _resolve = a
     }
     return new Promise(_wait)
   })
-
-  const stop = () => {
-    _resolve?.(true)
-  }
 
   return { stop }
 }

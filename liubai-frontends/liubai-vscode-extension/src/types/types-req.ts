@@ -4,10 +4,33 @@ export interface Res_HelloWorld {
   stamp: number
 }
 
-export interface Res_UserLoginInit {
-  publicKey?: string
-  githubOAuthClientId?: string
-  googleOAuthClientId?: string
-  wxGzhAppid?: string
-  state?: string
+/****************** user-login api ***************/
+export namespace UserLoginAPI {
+  export interface Param_AuthRequest {
+    operateType: "auth_request"
+    redirect_uri: string
+    state: string
+  }
+
+  export interface Res_AuthRequest {
+    operateType: "auth_request"
+    credential: string
+    baseUrl: string
+  }
+
+  export interface Param_AuthSubmit {
+    operateType: "auth_submit"
+    credential: string
+    code: string
+    enc_client_key: string
+  }
+
+  export interface Res_Init {
+    publicKey?: string
+    githubOAuthClientId?: string
+    googleOAuthClientId?: string
+    wxGzhAppid?: string
+    state?: string
+  }
+
 }

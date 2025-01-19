@@ -6,9 +6,17 @@ import liuInfo from '~/utils/liu-info';
 import liuReq from '~/requests/liu-req';
 import APIs from '~/requests/APIs';
 import time from '~/utils/basic/time';
-import type { Res_HelloWorld, Res_UserLoginInit } from '~/types/types-req';
+import { 
+  type Res_HelloWorld,
+  UserLoginAPI,
+} from '~/types/types-req';
 import { i18n } from '~/locales/i18n';
-import { showErrMsg, showProgress, showProgressWithStop, showWarning } from '~/utils/show-msg';
+import { 
+  showErrMsg, 
+  showProgress, 
+  showProgressWithStop, 
+  showWarning,
+} from '~/utils/show-msg';
 import { createClientKey } from "./tools/common-tools"
 import type { SimpleFunc } from '~/utils/basic/type-tool';
 
@@ -39,30 +47,7 @@ export class AuthenticationManager {
     // 1. to register uri handler for `code`
     this.initListenToCode()
     
-
-    // 2. to register `openBrowser` command
-    const info = liuInfo.getInfo()
-    const extId = info.extensionId
-    const uriScheme = info.uriScheme
-
-    const commandName = `${extId}.openBrowser`
-    const disposable2 = vscode.commands.registerCommand(commandName, async () => {
-      const callbackLink = `${uriScheme}://${extId}${AUTH_CALLBACK_PATH}`
-      const callbackUri = vscode.Uri.parse(callbackLink)
-      console.log(`callback uri: `, callbackUri)
-      console.log(`callback uri toString(): `, callbackUri.toString())
-  
-      const externalUri = await vscode.env.asExternalUri(callbackUri)
-      console.log(`external uri: `, externalUri)
-      console.log(`external uri toString(): `, externalUri.toString())
-
-      const appLink = LIU_ENV.LIU_DOMAIN ?? ""
-      const appUri = vscode.Uri.parse(appLink, true)
-
-    })
-    context.subscriptions.push(disposable2)
-
-    // 4. init async
+    // 2. init async
     this.initAsync()
   }
 
@@ -102,12 +87,15 @@ export class AuthenticationManager {
       cancellable: true,
     }, async () => {
       const url3_1 = APIs.LOGIN
-      const res3_1 = await liuReq.request<Res_UserLoginInit>(url3_1, { 
-        operateType: "init",
-      })
+      const res3_1 = await liuReq.request<UserLoginAPI.Res_Init>(
+        url3_1, 
+        { operateType: "init" }
+      )
       return res3_1
     })
     if(!res3_2) return
+    // console.log("see res3_2: ")
+    // console.log(res3_2)
     
     // 4. get pk
     const { data: data4 } = res3_2
@@ -145,6 +133,60 @@ export class AuthenticationManager {
     })
     _this._stopProgressForLogging = stop
 
+    // 7. get redirect_uri
+    const info = liuInfo.getInfo()
+    const extId = info.extensionId
+    const uriScheme = info.uriScheme
+    const callbackLink = `${uriScheme}://${extId}${AUTH_CALLBACK_PATH}`
+    const callbackUri = vscode.Uri.parse(callbackLink)
+    const outCallbackUri = await vscode.env.asExternalUri(callbackUri)
+    const tmpLink = outCallbackUri.toString()
+    const redirect_uri = decodeURIComponent(tmpLink)
+
+    // 8. request credential
+    const url8 = APIs.LOGIN
+    const body8: UserLoginAPI.Param_AuthRequest = {
+      operateType: "auth_request",
+      redirect_uri,
+      state,
+    }
+    const res8 = await liuReq.request<UserLoginAPI.Res_AuthRequest>(
+      url8,
+      body8,
+    )
+    if(isCancelled) {
+      console.warn("cancelled 111")
+      return
+    }
+
+    // 9. handle result from auth_request
+    const { data: data9, code: code9 } = res8
+    if(code9 !== "0000" || !data9) {
+      showErrMsg("login", res8)
+      return
+    }
+    const credential = data9.credential
+    const baseUrl = data9.baseUrl
+    _this._credential = credential
+
+    // 10. splice a string
+    const authUrl = new URL(baseUrl)
+    authUrl.pathname = "/authorize"
+    const sp10 = authUrl.searchParams
+    sp10.set("credential", credential)
+    sp10.set("state", state)
+    const authLink = authUrl.toString()
+    const authUri = vscode.Uri.parse(authLink)
+    // console.log("authUri: ", authUri)
+    
+    // 11. open in browser
+    const res11 = await vscode.env.openExternal(authUri)
+    if(!res11) {
+      if(!isCancelled) {
+        _this.cancelProgressForLogging()
+      }
+      return
+    }
 
   }
 
