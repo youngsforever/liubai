@@ -28,7 +28,9 @@ async function _getBody<U extends Record<string, any>>(
     x_liu_stamp: time.getTime(),
     x_liu_timezone: time.getTimezone().toFixed(1),
     x_liu_client: "ide-extension",
-    x_liu_device: info.ideType,
+    x_liu_device: info.deviceStr,
+    x_liu_ide_type: info.ideType,
+    x_liu_machine_id: info.machineId,
     ...body,
   }
   if(authStatus) {

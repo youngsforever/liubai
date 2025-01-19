@@ -212,6 +212,10 @@ export const liuIDETypes = [
 export type LiuIDEType = typeof liuIDETypes[number]
 export const Sch_LiuIDEType = vbot.picklist(liuIDETypes)
 
+export const liuAppTypes = [...liuIDETypes] as const
+export type LiuAppType = typeof liuAppTypes[number]
+export const Sch_LiuAppType = vbot.picklist(liuAppTypes)
+
 export const supportedLocales = [
   "en",
   "zh-Hans",
@@ -835,6 +839,8 @@ export const Sch_X_Liu = vbot.object({
   x_liu_timezone: sch_string_length(),
   x_liu_client: Sch_SupportedClient,
   x_liu_device: Sch_Opt_Str,
+  x_liu_ide_type: vbot.optional(Sch_LiuIDEType),
+  x_liu_machine_id: Sch_Opt_Str,
 })
 
 export const Sch_IP = vbot.string([vbot.ip()])
@@ -1537,6 +1543,7 @@ export interface Table_Credential extends BaseTable {
 
   sms_sent_result?: Record<string, any>
   redirect_uri?: string        // required when infoType is "auth-code"
+  app_type?: LiuAppType        // required when infoType is "auth-code"
 }
 
 /** 订阅方案表 */
@@ -2356,7 +2363,7 @@ export namespace UserLoginAPI {
     redirect_uri: string
     state: string
     x_liu_client: "ide-extension"
-    x_liu_device: LiuIDEType
+    x_liu_ide_type: LiuIDEType
   }
 
   export const Sch_Param_AuthRequest = vbot.object({
@@ -2364,7 +2371,7 @@ export namespace UserLoginAPI {
     redirect_uri: Sch_Id,
     state: Sch_Id,
     x_liu_client: vbot.literal("ide-extension"),
-    x_liu_device: Sch_LiuIDEType,
+    x_liu_ide_type: Sch_LiuIDEType,
   })
 
   export interface Res_AuthRequest {
@@ -2379,7 +2386,7 @@ export namespace UserLoginAPI {
     code: string
     enc_client_key: string
     x_liu_client: "ide-extension"
-    x_liu_device: LiuIDEType
+    x_liu_ide_type: LiuIDEType
   }
 
   export const Sch_Param_AuthSubmit = vbot.object({
@@ -2388,7 +2395,7 @@ export namespace UserLoginAPI {
     code: Sch_Id,
     enc_client_key: Sch_Id,
     x_liu_client: vbot.literal("ide-extension"),
-    x_liu_device: Sch_LiuIDEType,
+    x_liu_ide_type: Sch_LiuIDEType,
   })
 
 }

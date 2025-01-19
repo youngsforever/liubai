@@ -23,11 +23,14 @@ export interface LiuInfo {
   isDesktop: boolean
   isWeb: boolean
   extensionId: string
+  ideVersion: string
   extensionVersion: string
-  machineId: string
-  sessionId: string
+  machineId?: string
+  sessionId?: string
   uriScheme: string
   remoteName?: string
+  deviceStr?: string
+  deviceName?: string
 }
 
 export interface LiuRqOpt {

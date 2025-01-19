@@ -35,6 +35,7 @@ import type {
   LiuTencentSMSParam,
   DataPass,
   PhoneData,
+  LiuIDEType,
 } from "@/common-types"
 import { clientMaximum, UserLoginAPI } from "@/common-types"
 import { 
@@ -712,6 +713,7 @@ async function handle_auth_request(
   const redirect_uri = body.redirect_uri as string
   const b3 = getBasicStampWhileAdding()
   const now3 = b3.insertedStamp
+  const app_type = body.x_liu_ide_type as LiuIDEType
   const data3: Partial_Id<Table_Credential> = {
     ...b3,
     credential: cred,
@@ -719,6 +721,7 @@ async function handle_auth_request(
     expireStamp: now3 + MIN_10,
     verifyNum: 0,
     redirect_uri,
+    app_type,
   }
 
   // 4. insert credential into db
