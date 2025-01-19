@@ -61,6 +61,7 @@ import type {
   Wx_Res_GzhSnsUserInfo,
   PhoneData,
   Table_BlockList,
+  LiuIDEType,
 } from '@/common-types'
 import { 
   sch_opt_arr,
@@ -71,6 +72,7 @@ import {
   Sch_AiToolAddNoteParam,
   Sch_AiToolAddTodoParam,
   Sch_AiToolAddCalendarParam,
+  liuIDETypes,
 } from "@/common-types"
 import { 
   createToken, 
@@ -1593,6 +1595,13 @@ export async function insertToken(
     lastSet: now,
     ip,
   }
+  if(platform === "ide-extension") {
+    const ideType = body["x_liu_device"] as LiuIDEType
+    if(ideType && liuIDETypes.includes(ideType)) {
+      obj1.ideType = ideType
+    }
+  }  
+
   const res1 = await db.collection("Token").add(obj1)
   const serial_id = getDocAddId(res1)
   if(!serial_id) return

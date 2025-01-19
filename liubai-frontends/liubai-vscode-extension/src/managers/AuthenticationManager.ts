@@ -146,7 +146,11 @@ export class AuthenticationManager {
     _this._stopProgressForLogging = stop
 
 
+  }
 
+  private cancelProgressForLogging() {
+    this._stopProgressForLogging?.()
+    this._stopProgressForLogging = undefined
   }
 
   private showLoggedIn(authStatus: LiuAuthStatus) {

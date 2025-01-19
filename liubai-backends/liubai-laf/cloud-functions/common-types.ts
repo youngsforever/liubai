@@ -200,6 +200,18 @@ export const clientMaximum: Record<SupportedClient, number> = {
   "ide-extension": 5,
 }
 
+export const liuIDETypes = [
+  "vscode",
+  "vscode-insiders",
+  "cursor",
+  "windsurf",
+  "vscodium",
+  "github.dev",
+  "vscode.dev",
+] as const
+export type LiuIDEType = typeof liuIDETypes[number]
+export const Sch_LiuIDEType = vbot.picklist(liuIDETypes)
+
 export const supportedLocales = [
   "en",
   "zh-Hans",
@@ -1269,6 +1281,7 @@ export interface Table_Token extends BaseTable {
   lastSet: number
   ip?: string
   ipGeo?: string
+  ideType?: LiuIDEType
 }
 
 export interface Table_LoginState extends BaseTable {
@@ -1523,6 +1536,7 @@ export interface Table_Credential extends BaseTable {
   phoneNumber?: string
 
   sms_sent_result?: Record<string, any>
+  redirect_uri?: string        // required when infoType is "auth-code"
 }
 
 /** 订阅方案表 */
@@ -1830,6 +1844,8 @@ export type UserLoginOperate = "init" | "email" | "email_code"
   | "google_credential"
   | "users_select"
   | "enter"
+  | "auth_request"
+  | "auth_submit"
 
 export interface Res_UL_WxGzhScan {
   operateType: "wx_gzh_scan"
@@ -2331,6 +2347,50 @@ export namespace ServicePolyAPI {
     nonceStr: string
     signature: string
   }
+}
+
+/****************** user-login api ***************/
+export namespace UserLoginAPI {
+  export interface Param_AuthRequest {
+    operateType: "auth_request"
+    redirect_uri: string
+    state: string
+    x_liu_client: "ide-extension"
+    x_liu_device: LiuIDEType
+  }
+
+  export const Sch_Param_AuthRequest = vbot.object({
+    operateType: vbot.literal("auth_request"),
+    redirect_uri: Sch_Id,
+    state: Sch_Id,
+    x_liu_client: vbot.literal("ide-extension"),
+    x_liu_device: Sch_LiuIDEType,
+  })
+
+  export interface Res_AuthRequest {
+    operateType: "auth_request"
+    credential: string
+    baseUrl: string
+  }
+
+  export interface Param_AuthSubmit {
+    operateType: "auth_submit"
+    credential: string
+    code: string
+    enc_client_key: string
+    x_liu_client: "ide-extension"
+    x_liu_device: LiuIDEType
+  }
+
+  export const Sch_Param_AuthSubmit = vbot.object({
+    operateType: vbot.literal("auth_submit"),
+    credential: Sch_Id,
+    code: Sch_Id,
+    enc_client_key: Sch_Id,
+    x_liu_client: vbot.literal("ide-extension"),
+    x_liu_device: Sch_LiuIDEType,
+  })
+
 }
 
 /******************** open-connect **********************/
