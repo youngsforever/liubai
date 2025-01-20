@@ -9,6 +9,9 @@ const getIdeType = (): LiuIDEType | undefined => {
   const _env = vscode.env
   const { appName, appHost } = _env
 
+  console.log("see appName: ", appName)
+  console.log("see appHost: ", appHost)
+
   if(appHost === "vscode.dev") return "vscode.dev"
   if(appHost === "github.dev") return "github.dev"
   if(appName === "Visual Studio Code") return "vscode"
@@ -16,6 +19,9 @@ const getIdeType = (): LiuIDEType | undefined => {
   if(appName === "Cursor") return "cursor"
   if(appName === "Windsurf") return "windsurf"
   if(appName === "VSCodium") return "vscodium"
+  if(appName === "Gitpod Code" || appHost === "Gitpod") return "gitpod.io"
+  if(appName === "StackBlitz") return "stackblitz.com"
+  if(appName === "Project IDX") return "project-idx"
 }
 
 const _getDeviceData = (isWeb: boolean) => {
@@ -62,6 +68,8 @@ const init = (context: vscode.ExtensionContext) => {
   const isWeb = _env.uiKind === vscode.UIKind.Web
   const evtVersion = LIU_ENV.EXT_VERSION
   const { deviceStr, deviceName } = _getDeviceData(isWeb)
+  const extKind = context.extension.extensionKind
+  const extensionKind = extKind === vscode.ExtensionKind.Workspace ? "workspace" : "ui"
 
   let machineId: string | undefined = _env.machineId
   let sessionId: string | undefined = _env.sessionId
@@ -74,6 +82,7 @@ const init = (context: vscode.ExtensionContext) => {
     isWeb,
     extensionId,
     ideVersion: vscode.version,
+    extensionKind,
     extensionVersion: evtVersion ?? "",
     machineId,
     sessionId,

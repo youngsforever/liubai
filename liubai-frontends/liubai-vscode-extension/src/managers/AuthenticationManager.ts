@@ -180,13 +180,7 @@ export class AuthenticationManager {
     // console.log("authUri: ", authUri)
     
     // 11. open in browser
-    const res11 = await vscode.env.openExternal(authUri)
-    if(!res11) {
-      if(!isCancelled) {
-        _this.cancelProgressForLogging()
-      }
-      return
-    }
+    await vscode.env.openExternal(authUri)
 
   }
 

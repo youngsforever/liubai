@@ -5,7 +5,7 @@
   "publisher": "ptsd",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.91.0"
+    "vscode": "^1.84.0"
   },
   "categories": [
     "Other"

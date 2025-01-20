@@ -14,6 +14,9 @@ export const liuIDETypes = [
   "vscodium",
   "github.dev",
   "vscode.dev",
+  "gitpod.io",
+  "stackblitz.com",
+  "project-idx"
 ] as const
 
 export type LiuIDEType = typeof liuIDETypes[number]
@@ -23,6 +26,7 @@ export interface LiuInfo {
   isDesktop: boolean
   isWeb: boolean
   extensionId: string
+  extensionKind?: "ui" | "workspace"
   ideVersion: string
   extensionVersion: string
   machineId?: string
