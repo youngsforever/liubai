@@ -18,10 +18,11 @@ import {
   showWarning,
 } from '~/utils/show-msg';
 import { createClientKey } from "./tools/common-tools"
-import type { SimpleFunc } from '~/utils/basic/type-tool';
+import type { LiuTimeout, SimpleFunc } from '~/utils/basic/type-tool';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
+const SEC_15 = time.SECONED * 15
 
 export class AuthenticationManager {
 
@@ -36,8 +37,9 @@ export class AuthenticationManager {
   private _credential: string | undefined;
   private _code: string | undefined;
 
-  // stop loading
-  private _stopProgressForLogging: SimpleFunc | undefined
+  // some data
+  private _stopProgressForOpeningBrowser: SimpleFunc | undefined
+  private _timeoutForOpeningBrowser: LiuTimeout
 
   // `private` is in order to avoid new AuthenticationManager() 
   // from being called by outside
@@ -131,7 +133,7 @@ export class AuthenticationManager {
         isCancelled = true
       }
     })
-    _this._stopProgressForLogging = stop
+    _this._stopProgressForOpeningBrowser = stop
 
     // 7. get redirect_uri
     const info = liuInfo.getInfo()
@@ -181,12 +183,46 @@ export class AuthenticationManager {
     
     // 11. open in browser
     await vscode.env.openExternal(authUri)
+    this.whenOpeningBrowserForAuth()
+  }
+  
+  private whenOpeningBrowserForAuth() {
+    const t1 = this._timeoutForOpeningBrowser
+    if(t1) clearTimeout(t1)
+
+    const _this = this
+    this._timeoutForOpeningBrowser = setTimeout(async () => {
+      _this._timeoutForOpeningBrowser = undefined
+      _this.cancelProgressForOpeningBrowser()
+      await valTool.waitMilli(300)
+      _this.startToInputAuthCode()
+    }, SEC_15)
+  }
+
+  private async startToInputAuthCode() {
+    // 1. show notification for inputting auth code
+    const res1 = await this.showInputAuthCodeMsg()
+    if(!res1) return
+
+    // 2. check auth status again
+    const res2 = await this.getAuthStatus()
+    if(res2) {
+      this.showLoggedIn(res2)
+      return
+    }
+
+    // 3. show input box
+    console.log("get to input")
 
   }
 
-  private cancelProgressForLogging() {
-    this._stopProgressForLogging?.()
-    this._stopProgressForLogging = undefined
+
+  private cancelProgressForOpeningBrowser() {
+    const t1 = this._timeoutForOpeningBrowser
+    if(t1) clearTimeout(t1)
+    this._timeoutForOpeningBrowser = undefined
+    this._stopProgressForOpeningBrowser?.()
+    this._stopProgressForOpeningBrowser = undefined
   }
 
   private showLoggedIn(authStatus: LiuAuthStatus) {
@@ -202,6 +238,13 @@ export class AuthenticationManager {
 		return Boolean(res === confirmTxt)
   }
 
+  private async showInputAuthCodeMsg() {
+    const title = i18n.t("login.cannot_open_ide")
+		const confirmTxt = i18n.t("login.input_auth_code")
+		const cancelTxt = i18n.t("common.cancel")
+    const res = await vscode.window.showInformationMessage(title, confirmTxt, cancelTxt)
+		return Boolean(res === confirmTxt)
+  }
 
   private async timeCalibrate() {
     const url = APIs.TIME
@@ -233,6 +276,8 @@ export class AuthenticationManager {
           console.warn(`the current path is not ${AUTH_CALLBACK_PATH}`)
           return
         }
+
+        _this.cancelProgressForOpeningBrowser()
         console.log("see uri.query:")
         console.log(uri.query)
 
