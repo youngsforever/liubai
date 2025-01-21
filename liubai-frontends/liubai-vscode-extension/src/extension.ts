@@ -5,6 +5,7 @@ import { AuthenticationManager } from './managers/AuthenticationManager';
 import liuInfo from './utils/liu-info';
 import { i18n } from './locales/i18n';
 import liuUtil from './utils/liu-util';
+import { Logger } from './utils/Logger';
 
 function isSafeEnvironment() {
 	const theCrypto = liuUtil.crypto.getCrypto()
@@ -23,6 +24,7 @@ function isSafeEnvironment() {
 }
 
 function init(context: vscode.ExtensionContext) {
+	Logger.init(context)
 	liuInfo.init(context)
 	i18n.init()
 	const res1 = isSafeEnvironment()
@@ -30,6 +32,14 @@ function init(context: vscode.ExtensionContext) {
 		vscode.window.showWarningMessage(i18n.t("common.env_unsupported"))
 		return false
 	}
+
+	const mode = LIU_ENV.MODE
+	console.log("current mode: ", mode)
+	if(mode === "development") {
+		Logger.show()
+		Logger.info("we're in development mode, so show the output panel")
+	}
+
 	return true
 }
 
@@ -58,9 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable1)
 }
 
-
-
-
-
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	Logger.dispose()
+}

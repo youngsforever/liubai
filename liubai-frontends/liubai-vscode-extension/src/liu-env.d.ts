@@ -5,6 +5,7 @@ interface LiuEnv {
   LIU_DOMAIN?: string
   CUSTOMER_SERVICE?: string
   DEVELOPER_EMAIL?: string
+  MODE?: "production" | "development"
 }
 
 declare const LIU_ENV: LiuEnv

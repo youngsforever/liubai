@@ -35,6 +35,7 @@ function handleEnv() {
 	// handle LIU_ENV
 	const _liuEnv = {
 		"LIU_ENV.EXT_VERSION": JSON.stringify(version),
+		"LIU_ENV.MODE": JSON.stringify(proOrDev),
 	}
 	for(const key in mergedEnvConfig) {
 		_liuEnv[`LIU_ENV.${key}`] = JSON.stringify(mergedEnvConfig[key])

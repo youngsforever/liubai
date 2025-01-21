@@ -19,6 +19,7 @@ import {
 } from '~/utils/show-msg';
 import { createClientKey } from "./tools/common-tools"
 import type { LiuTimeout, SimpleFunc } from '~/utils/basic/type-tool';
+import { Logger } from '~/utils/Logger';
 
 const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
@@ -61,6 +62,7 @@ export class AuthenticationManager {
     const res2 = await this.getAuthStatus()
     if(res2) {
       console.log("it is already logged in")
+      Logger.info("it is already logged in")
       return
     }
 
@@ -98,6 +100,7 @@ export class AuthenticationManager {
     if(!res3_2) return
     // console.log("see res3_2: ")
     // console.log(res3_2)
+    Logger.info("user-login init result: ", res3_2)
     
     // 4. get pk
     const { data: data4 } = res3_2
@@ -259,6 +262,8 @@ export class AuthenticationManager {
     const theStamp = data.stamp
     const diff = theStamp - clientStamp
     time.setDiff(diff)
+
+    Logger.info(`time calibrate: ${diff}`)
 
     this._calibrated = true
     return true
