@@ -59,7 +59,7 @@ export default defineConfig({
           ]
         },
         {
-          text: "常见问题",
+          text: "提问箱",
           link: "/guide/faq/"
         },
         {

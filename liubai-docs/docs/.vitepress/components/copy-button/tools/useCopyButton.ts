@@ -1,4 +1,4 @@
-import cfg from "../../liu-config"
+import { data as cfg } from "../../../data/liu-config.data"
 import type { CopyButtonProps } from "./types"
 
 export function useCopyButton(
