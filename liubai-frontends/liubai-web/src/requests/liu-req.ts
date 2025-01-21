@@ -34,8 +34,8 @@ async function _getBody<U extends Record<string, any>>(
   }
 
   if(p.token && p.serial) {
-    b["x_liu_token"] = p.token
-    b["x_liu_serial"] = p.serial
+    b.x_liu_token = p.token
+    b.x_liu_serial = p.serial
   }
 
   const b2 = valTool.objToStr(b)
@@ -60,7 +60,7 @@ async function request<
 ): Promise<LiuRqReturn<T>> {
 
   const b = await _getBody(body)
-  let init: RequestInit = {
+  const init: RequestInit = {
     method: opt?.method ?? "POST",
     headers: {
       "Content-Type": "application/json"
@@ -130,7 +130,7 @@ async function request<
     return { code: `B0001` }
   }
 
-  let res2 = await res.json() as LiuRqReturn<T>
+  const res2 = await res.json() as LiuRqReturn<T>
 
   if(res2.data) {
     const newData = await handleAfterFetching(res2.data)

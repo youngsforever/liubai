@@ -106,7 +106,7 @@ export async function uploadViaQiniu(
     if(code === "E4003") {
       return "too_frequent"
     }
-    else if(code === "E4010") {
+    if(code === "E4010") {
       return "no_space"
     }
     

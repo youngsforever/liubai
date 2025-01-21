@@ -7,7 +7,7 @@ export function imagesFromStoreToCloud(
 ) {
   if(!local_list) return
 
-  let cloud_list: Cloud_ImageStore[] = []
+  const cloud_list: Cloud_ImageStore[] = []
   for(let i=0; i<local_list.length; i++) {
     const v = local_list[i]
     if(!v.cloud_url) continue
@@ -35,7 +35,7 @@ export function filesFromStoreToCloud(
 ) {
   if(!local_list) return
 
-  let cloud_list: Cloud_FileStore[] = []
+  const cloud_list: Cloud_FileStore[] = []
   for(let i=0; i<local_list.length; i++) {
     const v = local_list[i]
     if(!v.cloud_url) continue

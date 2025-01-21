@@ -19,7 +19,7 @@ import type {
   BulkUpdateAtom_UploadTask
 } from "~/utils/cloud/upload-tasks/tools/types"
 import { useSystemStore } from "~/hooks/stores/useSystemStore";
-import { type OState_Draft } from "~/types/types-basic";
+import type { OState_Draft } from "~/types/types-basic";
 
 const MIN_5 = time.MINUTE * 5
 const MIN_30 = time.MINUTE * 30

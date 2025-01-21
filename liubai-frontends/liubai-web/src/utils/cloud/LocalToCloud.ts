@@ -1,7 +1,7 @@
 import { watch } from "vue";
 import { CloudEventBus } from "./CloudEventBus";
 import time from "../basic/time";
-import { type LiuTimeout } from "../basic/type-tool";
+import type { LiuTimeout } from "../basic/type-tool";
 import localCache from "../system/local-cache";
 import type { 
   UploadTaskParam,
@@ -54,7 +54,7 @@ class LocalToCloud {
 
     let delay = 250
     if(speed === "instant") delay = 0
-    else if(speed = "slow") delay = 750
+    else if(speed === "slow") delay = 750
 
     const _this = this
 

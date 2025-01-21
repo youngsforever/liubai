@@ -42,7 +42,7 @@ interface UrlMapVal {
   num: number
 }
 
-let fileMap = new Map<UrlMapKey, UrlMapVal>()
+const fileMap = new Map<UrlMapKey, UrlMapVal>()
 
 export function createURLsFromStore(
   files: Array<LiuImageStore | LiuFileStore>,
@@ -105,7 +105,7 @@ function _trimFileMap() {
   if(size < MAX_SIZE) return
   
   const keys = fileMap.keys()
-  for(let key of keys) {
+  for(const key of keys) {
     const data = fileMap.get(key)
     if(!data) continue
     if(time.isWithinMillis(data.usedStamp, MIN_3)) continue
@@ -169,7 +169,8 @@ export function constraintWidthHeight(
       width: maxW,
       height: Math.round(h * (maxW / w))
     }
-  } else if (h > maxH) {
+  }
+  if (h > maxH) {
     return {
       width: Math.round( w * (maxH / h)),
       height: maxH

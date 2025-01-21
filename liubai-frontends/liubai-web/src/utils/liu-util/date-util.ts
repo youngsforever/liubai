@@ -31,7 +31,7 @@ export function showBasicTime(
   lang?: SupportedLocale,
   strChangedAsHour?: string,
 ) {
-  let d = typeof val === "number" ? new Date(val) : val
+  const d = typeof val === "number" ? new Date(val) : val
   const { t, locale } = i18n.global
   if(!lang) {
     lang = locale.value as SupportedLocale
@@ -57,8 +57,8 @@ export function showBasicTime(
 
   // 在今年
   if(dateTool.isThisYear(d)) {
-    let mm2 = lang === "en" ? MON : (d.getMonth() + 1)
-    let dd2 = d.getDate()
+    const mm2 = lang === "en" ? MON : (d.getMonth() + 1)
+    const dd2 = d.getDate()
     return t("date_related.show_1", { mm: mm2, dd: dd2, day: DAY, hr, min })
   }
 
@@ -144,14 +144,14 @@ export function showYearAndMonth(stamp: number) {
  */
 export function formatStamp(
   stamp: number,
-  min: number = 1
+  min = 1
 ) {
   const A_MIN = 1000 * 60
-  let divisor = min * A_MIN
+  const divisor = min * A_MIN
 
-  let remainder = stamp % divisor            // 准确时间戳到前一个整 x 分的差
+  const remainder = stamp % divisor            // 准确时间戳到前一个整 x 分的差
   if(remainder === 0) return stamp
-  let remainder2 = divisor - remainder       // 准确时间戳到后一个整 x 分的差
+  const remainder2 = divisor - remainder       // 准确时间戳到后一个整 x 分的差
   if(remainder < remainder2) return stamp - remainder
   return stamp + remainder2
 }
@@ -168,7 +168,7 @@ export function getLaterStamp(val: LiuRemindLater): number {
   else if(val === "3hr") diff = 3 * time.HOUR
   else if(val === "tomorrow_this_moment") diff = time.DAY
 
-  let laterStamp = now + diff
+  const laterStamp = now + diff
   return laterStamp
 }
 
@@ -225,7 +225,7 @@ export function getRemindMeStr(
     if(idx >= 0) return t(`date_related.remind_early[${idx}]`)
     return t("date_related.remind_early_other", { min: String(early_minute) })
   }
-  else if(type === "later" && later) {
+  if(type === "later" && later) {
     const idx = REMIND_LATER.indexOf(later)
     if(idx >= 0) return t(`date_related.remind_later[${idx}]`)
   }
@@ -251,7 +251,7 @@ export function getRemindMeStrAfterPost(
     if(idx >= 0) return t(`date_related.remind_early[${idx}]`)
     return t("date_related.remind_early_other", { min: String(early_minute) })
   }
-  else if(type === "later" && later) {
+  if(type === "later" && later) {
     if(diff < 1000) {
       return showBasicTime(remindStamp)
     }
@@ -364,7 +364,7 @@ interface HSParam {
 
 function handleS(opt: HSParam) {
   let tmp = ""
-  let { day_num, hr_num, min_num, sec_num } = opt
+  const { day_num, hr_num, min_num, sec_num } = opt
   if(typeof day_num === "number") {
     tmp += `${day_num} day${day_num > 1 ? "s" : ""} `
   }
@@ -389,7 +389,7 @@ export function getEditedStr(
 ) {
   if(!editedStamp) return
 
-  let diff = Math.abs(createdStamp - editedStamp)
+  const diff = Math.abs(createdStamp - editedStamp)
   if(diff < (3 * time.SECONED)) return
 
   return showBasicTime(editedStamp)

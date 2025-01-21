@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type PropType } from 'vue';
+import type { PropType } from 'vue';
 import type { VcThirdParty } from "../tools/types"
 import VctTwitter from "./vct-twitter/vct-twitter.vue"
 import VctCalendly from './vct-calendly/vct-calendly.vue';

@@ -89,7 +89,7 @@ export async function handleExport(
   const resZip = await zip.generateAsync({ type: "blob" })
   console.timeEnd("resZip")
 
-  let fileName = exportType === "json" ? `${appName}-json.zip` : `${appName}-markdown.zip`
+  const fileName = exportType === "json" ? `${appName}-json.zip` : `${appName}-markdown.zip`
 
   console.time("fileSaverSaveAs")
   fileSaverSaveAs(resZip, fileName)
@@ -131,8 +131,8 @@ function preInsert(
   contents: JSZip,
   d: ContentLocalTable,
 ) {
-  let images: LiuImageExport[] = []
-  let files: LiuFileExport[] = []
+  const images: LiuImageExport[] = []
+  const files: LiuFileExport[] = []
 
   const s = liuUtil.getLiuDate(new Date(d.createdStamp))
   const folderName = `${s.YYYY}-${s.MM}-${s.DD} ${s.hh}_${s.mm}_${s.ss}`
@@ -229,9 +229,9 @@ async function getContents(spaceId: string) {
   const MAX_TIMES = Math.min(Math.ceil(MAX_EXPORT_NUM / 16), 50)
 
   while(true) {
-    let len1 = list.length
-    let diff = cfg.max_export_num - len1
-    let limit = diff > 16 ? 16 : diff
+    const len1 = list.length
+    const diff = cfg.max_export_num - len1
+    const limit = diff > 16 ? 16 : diff
 
     const opt: GetDataOpt = {
       spaceId,

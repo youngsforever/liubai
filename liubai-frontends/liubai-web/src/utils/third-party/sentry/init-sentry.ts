@@ -1,5 +1,5 @@
 import liuEnv from "~/utils/liu-env";
-import { type App } from "vue"
+import type { App } from "vue"
 
 async function getSentryInitConfig() {
   const _env = liuEnv.getEnv()
