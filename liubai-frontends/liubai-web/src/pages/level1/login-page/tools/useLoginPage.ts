@@ -226,7 +226,7 @@ function listenRouteAndLastLogged(
   let timeout: LiuTimeout
   const lastLogged = toRef(lpData, "lastLogged")
 
-  const _close = (checkRoute: boolean = true) => {
+  const _close = (checkRoute = true) => {
     // 1. hide loading
     cui.hideLoading()
     lpData.lastLogged = 0
@@ -457,22 +457,22 @@ async function toSubmitEmailAddress(
     showFollowToGetPermission()
     return
   }
-  else if(code === "E4003" && errMsg === "last_event: bounced") {
+  if(code === "E4003" && errMsg === "last_event: bounced") {
     showEmojiTip("login.err_3", "😭")
     return
   }
-  else if(code === "U0004" || code === "U0003") {
+  if(code === "U0004" || code === "U0003") {
     console.warn("发送 email 出现关于 state 的异常")
     console.log(code)
     console.log(" ")
     showOtherTip("login.err_5", true)
     return
   }
-  else if(code === "U0005" || (code >= "E5001" && code < "E6000")) {
+  if(code === "U0005" || (code >= "E5001" && code < "E6000")) {
     showContactDev("login.err_9", "🫥")
     return
   }
-  else if(code === "E4003" && errMsg === "last_event: complained") {
+  if(code === "E4003" && errMsg === "last_event: complained") {
     showEmojiTip("login.err_2", "🥲")
   }
 

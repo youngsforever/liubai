@@ -29,7 +29,7 @@ function whenPStateChange(
   enable: Ref<boolean>,
   show: Ref<boolean>,
 ) {
-  let needOpen = newV === pageStates.LOADING || newV >= pageStates.NO_DATA
+  const needOpen = newV === pageStates.LOADING || newV >= pageStates.NO_DATA
   const { isOpening, isClosing } = liuUtil.view.getOpeningClosing(enable, show)
   
   if(needOpen && !isOpening) {

@@ -19,7 +19,7 @@ export async function initForPureLocalMode(
   }
 
   // 去创建 user / workspace / member
-  let createData = await firstCreate()
+  const createData = await firstCreate()
   if(!createData) return
   const { workspace, member, user } = createData
   localCache.setPreference("local_id", user._id)

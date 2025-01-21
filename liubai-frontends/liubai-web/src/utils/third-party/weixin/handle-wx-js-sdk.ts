@@ -1,6 +1,6 @@
 import APIs from "~/requests/APIs";
 import liuReq from "~/requests/liu-req";
-import { ServicePolyAPI } from "~/types/types-cloud";
+import type { ServicePolyAPI } from "~/types/types-cloud";
 import type { BoolFunc } from "~/utils/basic/type-tool";
 import wx from "weixin-js-sdk";
 
@@ -15,7 +15,7 @@ export function getGlobalWx() {
 let activeUrl = ""
 let promise: Promise<boolean> | undefined
 export function invokeWxJsSdk(
-  maxWaitMilli: number = 3000
+  maxWaitMilli = 3000
 ) {
   const tmpList = location.href.split("#") 
   const currentUrl = tmpList[0]
