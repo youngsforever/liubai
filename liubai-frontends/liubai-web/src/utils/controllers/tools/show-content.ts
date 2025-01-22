@@ -57,7 +57,6 @@ function _parseTextsForLink(
     if(listUrlScheme) {
       list.splice(i, 1, ...listUrlScheme)
       i--
-      continue
     }
 
 
@@ -134,12 +133,12 @@ function _innerParse(
 ): LiuContent[] | undefined {
 
   const matches = text.matchAll(reg)
-  let tmpList: LiuContent[] = []
+  const tmpList: LiuContent[] = []
   let tmpEndIdx = 0
   const isPhone = parseType === "phone"
   const isUrlScheme = parseType === "url_scheme"
 
-  for(let match of matches) {
+  for(const match of matches) {
     const mTxt = match[0]
     const mLen = mTxt.length
     const startIdx = match.index
@@ -156,8 +155,8 @@ function _innerParse(
 
     const endIdx = startIdx + mLen
 
-    let href = isPhone ? `tel:${mTxt}` : mTxt
-    let openTarget = isPhone ? '_self' : '_blank'
+    const href = isPhone ? `tel:${mTxt}` : mTxt
+    const openTarget = isPhone ? '_self' : '_blank'
 
     const attrs = {
       href,

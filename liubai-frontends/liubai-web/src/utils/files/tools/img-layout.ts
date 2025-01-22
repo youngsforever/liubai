@@ -15,11 +15,11 @@ export function getImgLayout(
 
   const len = images.length
   if(len === 1) {
-    let one = _handleOneImg(images[0])
+    const one = _handleOneImg(images[0])
     return { one }
   }
-  else if(len === 2) {
-    let two = _handleTwoImgs(images)
+  if(len === 2) {
+    const two = _handleTwoImgs(images)
     return { two }
   }
 
@@ -29,7 +29,7 @@ function _handleOneImg(
   img: ImageShow,
 ): ImgOneLayout {
 
-  let imgWidthPx = img.width
+  const imgWidthPx = img.width
   let maxWidthPx = 450
   let h2w = Number(img.h2w)
   if(!h2w || isNaN(h2w)) h2w = 1
@@ -58,7 +58,7 @@ function _handleOneImg(
   if(maxWidthPx < 100) maxWidthPx = 100
   
 
-  let heightStr = `${Math.round(h2w * 100)}%`
+  const heightStr = `${Math.round(h2w * 100)}%`
 
   return { maxWidthPx, heightStr }
 }
@@ -72,7 +72,7 @@ function _handleTwoImgs(
 
   let horizontalNum = 0
   let sum_h2w = 0
-  let len = images.length
+  const len = images.length
   images.forEach(v => {
     let h2w = Number(v.h2w)
     if(!h2w || isNaN(h2w)) h2w = 1
@@ -83,7 +83,7 @@ function _handleTwoImgs(
     isColumn = true
   }
 
-  let avg_h2w = sum_h2w / len
+  const avg_h2w = sum_h2w / len
   let box_h2w = 1
   if(isColumn) {
     // 竖直排列时

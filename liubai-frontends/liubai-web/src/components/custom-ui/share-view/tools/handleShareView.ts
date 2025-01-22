@@ -46,7 +46,7 @@ async function handleTextAndMd(
   const _id = thread._id
   const d = await db.contents.get(_id)
   if(!d) return
-  let md = transferUtil.tiptapToMarkdown(d.liuDesc ?? [], { title: d.title })
+  const md = transferUtil.tiptapToMarkdown(d.liuDesc ?? [], { title: d.title })
   svData.markdown = md
 }
 
@@ -95,11 +95,11 @@ function getExportData(thread: ThreadShow) {
     startStamp = thread.remindStamp
   }
 
-  let exportData: ExportData = {
+  const exportData: ExportData = {
     title, desc, startStamp, content, content2
   }
 
-  let alarm: Alarm = {
+  const alarm: Alarm = {
     action: "display",
     description: "Reminder",
   }
@@ -138,7 +138,7 @@ function handleOutlook(
   const getStartDt = (stamp: number) => {
     const startDate = new Date(stamp)
     const s = liuUtil.getLiuDate(startDate, { utc: true })
-    let startDt = `${s.YYYY}-${s.MM}-${s.DD}T${s.hh}:${s.mm}:00+00:00`
+    const startDt = `${s.YYYY}-${s.MM}-${s.DD}T${s.hh}:${s.mm}:00+00:00`
     return startDt
   }
 

@@ -58,9 +58,9 @@ function trimTextContent(
     if(i < 0 || i >= content.length) break
 
     const v = content[i]
-    let { type, text } = v
+    const { type, text } = v
     if(type !== "text") break
-    let tmp = text?.trim()
+    const tmp = text?.trim()
     if(!tmp) {
       content.splice(i, 1)
       if(dir > 0) i--

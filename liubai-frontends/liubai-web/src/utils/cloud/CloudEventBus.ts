@@ -2,7 +2,6 @@ import {
   ref,
   watch,
   readonly,
-  type WatchStopHandle,
 } from "vue"
 import { 
   useRouteAndLiuRouter,
@@ -62,7 +61,7 @@ class CloudEventBus {
     const backend = liuEnv.hasBackend()
     if(!backend) return
 
-    let _this = this
+    const _this = this
     this.rr = useRouteAndLiuRouter()
 
     const preMain = useThrottleFn(() => {
@@ -236,7 +235,7 @@ class CloudEventBus {
    * @returns 
    */
   private static checkEverythingOk(
-    ms: number = 5000
+    ms = 5000,
   ): Promise<boolean> {
     const syncNum = this.syncNum
     if(syncNum.value > 0) return valTool.getPromise(true)
@@ -247,11 +246,9 @@ class CloudEventBus {
     }
 
     let timeout: LiuTimeout
-    let stop: WatchStopHandle
-
-    stop = watch(syncNum, (newV) => {
+    const stop = watch(syncNum, (newV) => {
       if(timeout) clearTimeout(timeout)
-      stop?.()
+      stop()
       _resolve(true)
     })
 

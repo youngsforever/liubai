@@ -1,7 +1,7 @@
 {
   "name": "liubai-web",
   "private": true,
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "It's the frontend project for Liubai",
   "author": {
     "name": "yenche123",
@@ -16,7 +16,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "clean": "rm -rf node_modules/.vite",
-    "knip": "knip"
+    "knip": "knip",
+    "biome-lint": "biome lint src/ --write"
   },
   "engines": {
     "node": ">=18"
@@ -76,11 +77,12 @@
     "weixin-js-sdk": "^1.6.5"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@sentry/vite-plugin": "^3.0.0",
     "@types/canvas-confetti": "^1.9.0",
     "@types/file-saver": "^2.0.7",
     "@types/google.accounts": "^0.0.15",
-    "@types/node": "^20.16.5",
+    "@types/node": "^22.10.7",
     "@vitejs/plugin-vue": "^5.2.1",
     "knip": "^5.42.2",
     "rollup-plugin-visualizer": "^5.14.0",
@@ -102,5 +104,5 @@
   "pnpm": {
     "overrides": {}
   },
-  "packageManager": "pnpm@9.10.0"
+  "packageManager": "pnpm@10.0.0"
 }
