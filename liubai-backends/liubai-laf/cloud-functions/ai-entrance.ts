@@ -823,10 +823,11 @@ class BaseBot {
     AiHelper.finalCheckPrompts(params.messages)
 
     // print last 5 prompts
+    // const lastNum = 5
     // const msgLength = params.messages.length
-    // console.log(`last 5 prompts: `)
-    // if(msgLength > 5) {
-    //   const messages2 = params.messages.slice(msgLength - 5)
+    // console.log(`last ${lastNum} prompts: `)
+    // if(msgLength > lastNum) {
+    //   const messages2 = params.messages.slice(msgLength - lastNum)
     //   const printMsg = valTool.objToStr({ messages: messages2 })
     //   console.log(printMsg)
     // }
