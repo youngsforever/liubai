@@ -1,4 +1,5 @@
-import type { LiuIDEType, LiuInfo } from "../types"
+import type { LiuInfo } from "../types"
+import type { LiuIDEType } from "../types/types-atom"
 import * as vscode from 'vscode'
 import { getDeviceStrForWeb, getDeviceStrForNode } from "./tools/characteristic"
 import typeCheck from "./basic/type-check"

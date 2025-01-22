@@ -22,3 +22,18 @@ export interface TagView {
   updatedStamp: number
   children?: TagView[]
 }
+
+export const liuIDETypes = [
+  "vscode",
+  "vscode-insiders",
+  "cursor",
+  "windsurf",
+  "vscodium",
+  "github.dev",
+  "vscode.dev",
+  "gitpod.io",
+  "stackblitz.com",
+  "project-idx"
+] as const
+
+export type LiuIDEType = typeof liuIDETypes[number]
