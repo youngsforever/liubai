@@ -1929,6 +1929,7 @@ export namespace UserSettingsAPI {
   export interface Res_AuthGetInfo {
     operateType: "auth-get-info"
     appType: LiuAppType
+    serial: string
   }
 
 }

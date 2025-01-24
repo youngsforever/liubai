@@ -91,6 +91,12 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "unbind-email") {
     res = await handle_unbind(vRes, "email")
   }
+  else if(oT === "auth-get-info") {
+    res = await auth_get_info(vRes, body)
+  }
+  else if(oT === "auth-agree") {
+
+  }
 
   // const stamp2 = getNowStamp()
   // const diffS = stamp2 - stamp1
@@ -98,6 +104,59 @@ export async function main(ctx: FunctionContext) {
 
   return res
 }
+
+async function auth_get_info(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+): Promise<LiuRqReturn<UserSettingsAPI.Res_AuthGetInfo>> {
+  // 1. get param
+  const credential = body.credential
+  if(!valTool.isStringWithVal(credential)) {
+    return { code: "E4000", errMsg: "credential is required" }
+  }
+
+  // 2. query
+  const cCol = db.collection("Credential")
+  const w2: Partial<Table_Credential> = {
+    credential,
+    infoType: "auth-code",
+  }
+  const res2 = await cCol.where(w2).getOne<Table_Credential>()
+  const data2 = res2.data
+  if(!data2) {
+    return { code: "E4004", errMsg: "credential not found" }
+  }
+
+  // 3. check out expiration
+  const now3 = getNowStamp()
+  const stamp3 = data2.expireStamp
+  if(stamp3 <= now3) {
+    return { code: "E4006", errMsg: "credential has expired" }
+  }
+
+  // 5. check out other params
+  const appType = data2.app_type
+  if(!appType) {
+    return { code: "E5001", errMsg: "appType is undefined" }
+  }
+
+  // 6. construct response
+  const data6: UserSettingsAPI.Res_AuthGetInfo = {
+    operateType: "auth-get-info",
+    appType,
+    serial: data2._id,
+  }
+  return { code: "0000", data: data6 }
+}
+
+
+async function auth_agree(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  
+}
+
 
 async function handle_unbind(
   vRes: VerifyTokenRes_B,
