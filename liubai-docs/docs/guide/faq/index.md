@@ -91,6 +91,16 @@
 但优先级不高，需要一点时间。
 
 
+### 11. 为什么 DeepSeek 有时候不会回复我？ {#function-calling-from-deepseek}
+
+大致有两个原因：
+
+1. DeepSeek 后端资源紧张。随着 2025 年 1 月 DeepSeek V3 和 DeepSeek R1 的发布，越来越多用户开始使用 DeepSeek 官方提供的服务，无论是通过 API、网页还是应用程序。这种增长导致其后台资源承受了显著压力，从而可能对您的提问体验产生一定影响。
+2. DeepSeek 目前在使用工具调用时，可能会出现循环调用的问题。例如，大模型请求调用搜索工具，当我们返回搜索结果后，大模型可能会再次触发搜索请求。目前（2025-01-28）这一现象，你也能在 DeepSeek [官网](https://api-docs.deepseek.com/zh-cn/guides/function_calling)上得到确认。
+
+![function calling issue from deepseek](./assets-faq/function-calling-issue-from-deepseek.png)
+
+
 ## 会员权益 {#member-privilege}
 
 ### 1. 免费版超过 50 条笔记，就不让用了？
