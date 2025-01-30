@@ -10,6 +10,11 @@ const { apData } = useAuthoizePage()
   <div class="liu-simple-page">
 
     <div class="liu-mc-container">
+
+      <PlaceholderView :p-state="apData.pageState"></PlaceholderView>
+
+      
+
       
     </div>
 
