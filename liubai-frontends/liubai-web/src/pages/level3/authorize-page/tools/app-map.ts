@@ -9,6 +9,6 @@ export const appMap: Record<LiuAppType, string> = {
   "github.dev": "github.dev",
   "vscode.dev": "vscode.dev",
   "gitpod.io": "gitpod.io",
-  "stackblitz.com": "stackblitz.com",
+  "stackblitz.com": "Stackblitz",
   "project-idx": "Project IDX"
 }

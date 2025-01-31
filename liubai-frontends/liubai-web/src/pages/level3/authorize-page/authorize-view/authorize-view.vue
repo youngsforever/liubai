@@ -48,8 +48,35 @@ const { supported_theme: theme } = storeToRefs(systemStore)
           :name="theme === 'dark' ? 'logos-cursor_dark' : 'logos-cursor'"
           :coverFillStroke="false"
         ></svg-icon>
+        <svg-icon v-else-if="appType === 'github.dev'"  class="av-logo-svg"
+          name="logos-github"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'gitpod.io'"  class="av-gitpod-svg"
+          name="logos-gitpod"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'project-idx'"  class="av-project-idx-svg"
+          name="logos-project-idx"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'stackblitz.com'"  class="av-stackblitz-svg"
+          name="logos-stackblitz"
+          :coverFillStroke="false"
+        ></svg-icon>
         <svg-icon v-else-if="appType === 'windsurf'"  class="av-windsurf-svg"
           name="logos-windsurf"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'vscodium'"  class="av-vscodium-svg"
+          name="logos-vscodium"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'vscode-insiders'"  class="av-vscode-svg"
+          name="logos-vscode-insiders"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else  class="av-vscode-svg"
+          name="logos-vscode"
           :coverFillStroke="false"
         ></svg-icon>
       </div>
@@ -133,7 +160,7 @@ const { supported_theme: theme } = storeToRefs(systemStore)
   transform: translate(-50%, -50%);
   width: 24px;
   height: 24px;
-  background: #238636;
+  background-color: var(--primary-color);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -145,23 +172,33 @@ const { supported_theme: theme } = storeToRefs(systemStore)
   height: 20px;
 }
 
-.av-other-logo-svg {
-  width: 100%;
-  height: 100%;
-}
-
 .av-logo-box_windsurf {
   background-color: #191A1A;
 }
 
-.av-cursor-svg {
+.av-logo-svg {
+  width: 80%;
+  height: 80%;
+}
+
+.av-cursor-svg, .av-vscodium-svg {
   width: 70%;
   height: 70%;
+}
+
+.av-gitpod-svg, .av-stackblitz-svg, .av-project-idx-svg {
+  width: 66%;
+  height: 66%;
 }
 
 .av-windsurf-svg {
   width: 38%;
   height: 100%;
+}
+
+.av-vscode-svg {
+  width: 60%;
+  height: 60%;
 }
 
 

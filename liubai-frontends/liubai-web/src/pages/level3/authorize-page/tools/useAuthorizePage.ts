@@ -61,7 +61,7 @@ function getAuthInfo(
   const url1 = APIs.AUTHORIZE
 
   setTimeout(() => {
-    apData.appType = "cursor"
+    apData.appType = "project-idx"
     apData.pageState = pageStates.OK
   }, 1000)
 
