@@ -3,6 +3,8 @@ import type { LiuAppType } from '~/types/types-atom';
 import type { PropType } from 'vue';
 import { appMap } from '../tools/app-map';
 import { useI18n } from 'vue-i18n';
+import { useSystemStore } from '~/hooks/stores/useSystemStore';
+import { storeToRefs } from 'pinia';
 
 defineProps({
   appType: {
@@ -10,10 +12,13 @@ defineProps({
     required: true,
   }
 })
+defineEmits(["agree"])
 
 const { t } = useI18n()
 
-defineEmits(["agree"])
+const systemStore = useSystemStore()
+const { supported_theme: theme } = storeToRefs(systemStore)
+
 
 </script>
 <template>
@@ -36,8 +41,14 @@ defineEmits(["agree"])
         </div>
       </div>
 
-      <div class="av-logo-box">
-        <svg-icon class="av-other-logo-svg"
+      <div class="av-logo-box"
+        :class="{ 'av-logo-box_windsurf': appType === 'windsurf' }"
+      >
+        <svg-icon v-if="appType === 'cursor'"  class="av-cursor-svg"
+          :name="theme === 'dark' ? 'logos-cursor_dark' : 'logos-cursor'"
+          :coverFillStroke="false"
+        ></svg-icon>
+        <svg-icon v-else-if="appType === 'windsurf'"  class="av-windsurf-svg"
           name="logos-windsurf"
           :coverFillStroke="false"
         ></svg-icon>
@@ -95,8 +106,8 @@ defineEmits(["agree"])
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  width: 90%;
-  height: 90%;
+  width: 80%;
+  height: 80%;
   background-image: url('/logos/logo_256x256_v3.png');
 }
 
@@ -139,8 +150,23 @@ defineEmits(["agree"])
   height: 100%;
 }
 
+.av-logo-box_windsurf {
+  background-color: #191A1A;
+}
+
+.av-cursor-svg {
+  width: 70%;
+  height: 70%;
+}
+
+.av-windsurf-svg {
+  width: 38%;
+  height: 100%;
+}
+
+
 .av-title {
-  margin-block-end: min(5%, 24px);
+  margin-block-end: min(5%, 20px);
   text-align: center;
   text-wrap: pretty;
   font-size: var(--head-font);

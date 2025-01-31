@@ -61,7 +61,7 @@ function getAuthInfo(
   const url1 = APIs.AUTHORIZE
 
   setTimeout(() => {
-    apData.appType = "windsurf"
+    apData.appType = "cursor"
     apData.pageState = pageStates.OK
   }, 1000)
 
