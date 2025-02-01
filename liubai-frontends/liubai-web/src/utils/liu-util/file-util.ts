@@ -135,6 +135,9 @@ export function getArrayFromFileList(fileList: FileList): File[] {
 
 function isImageFile(file: File) {
   const { type } = file
+
+  console.log("type in isImageFile: ", type)
+
   const arr = getAcceptImgTypesArray()
   if(arr.includes(type)) return true
   return type.startsWith("image/")

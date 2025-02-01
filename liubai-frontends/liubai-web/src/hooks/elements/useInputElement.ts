@@ -17,6 +17,10 @@ export function useInputElement() {
     const fsaAPI = liuApi.canIUse.fileSystemAccessAPI()
     if(fsaAPI) {
       const res = await tryToShowOpenFilePicker(opt)
+
+      console.warn("files from showOpenFilePicker: ")
+      console.log(res)
+
       return res
     }
     console.warn("Not supporting fileSystemAccessAPI")
