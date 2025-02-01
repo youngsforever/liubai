@@ -1,27 +1,35 @@
-import { ref, toRef, watch } from "vue";
-import type { AuthorizeViewProps } from "./types";
+import { reactive, toRef, watch } from "vue";
+import type { 
+  AuthorizeViewProps,
+  AuthorizeViewEmit, 
+  AuthorizeViewData,
+} from "./types";
 import type { LiuTimeout } from "~/utils/basic/type-tool";
 
 
 export function useAuthorizeView(
   props: AuthorizeViewProps,
+  emit: AuthorizeViewEmit,
 ) {
-  const showCode = ref(false)
-  const code = toRef(props, "code")
-  let timeout: LiuTimeout
+  const avData = reactive<AuthorizeViewData>({
+    showCode: false,
+    fetchingAgree: false,
+  })
 
+  const code = toRef(props, "code")
+  let timeout1: LiuTimeout
 
   const _stopCountdown = () => {
-    if(timeout) {
-      clearTimeout(timeout)
-      timeout = undefined
+    if(timeout1) {
+      clearTimeout(timeout1)
+      timeout1 = undefined
     }
   }
 
   const _startToCountdown = () => {
     _stopCountdown()
-    timeout = setTimeout(() => {
-      showCode.value = true
+    timeout1 = setTimeout(() => {
+      avData.showCode = true
     }, 5000)
   }
   
@@ -30,7 +38,18 @@ export function useAuthorizeView(
     else _stopCountdown()
   })
 
+
+  const onTapAgree = async () => {
+    if(avData.fetchingAgree) return
+    avData.fetchingAgree = true
+    emit("agree")
+    setTimeout(() => {
+      avData.fetchingAgree = false
+    }, 5000)
+  }
+
   return {
-    showCode,
+    avData,
+    onTapAgree,
   }
 }

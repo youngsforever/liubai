@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 import { useSystemStore } from '~/hooks/stores/useSystemStore';
 import { storeToRefs } from 'pinia';
 import { useAuthorizeView } from './tools/useAuthorizeView';
+import type { AuthorizeViewEmit } from "./tools/types";
 
 const props = defineProps({
   appType: {
@@ -16,14 +17,17 @@ const props = defineProps({
     type: String,
   }
 })
-defineEmits(["agree"])
+const emit = defineEmits<AuthorizeViewEmit>()
 
 const { t } = useI18n()
 
 const systemStore = useSystemStore()
 const { supported_theme: theme } = storeToRefs(systemStore)
 
-const { showCode } = useAuthorizeView(props)
+const { 
+  avData,
+  onTapAgree,
+} = useAuthorizeView(props, emit)
 
 </script>
 <template>
@@ -103,7 +107,7 @@ const { showCode } = useAuthorizeView(props)
 
     <!-- description -->
     <div v-if="code" class="av-desc">
-      <span v-if="showCode" class="liu-selection">{{ t('authorize.opening_tip_2', { app: appMap[appType], code }) }}</span>
+      <span v-if="avData.showCode" class="liu-selection">{{ t('authorize.opening_tip_2', { app: appMap[appType], code }) }}</span>
       <span v-else class="liu-selection">{{ t('authorize.opening_tip_1', { app: appMap[appType] }) }}</span>
     </div>
     <div v-else class="av-desc">

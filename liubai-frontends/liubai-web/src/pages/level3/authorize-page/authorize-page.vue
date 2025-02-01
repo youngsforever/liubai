@@ -4,7 +4,10 @@ import { useAuthoizePage } from './tools/useAuthorizePage';
 import AuthorizeView from './authorize-view/authorize-view.vue';
 
 const { t } = useI18n()
-const { apData } = useAuthoizePage()
+const { 
+  apData,
+  onTapAgree,
+} = useAuthoizePage()
 
 </script>
 <template>
@@ -17,6 +20,7 @@ const { apData } = useAuthoizePage()
       <AuthorizeView v-if="apData.appType"
         :app-type="apData.appType"
         :code="apData.code"
+        @agree="onTapAgree"
       ></AuthorizeView>
       
 

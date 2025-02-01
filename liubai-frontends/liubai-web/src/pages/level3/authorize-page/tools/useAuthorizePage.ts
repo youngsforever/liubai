@@ -24,8 +24,13 @@ export function useAuthoizePage() {
   const rr = useRouteAndLiuRouter()
   initAuthorizePage(apData, rr)
 
+  const onTapAgree = () => {
+    toAgree(apData)
+  }
+
   return {
     apData,
+    onTapAgree,
   }
 }
 
@@ -49,6 +54,42 @@ function initAuthorizePage(
       getAuthInfo(apData, state, credential)
     }
   }, { immediate: true })
+}
+
+
+async function toAgree(
+  apData: ApData,
+) {
+  const { credential, serial, state } = apData
+  if(!serial) return
+
+  // 1. fetch
+  const url1 = APIs.AUTHORIZE
+  const opt1 = {
+    operateType: "auth-agree",
+    credential,
+    serial,
+  }
+  const res1 = await liuReq.request<UserSettingsAPI.Res_AuthAgree>(url1, opt1)
+  console.log("toAgree res1: ")
+  console.log(res1)
+
+  // 2. handle result
+  const { data: data1, code: code1 } = res1
+  if(code1 !== "0000" || !data1) {
+    showErrMsg("other", res1)
+    return
+  }
+  const authCode = data1.code
+  apData.code = authCode
+
+  // 3. redirect
+  const url3 = new URL(data1.redirectUri)
+  const sp3 = url3.searchParams
+  sp3.set("code", authCode)
+  sp3.set("state", state)
+  const link3 = url3.toString()
+  location.href = link3
 }
 
 
