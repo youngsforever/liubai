@@ -88,8 +88,6 @@ async function tryToShowOpenFilePicker(
 
   try {
     handles = await window.showOpenFilePicker(options)
-    console.log("let me see handles: ")
-    console.log(handles)
   }
   catch(err) {
     console.warn("fail to call showOpenFilePicker")
