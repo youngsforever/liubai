@@ -448,10 +448,27 @@ class AiDirective {
   private static _areTheyMatched(
     prefix: string[],
     text: string,
+    fuzzy = false,
   ) {
     const str = text.toLowerCase()
     const list = prefix.map(v => v.toLowerCase())
-    return list.includes(str)
+
+    // 1. direct match
+    const res1 = list.includes(str)
+    if(res1) return true
+    if(!fuzzy) return false
+
+    // 2. fuzzy match
+    let res2 = false
+    list.forEach(v => {
+      const res2_1 = str.startsWith(v)
+      if(!res2_1) return
+      const diff = Math.abs(v.length - str.length)
+      if(diff > 2) return
+      res2 = true
+    })
+
+    return res2
   }
 
   private static isContinue(text: string): AiDirectiveCheckRes | undefined {
@@ -505,11 +522,11 @@ class AiDirective {
 
   private static isViewingStatus(text: string) {
     const prefix = [
-      "群聊状态", "查看群聊状态",
-      "群聊狀態", "檢視群聊狀態",
+      "群聊状态", "查看群聊状态", "群聊有谁", "群聊还有谁", "群里还有谁",
+      "群聊狀態", "檢視群聊狀態", "群組裡有誰", "群組還有誰", "群組中還有誰",
       "Status", "Group Status",
     ]
-    const res1 = this._areTheyMatched(prefix, text)
+    const res1 = this._areTheyMatched(prefix, text, true)
     return res1
   }
 
@@ -1940,21 +1957,38 @@ class AiController {
     TellUser.typing(entry)
   }
 
+
+  private _hasReasoningBot(
+    newCharacters: AiCharacter[],
+  ) {
+    for(let i=0; i<newCharacters.length; i++) {
+      const v1 = newCharacters[i]
+      const bots = AiHelper.getBotsForCharacter(v1)
+      const reasoningBot = bots.find(v2 => v2.abilities.includes("reasoning"))
+      if(reasoningBot) return true
+    }
+    return false
+  }
+
+  private _waitForSeconds(
+    aiParam: AiRunParam,
+    newCharacters: AiCharacter[],
+  ) {
+    const { entry } = aiParam
+    const { msg_type } = entry
+    if(aiParam.isContinueCommand || msg_type === "voice") return 0
+
+    // 1. check out reasoning models exist
+    const hasReasoningModel = this._hasReasoningBot(newCharacters)
+    if(hasReasoningModel) return 0
+
+    // 2. andaomly wait for a while
+    const r = Math.floor((Math.random() * 3)) + 3
+    return r
+  }
+
   async run(aiParam: AiRunParam) {
     const { room, entry } = aiParam
-    const { msg_type } = entry
-
-    // 0. randaomly wait for a while
-    if(!aiParam.isContinueCommand && msg_type !== "voice") {
-      const r = Math.floor((Math.random() * 3)) + 3
-      console.log(`start to wait ${r} seconds`)
-      await valTool.waitMilli(r * SECONED)
-      const res0 = await AiHelper.canReply(aiParam)
-      if(!res0) {
-        console.warn("don't reply!")
-        return
-      }
-    }
 
     // 1. check bots in the room
     let characters = room.characters
@@ -1962,6 +1996,18 @@ class AiController {
     if(newCharacters.length < 1) {
       console.warn("no available characters in the room")
       return false
+    }
+
+    // 1.2 decide how long to wait
+    const seconds = this._waitForSeconds(aiParam, newCharacters)
+    if(seconds > 0) {
+      console.log(`start to wait ${seconds} seconds`)
+      await valTool.waitMilli(seconds * SECONED)
+      const res1_2 = await AiHelper.canReply(aiParam)
+      if(!res1_2) {
+        console.warn("don't reply!")
+        return
+      }
     }
 
     // 2. compress chats
@@ -4129,6 +4175,11 @@ class AiHelper {
     const bot = aiBots.find(v => v.character === character)
     if(bot) name = bot.name
     return name
+  }
+
+  static getBotsForCharacter(character: AiCharacter) {
+    const bots = aiBots.filter(v => v.character === character)
+    return bots
   }
 
   static async updateAiChat(id: string, data: Partial<Table_AiChat>) {
