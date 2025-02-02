@@ -844,7 +844,7 @@ class BaseBot {
       console.log(bot)
       return
     }
-    AiHelper.finalCheckPrompts(params.messages)
+    AiHelper.finalCheckPrompts(params.messages, bot)
 
     // print last 5 prompts
     // const lastNum = 5
@@ -3511,7 +3511,57 @@ export class Palette {
 class AiHelper {
 
   // try to remove `tool` prompt when the previous prompt is not assistant
-  static finalCheckPrompts(prompts: OaiPrompt[]) {
+  // try to interleave the user/assistant messages in the message sequence for
+  // deepseek-reasoner
+  static finalCheckPrompts(
+    prompts: OaiPrompt[], 
+    bot?: AiBot
+  ) {
+    this._removeTool(prompts)
+    if(bot?.abilities.includes("reasoning")) {
+      this._interleaveUserAssistant(prompts)
+    }
+  }
+
+  /**
+   * Handle error: BadRequestError: 400 deepseek-reasoner does not support 
+   * successive user or assistant messages (messages[9] and messages[10] in your input). 
+   * You should interleave the user/assistant messages in the message sequence.
+   */
+  private static _interleaveUserAssistant(prompts: OaiPrompt[]) {
+    for(let i=0; i<prompts.length-1; i++) {
+      const currentOne = prompts[i]
+      const nextOne = prompts[i+1]
+      const currentRole = currentOne.role
+      const nextRole = nextOne.role
+
+      const twoUserPrompts = Boolean(currentRole === "user" && nextRole === "user")
+      const twoAssistantPrompts = Boolean(currentRole === "assistant" && nextRole === "assistant")
+      
+      if(twoUserPrompts || twoAssistantPrompts) {
+        const mergedContent = this._mergeTwoPrompts(currentOne, nextOne)
+        if(mergedContent) {
+          currentOne.content = mergedContent
+          prompts.splice(i+1, 1)
+        }
+        else {
+          prompts.splice(i, 1)
+        }
+        i--
+      }
+    }
+  }
+
+  private static _mergeTwoPrompts(currentOne: OaiPrompt, nextOne: OaiPrompt) {
+    const currentContent = currentOne.content
+    const nextContent = nextOne.content
+    if(typeof currentContent !== "string") return
+    if(typeof nextContent !== "string") return
+    const newContent = `${currentContent}\n${nextContent}`
+    return newContent
+  }
+
+  private static _removeTool(prompts: OaiPrompt[]) {
     if(prompts.length < 3) return
     const firstPrompt = prompts[0]
     const secondPrompt = prompts[1]
