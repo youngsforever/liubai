@@ -96,6 +96,9 @@ const MAX_WX_TOKEN = 360  // wx gzh will send 45002 error if we send too many wo
 const MIN_REST_TOKEN = 100
 const MAX_WORDS = 3000
 
+// see https://platform.openai.com/docs/guides/reasoning#allocating-space-for-reasoning
+const MIN_REASONING_TOKENS = 1024
+
 const MAX_TIMES_FREE = 10
 const MAX_TIMES_MEMBERSHIP = 200
 
@@ -1388,12 +1391,12 @@ class BaseBot {
     const roomId = aiParam.room._id
     const c = bot.character
 
-    // 1. get text
-    const txt1 = AiHelper.getTextFromLLM(chatCompletion, bot)
-    if(!txt1) return
-
-    // 1.2 get reasoning_content
-    const txt1_2 = AiHelper.getReasoningContent(chatCompletion)
+    // 1. get content & reasoning_content
+    const {
+      content: txt1_1,
+      reasoning_content: txt1_2,
+    } = AiHelper.getContentFromLLM(chatCompletion, bot)
+    if(!txt1_1) return
 
     // 2. reply to user
     const finishReason = AiHelper.getFinishReason(chatCompletion)
@@ -1401,21 +1404,21 @@ class BaseBot {
     if(finishReason === "length" && gzhType === "service_account") {
       TellUser.menu(
         aiParam.entry, 
-        txt1, 
+        txt1_1, 
         [{ operation: "continue", character: c }],
         "",
         c,
       )
     }
     else {
-      TellUser.text(aiParam.entry, txt1, bot)
+      TellUser.text(aiParam.entry, txt1_1, bot)
     }
     
     // 3. add assistant chat
     const apiEndpoint = AiHelper.getApiEndpointFromBot(bot)
     const param3: AiHelperAssistantMsgParam = {
       roomId,
-      text: txt1,
+      text: txt1_1,
       reasoning_content: txt1_2,
       model: bot.model,
       character: c,
@@ -1964,7 +1967,7 @@ class AiController {
     for(let i=0; i<newCharacters.length; i++) {
       const v1 = newCharacters[i]
       const bots = AiHelper.getBotsForCharacter(v1)
-      const reasoningBot = bots.find(v2 => v2.abilities.includes("reasoning"))
+      const reasoningBot = bots.find(v2 => AiHelper.isReasoningBot(v2))
       if(reasoningBot) return true
     }
     return false
@@ -3524,7 +3527,7 @@ export class AiHelper {
     bot?: AiBot
   ) {
     this._removeTool(prompts)
-    if(bot?.abilities.includes("reasoning")) {
+    if(bot && AiHelper.isReasoningBot(bot)) {
       this._interleaveUserAssistant(prompts)
     }
   }
@@ -3998,11 +4001,25 @@ export class AiHelper {
     bot: AiBot,
   ) {
     const restToken = (bot.maxWindowTokenK * 1000) - totalToken
+
+    // 1. set maxTokens to double firstChat token
     const firstToken = this.calculateChatToken(firstChat)
     let maxTokens = firstToken * 2
     if(maxTokens < 280) maxTokens = 280
-    if(maxTokens > restToken) maxTokens = restToken
+
+    // 2. adapt to wechat max characters limit
     if(maxTokens > MAX_WX_TOKEN) maxTokens = MAX_WX_TOKEN
+
+    // 3. for reasoning model with thinkingInContent
+    if(bot.metaData?.thinkingInContent) {
+      if(maxTokens < MIN_REASONING_TOKENS) {
+        maxTokens = MIN_REASONING_TOKENS
+      }
+    }
+
+    // 4. set maxTokens to restToken if exceed
+    if(maxTokens > restToken) maxTokens = restToken
+
     return maxTokens
   }
 
@@ -4029,49 +4046,59 @@ export class AiHelper {
     return quota.aiConversationCount
   }
 
-  static getTextFromLLM(
+  static getContentFromLLM(
     res: OaiChatCompletion,
     bot?: AiBot,
   ) {
     const choices = res?.choices
     if(!choices || choices.length < 1) {
-      console.warn("no choices in getTextFromLLM")
+      console.warn("no choices in getContentFromLLM")
       console.log(res)
-      return
+      return {}
     }
-
-    const message = choices[0].message
-    if(!message) {
-      console.warn("no message in getTextFromLLM")
-      console.log(choices)
-      return
-    }
-
-    let text = message.content
-    if(!text) return
-
-    text = text.trim()
-
-    // 1. remove "?" in the beginning for zhipu
-    if(bot?.character === "zhipu") {
-      let err1 = text.startsWith("？")
-      if(err1) text = text.substring(1)
-    }
-
-    return text.trim()
-  }
-
-  static getReasoningContent(
-    res: OaiChatCompletion,
-  ) {
-    const choices = res?.choices
-    if(!choices || choices.length < 1) return
 
     const message = choices[0].message as DsReasonerMessage
-    if(!message) return
+    if(!message) {
+      console.warn("no message in getContentFromLLM")
+      console.log(choices)
+      return {}
+    }
 
-    return message.reasoning_content
+    let content = message.content
+    if(!content) {
+      console.warn("no content in getContentFromLLM")
+      return {}
+    }
+
+    content = content.trim()
+
+    // remove "?" in the beginning for zhipu
+    if(bot?.character === "zhipu") {
+      let err1 = content.startsWith("？")
+      if(err1) content = content.substring(1)
+    }
+
+    let reasoning_content = message.reasoning_content
+
+    // extract <think>......</think>
+    const hasThinkTag = bot?.metaData?.thinkingInContent
+    if(hasThinkTag) {
+      const thinkContents = this.extractThinkContent(content)
+      if(thinkContents.length > 0) {
+        const thinkContent = thinkContents[0]
+        content = content.substring(thinkContent.endIndex).trim()
+        reasoning_content = thinkContent.content
+
+        console.warn("new content: ")
+        console.log(content)
+        console.warn("reasoning_content: ")
+        console.log(reasoning_content)
+      }
+    }
+
+    return { content, reasoning_content }
   }
+
 
   static getFinishReason(
     res: OaiChatCompletion
@@ -4312,20 +4339,26 @@ export class AiHelper {
     return _env.LIU_WX_GZ_TYPE ?? "subscription_account"
   }
 
-  static extractThinkContentWithMeta(text: string): ThinkTagContent[] {
+  static extractThinkContent(text: string): ThinkTagContent[] {
     const regex = /<think>([\s\S]*?)<\/think>/g;
     const results: ThinkTagContent[] = []
     
     let match: RegExpExecArray | null
-    while ((match = regex.exec(text)) !== null) {
+    let tryTimes = 0
+    while ((match = regex.exec(text)) !== null && tryTimes < 10) {
       results.push({
         content: match[1],
         startIndex: match.index,
         endIndex: match.index + match[0].length
       })
+      tryTimes++
     }
     
     return results
+  }
+
+  static isReasoningBot(bot: AiBot) {
+    return bot.abilities.includes("reasoning")
   }
   
 
@@ -5309,7 +5342,9 @@ export class Translator {
     }
 
     // 4. get translatedText
-    const translatedText = AiHelper.getTextFromLLM(res3, this._bot)
+    const {
+      content: translatedText,
+    } = AiHelper.getContentFromLLM(res3, this._bot)
     if(!translatedText) {
       console.warn("no translatedText in Translator")
       return
