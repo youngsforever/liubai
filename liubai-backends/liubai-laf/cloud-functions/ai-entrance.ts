@@ -971,8 +971,14 @@ class BaseBot {
       date: current_date, 
       time: current_time,
     } = LiuDateUtil.getDateAndTime(getNowStamp(), user.timezone)
-    const { p } = aiI18nChannel({ entry, character: bot.character })
-    const system_1 = p("system_1", { current_date, current_time })
+
+    const current_provider = AiHelper.getProviderName(bot) ?? "Unknown"
+    const { p } = aiI18nChannel({ entry, bot })
+    const system_1 = p("system_1", { current_date, current_time, current_provider })
+
+    // console.warn("see system_1: ")
+    // console.log(system_1)
+
     const system_1_token = AiHelper.calculateTextToken(system_1)
     if(system_1) {
       prompts.push({ role: "system", content: system_1 })
@@ -4387,6 +4393,18 @@ export class AiHelper {
 
   static isReasoningBot(bot: AiBot) {
     return bot.abilities.includes("reasoning")
+  }
+
+  static getProviderName(bot: AiBot) {
+    const { secondaryProvider, provider } = bot
+    if(secondaryProvider === "siliconflow") return "北京硅基流动"
+    if(provider === "baichuan") return "北京百川智能"
+    if(provider === "deepseek") return "杭州深度求索"
+    if(provider === "minimax") return "上海稀宇科技"
+    if(provider === "moonshot") return "北京月之暗面"
+    if(provider === "stepfun") return "上海阶跃星辰"
+    if(provider === "zero-one") return "北京零一万物"
+    if(provider === "zhipu") return "北京智谱华章"
   }
   
 

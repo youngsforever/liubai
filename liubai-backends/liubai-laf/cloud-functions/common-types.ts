@@ -689,7 +689,7 @@ export interface AiEntry {
 }
 
 export interface AiI18nChannelParam {
-  character: AiCharacter
+  bot: AiBot
   entry: AiEntry
 }
 
