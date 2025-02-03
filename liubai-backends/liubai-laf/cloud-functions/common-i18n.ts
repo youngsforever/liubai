@@ -490,7 +490,7 @@ export const aiLang: LangAtom = {
     "working_log_title": "📜 Working Logs:",
     "operation_title": "🕹️ Operations:",
     "generative_ai_warning": "⚠️ AI can make mistakes. Please double-check it.",
-    "kick": "Kick ",
+    "kick": "Remove ",
     "add": "Add ",
     "clear_context": "Clear context",
     "quota_warning": "Free version has {freeTimes} conversation opportunities.\nPurchase membership to enjoy {membershipTimes} conversations per month! Also unlock all Liubai rights.\n<a href='{link}'>Tap to unlock</a>",

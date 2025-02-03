@@ -645,7 +645,7 @@ class AiDirective {
   }
 
   private static isKickBot(text: string) {
-    const prefix = ["踢掉", "踢掉", "Kick"]
+    const prefix = ["踢掉", "踢掉", "Kick", "Remove"]
     const botMatched = this._getCommandedBot(prefix, text)
     return botMatched 
   }
@@ -847,21 +847,21 @@ class BaseBot {
       console.log(bot)
       return
     }
-    AiHelper.finalCheckPrompts(params.messages, bot)
+    PromptsChecker.run(params.messages, bot)
 
     // print last 5 prompts
-    // const lastNum = 5
-    // const msgLength = params.messages.length
-    // console.log(`last ${lastNum} prompts: `)
-    // if(msgLength > lastNum) {
-    //   const messages2 = params.messages.slice(msgLength - lastNum)
-    //   const printMsg = valTool.objToStr({ messages: messages2 })
-    //   console.log(printMsg)
-    // }
-    // else {
-    //   const printMsg = valTool.objToStr({ messages: params.messages })
-    //   console.log(printMsg)
-    // }
+    const lastNum = 100
+    const msgLength = params.messages.length
+    console.log(`last ${lastNum} prompts: `)
+    if(msgLength > lastNum) {
+      const messages2 = params.messages.slice(msgLength - lastNum)
+      const printMsg = valTool.objToStr({ messages: messages2 })
+      console.log(printMsg)
+    }
+    else {
+      const printMsg = valTool.objToStr({ messages: params.messages })
+      console.log(printMsg)
+    }
     
 
     const llm = new BaseLLM(apiData.apiKey, apiData.baseURL)
@@ -2363,7 +2363,7 @@ class AiCompressor {
       } as OaiPrompt
       prompts.push(msg3_2)
     }
-    AiHelper.finalCheckPrompts(prompts)
+    PromptsChecker.run(prompts)
 
     // 4. construct the arg to send to LLM
     const llm = new BaseLLM(_env.LIU_SUMMARY_API_KEY, _env.LIU_SUMMARY_BASE_URL)
@@ -3551,18 +3551,20 @@ interface ThinkTagContent {
   endIndex: number;
 }
 
-export class AiHelper {
+
+class PromptsChecker {
 
   // try to remove `tool` prompt when the previous prompt is not assistant
   // try to interleave the user/assistant messages in the message sequence for
   // deepseek-reasoner
-  static finalCheckPrompts(
+  static run(
     prompts: OaiPrompt[], 
     bot?: AiBot
   ) {
     this._removeTool(prompts)
     if(bot && AiHelper.isReasoningBot(bot)) {
       this._interleaveUserAssistant(prompts)
+      this._keepLimitedPrompts(prompts)
     }
   }
 
@@ -3619,6 +3621,28 @@ export class AiHelper {
       prompts.splice(0, 1)
     }
   }
+
+  // clip prompts to avoid Request timed out
+  private static _keepLimitedPrompts(
+    prompts: OaiPrompt[],
+    maxNum = 4,    // including system prompt
+  ) {
+    if(prompts.length <= maxNum) return
+
+    for(let i=0; i<prompts.length-1; i++) {
+      if(prompts.length <= maxNum) break
+      const currentOne = prompts[i]
+      const role = currentOne.role
+      if(role === "system") continue
+      prompts.splice(i, 1)
+      i--
+    }
+  }
+
+}
+
+
+class AiHelper {
 
   static async getMyAiRoom(
     entry: AiEntry,
