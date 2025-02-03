@@ -2323,7 +2323,13 @@ export namespace SyncOperateAPI {
     waitingData?: WaitingData
   }
 
-  export type Result = Res_AgreeAichat | Res_GetAichat
+  export interface Res_GetAiDetail {
+    operateType: "get-ai-detail"
+    content?: string
+    reasoningContent?: string
+  }
+
+  export type Result = Res_AgreeAichat | Res_GetAichat | Res_GetAiDetail
 }
 
 /****************** service-poly api ***************/
