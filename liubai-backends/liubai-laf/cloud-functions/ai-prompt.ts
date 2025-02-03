@@ -18,6 +18,22 @@ import { i18nFill } from "@/common-i18n"
 
 /***************************** Bots ***************************/
 export const aiBots: AiBot[] = [
+
+  /** chat using third-party */
+  {
+    name: "DeepSeek R1",
+    character: "ds-reasoner",
+    provider: "deepseek",
+    secondaryProvider: "siliconflow",
+    model: "deepseek-ai/DeepSeek-R1",
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1"],
+    maxWindowTokenK: 64,
+    metaData: {
+      thinkingInContent: true,
+    }
+  },
+
   /** chat using official providers */
   {
     name: "百小应",
@@ -32,12 +48,21 @@ export const aiBots: AiBot[] = [
     }
   },
   {
-    name: "DeepSeek",
+    name: "DeepSeek V3",
     character: "deepseek",
     provider: "deepseek",
     model: "deepseek-chat",
     abilities: ["chat", "tool_use"],
-    alias: ["深度求索"],
+    alias: ["深度求索", "ds", "v3", "deepseek"],
+    maxWindowTokenK: 64,
+  },
+  {
+    name: "DeepSeek R1",
+    character: "ds-reasoner",
+    provider: "deepseek",
+    model: "deepseek-reasoner",
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1"],
     maxWindowTokenK: 64,
   },
   {
@@ -70,15 +95,6 @@ export const aiBots: AiBot[] = [
     alias: ["阶跃星辰", "stepfun", "阶跃"],
     maxWindowTokenK: 8,
   },
-  // {
-  //   name: "万知",
-  //   character: "wanzhi",
-  //   provider: "zero-one",
-  //   model: "yi-large-fc",
-  //   abilities: ["chat", "tool_use"],
-  //   alias: ["零一万物", "01.ai", "01", "零一"],
-  //   maxWindowTokenK: 32,
-  // },
   {
     name: "万知",
     character: "wanzhi",
@@ -156,6 +172,7 @@ const system_wx_env = `
 回复格式：纯文本 plain-text
 当前日期：{current_date}
 当前时间：{current_time}
+当前大模型供应商：{current_provider}
 回复期望：简洁扼要，多使用换行符
 字数限制：300字以内
 其他限制：只能与人们对话，不能与其他机器人/LLM/人工智能助手进行协作和交流
@@ -172,12 +189,6 @@ const system_wx_entry = `
 
 const system_example = `
 下面使用 <user> 标签表示人们发来的消息，<assistant> 标签表示你的回复
-<user>
-你好
-</user>
-<assistant>
-Hi, 我是 deepseek，有什么需要帮助
-</assistant>
 
 <user>
 😥
@@ -279,6 +290,34 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【你的设定】
+${system_settings}
+
+【最后的请求】
+${system_last_request}
+`
+
+const wx_ds_reasoner_system_1 = `
+你叫 DeepSeek R1，是由深度求索公司开发的人工智能助手。
+你当前在留白记事微信公众号内与人们交流！
+
+【留白记事介绍】
+{LIU_DOMAIN}
+一句话介绍：留白记事 = 备忘录📝 + 日历📆 + 任务📌 + 待办清单📂
+致力于让每个人从日常琐事中解放出来，使人们专注于他们所热爱的事物上！
+
+【当前环境】
+会话渠道：微信公众号
+回复格式：纯文本 plain-text
+当前日期：{current_date}
+当前时间：{current_time}
+当前大模型供应商：{current_provider}
+回复期望：简洁扼要，多使用换行符
+字数限制：300字以内
+其他限制：
+1. 只能与人们对话，不能与其他机器人/LLM/人工智能助手进行协作和交流；
+2. 此外，你还没有联网和调用工具的能力，当用户请求你帮他们创建日程时，请诚实地回复你没有能力。
 
 【你的设定】
 ${system_settings}
@@ -409,6 +448,9 @@ const wx_gzh_prompts = {
   },
   "deepseek": {
     "system_1": wx_deepseek_system_1
+  },
+  "ds-reasoner": {
+    "system_1": wx_ds_reasoner_system_1
   },
   "hailuo": {
     "system_1": wx_hailuo_system_1
@@ -543,7 +585,7 @@ export function aiI18nShared(
 export function aiI18nChannel(
   param: AiI18nChannelParam,
 ) {
-  const c = param.character
+  const c = param.bot.character
   let thePrompts: Record<string, string> = {}
   if(param.entry.wx_gzh_openid) {
     thePrompts = wx_gzh_prompts[c]

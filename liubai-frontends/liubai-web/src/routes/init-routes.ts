@@ -34,6 +34,7 @@ const WechatBind = () => import("../pages/level1/wechat-bind/wechat-bind.vue")
 const AccountsPage = () => import("../pages/level3/setting-page/accounts-page/accounts-page.vue")
 const ComposePage = () => import("../pages/level2/compose-page/compose-page.vue")
 const SettingMore = () => import("../pages/level3/setting-page/setting-more/setting-more.vue")
+const CotPage = () => import("../pages/level4/cot-page/cot-page.vue")
 
 export const routes: Array<RouteRecordRaw> = [
   /*************** 公共页面（不区分工作区） ***************/
@@ -153,6 +154,14 @@ export const routes: Array<RouteRecordRaw> = [
       LeftSidebar,
     },
     name: "edit",
+    meta: {
+      checkWorkspace: false,
+    }
+  },
+  {
+    path: "/CoT",
+    component: CotPage,
+    name: "cot",
     meta: {
       checkWorkspace: false,
     }

@@ -43,6 +43,7 @@ import {
   Ns_Zhipu,
   Ns_SiliconFlow,
   Ns_Stepfun,
+  type DsReasonerMessage,
 } from "@/common-types"
 import OpenAI from "openai"
 import { 
@@ -95,7 +96,10 @@ const MAX_WX_TOKEN = 360  // wx gzh will send 45002 error if we send too many wo
 const MIN_REST_TOKEN = 100
 const MAX_WORDS = 3000
 
-const MAX_TIMES_FREE = 10
+// see https://platform.openai.com/docs/guides/reasoning#allocating-space-for-reasoning
+const MIN_REASONING_TOKENS = 1024
+
+const MAX_TIMES_FREE = 20
 const MAX_TIMES_MEMBERSHIP = 200
 
 const SEC_15 = SECONED * 15
@@ -165,6 +169,7 @@ type AiRunResults = Array<AiRunSuccess | undefined>
 interface AiHelperAssistantMsgParam {
   roomId: string
   text?: string
+  reasoning_content?: string
   model: string
   character: AiCharacter
   usage?: AiUsage
@@ -344,6 +349,11 @@ function mapBots(
     const pro1 = bot1.run(aiParam)
     promises.push(pro1)
   }
+  else if(c === "ds-reasoner") {
+    const botDsR = new BotDsReasoner(user)
+    const proDsR = botDsR.run(aiParam)
+    promises.push(proDsR)
+  }
   else if(c === "hailuo") {
     const botMinimax = new BotMiniMax(user)
     const proMinimax = botMinimax.run(aiParam)
@@ -441,10 +451,27 @@ class AiDirective {
   private static _areTheyMatched(
     prefix: string[],
     text: string,
+    fuzzy = false,
   ) {
     const str = text.toLowerCase()
     const list = prefix.map(v => v.toLowerCase())
-    return list.includes(str)
+
+    // 1. direct match
+    const res1 = list.includes(str)
+    if(res1) return true
+    if(!fuzzy) return false
+
+    // 2. fuzzy match
+    let res2 = false
+    list.forEach(v => {
+      const res2_1 = str.startsWith(v)
+      if(!res2_1) return
+      const diff = Math.abs(v.length - str.length)
+      if(diff > 2) return
+      res2 = true
+    })
+
+    return res2
   }
 
   private static isContinue(text: string): AiDirectiveCheckRes | undefined {
@@ -498,11 +525,11 @@ class AiDirective {
 
   private static isViewingStatus(text: string) {
     const prefix = [
-      "群聊状态", "查看群聊状态",
-      "群聊狀態", "檢視群聊狀態",
+      "群聊状态", "查看群聊状态", "群聊有谁", "群聊还有谁", "群里还有谁",
+      "群聊狀態", "檢視群聊狀態", "群組裡有誰", "群組還有誰", "群組中還有誰",
       "Status", "Group Status",
     ]
-    const res1 = this._areTheyMatched(prefix, text)
+    const res1 = this._areTheyMatched(prefix, text, true)
     return res1
   }
 
@@ -618,7 +645,7 @@ class AiDirective {
   }
 
   private static isKickBot(text: string) {
-    const prefix = ["踢掉", "踢掉", "Kick"]
+    const prefix = ["踢掉", "踢掉", "Kick", "Remove"]
     const botMatched = this._getCommandedBot(prefix, text)
     return botMatched 
   }
@@ -820,21 +847,21 @@ class BaseBot {
       console.log(bot)
       return
     }
-    AiHelper.finalCheckPrompts(params.messages)
+    PromptsChecker.run(params.messages, bot)
 
     // print last 5 prompts
-    // const lastNum = 5
-    // const msgLength = params.messages.length
-    // console.log(`last ${lastNum} prompts: `)
-    // if(msgLength > lastNum) {
-    //   const messages2 = params.messages.slice(msgLength - lastNum)
-    //   const printMsg = valTool.objToStr({ messages: messages2 })
-    //   console.log(printMsg)
-    // }
-    // else {
-    //   const printMsg = valTool.objToStr({ messages: params.messages })
-    //   console.log(printMsg)
-    // }
+    const lastNum = 100
+    const msgLength = params.messages.length
+    console.log(`last ${lastNum} prompts: `)
+    if(msgLength > lastNum) {
+      const messages2 = params.messages.slice(msgLength - lastNum)
+      const printMsg = valTool.objToStr({ messages: messages2 })
+      console.log(printMsg)
+    }
+    else {
+      const printMsg = valTool.objToStr({ messages: params.messages })
+      console.log(printMsg)
+    }
     
 
     const llm = new BaseLLM(apiData.apiKey, apiData.baseURL)
@@ -944,8 +971,14 @@ class BaseBot {
       date: current_date, 
       time: current_time,
     } = LiuDateUtil.getDateAndTime(getNowStamp(), user.timezone)
-    const { p } = aiI18nChannel({ entry, character: bot.character })
-    const system_1 = p("system_1", { current_date, current_time })
+
+    const current_provider = AiHelper.getProviderName(bot) ?? "Unknown"
+    const { p } = aiI18nChannel({ entry, bot })
+    const system_1 = p("system_1", { current_date, current_time, current_provider })
+
+    // console.warn("see system_1: ")
+    // console.log(system_1)
+
     const system_1_token = AiHelper.calculateTextToken(system_1)
     if(system_1) {
       prompts.push({ role: "system", content: system_1 })
@@ -1364,31 +1397,24 @@ class BaseBot {
     const roomId = aiParam.room._id
     const c = bot.character
 
-    // 1. get text
-    const txt6 = AiHelper.getTextFromLLM(chatCompletion, bot)
-    if(!txt6) return
+    // 1. get content & reasoning_content
+    const {
+      content: txt1_1,
+      reasoning_content: txt1_2,
+    } = AiHelper.getContentFromLLM(chatCompletion, bot)
+    if(!txt1_1) return
 
-    // 2. reply to user
-    const finishReason = AiHelper.getFinishReason(chatCompletion)
-    const gzhType = AiHelper.getGzhType()
-    if(finishReason === "length" && gzhType === "service_account") {
-      TellUser.menu(
-        aiParam.entry, 
-        txt6, 
-        [{ operation: "continue", character: c }],
-        "",
-        c,
-      )
-    }
-    else {
-      TellUser.text(aiParam.entry, txt6, bot)
+    // 2. reply to user without reasoning_content
+    if(!txt1_2) {
+      this._replyToUser(chatCompletion, aiParam, bot, txt1_1)
     }
     
     // 3. add assistant chat
     const apiEndpoint = AiHelper.getApiEndpointFromBot(bot)
-    const param9: AiHelperAssistantMsgParam = {
+    const param3: AiHelperAssistantMsgParam = {
       roomId,
-      text: txt6,
+      text: txt1_1,
+      reasoning_content: txt1_2,
       model: bot.model,
       character: c,
       usage: chatCompletion.usage,
@@ -1396,10 +1422,50 @@ class BaseBot {
       baseUrl: apiEndpoint?.baseURL,
       finish_reason: AiHelper.getFinishReason(chatCompletion),
     }
-    const assistantChatId = await AiHelper.addAssistantMsg(param9)
-    if(!assistantChatId) return
+    const assistantChatId = await AiHelper.addAssistantMsg(param3)
+
+    // 4. reply to user with reasoning_content
+    if(txt1_2) {
+      this._replyToUser(chatCompletion, aiParam, bot, txt1_1, assistantChatId)
+    }
+
 
     return assistantChatId
+  }
+
+  private _replyToUser(
+    chatCompletion: OaiChatCompletion,
+    aiParam: AiRunParam,
+    bot: AiBot,
+    txt1_1: string,
+    assistantChatId?: string,
+  ) {
+    const c = bot.character
+    const finishReason = AiHelper.getFinishReason(chatCompletion)
+    const gzhType = AiHelper.getGzhType()
+
+    let text = txt1_1
+    if(assistantChatId) {
+      const user = aiParam.entry.user
+      const { t } = useI18n(aiLang, { user })
+      const domain = getLiuDoman()
+      const link = `${domain}/CoT?chatId=${assistantChatId}`
+      const view_thinking = `<a href='${link}'>${t("view_thinking")}</a>`
+      text += `\n\n` + view_thinking
+    }
+
+    if(finishReason === "length" && gzhType === "service_account") {
+      TellUser.menu(
+        aiParam.entry, 
+        text, 
+        [{ operation: "continue", character: c }],
+        "",
+        c,
+      )
+    }
+    else {
+      TellUser.text(aiParam.entry, text, bot)
+    }
   }
 
   private _handleLength(message: OaiMessage) {
@@ -1575,6 +1641,50 @@ class BotDeepSeek extends BaseBot {
     return res6
   }
 
+}
+
+class BotDsReasoner extends BaseBot {
+
+  constructor(user?: Table_User) {
+    super("ds-reasoner", user)
+  }
+
+  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+    // 1. pre run
+    const res1 = this.preRun(aiParam)
+    if(!res1) return
+    const { prompts, totalToken, bot, chats, tools } = res1
+
+    // 2. get other params
+    const model = bot.model
+
+    // 3. handle other things
+    if(aiParam.isContinueCommand) {
+      prompts.push({ role: "user", content: "Continue / 继续" })
+    }
+
+    // 4. calculate maxTokens
+    const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
+
+    // 5. to chat
+    const chatParam: OaiCreateParam = {
+      messages: prompts,
+      max_tokens: maxToken,
+      model,
+      tools,
+    }
+    const chatCompletion = await this.chat(chatParam, bot)
+    
+    // 6. post run
+    const postParam: PostRunParam = {
+      aiParam,
+      chatParam,
+      chatCompletion,
+      bot,
+    }
+    const res6 = await this.postRun(postParam)
+    return res6
+  }
 }
 
 class BotMiniMax extends BaseBot {
@@ -1885,21 +1995,38 @@ class AiController {
     TellUser.typing(entry)
   }
 
+
+  private _hasReasoningBot(
+    newCharacters: AiCharacter[],
+  ) {
+    for(let i=0; i<newCharacters.length; i++) {
+      const v1 = newCharacters[i]
+      const bots = AiHelper.getBotsForCharacter(v1)
+      const reasoningBot = bots.find(v2 => AiHelper.isReasoningBot(v2))
+      if(reasoningBot) return true
+    }
+    return false
+  }
+
+  private _waitForSeconds(
+    aiParam: AiRunParam,
+    newCharacters: AiCharacter[],
+  ) {
+    const { entry } = aiParam
+    const { msg_type } = entry
+    if(aiParam.isContinueCommand || msg_type === "voice") return 0
+
+    // 1. check out reasoning models exist
+    const hasReasoningModel = this._hasReasoningBot(newCharacters)
+    if(hasReasoningModel) return 0
+
+    // 2. andaomly wait for a while
+    const r = Math.floor((Math.random() * 3)) + 3
+    return r
+  }
+
   async run(aiParam: AiRunParam) {
     const { room, entry } = aiParam
-    const { msg_type } = entry
-
-    // 0. randaomly wait for a while
-    if(!aiParam.isContinueCommand && msg_type !== "voice") {
-      const r = Math.floor((Math.random() * 3)) + 3
-      console.log(`start to wait ${r} seconds`)
-      await valTool.waitMilli(r * SECONED)
-      const res0 = await AiHelper.canReply(aiParam)
-      if(!res0) {
-        console.warn("don't reply!")
-        return
-      }
-    }
 
     // 1. check bots in the room
     let characters = room.characters
@@ -1907,6 +2034,18 @@ class AiController {
     if(newCharacters.length < 1) {
       console.warn("no available characters in the room")
       return false
+    }
+
+    // 1.2 decide how long to wait
+    const seconds = this._waitForSeconds(aiParam, newCharacters)
+    if(seconds > 0) {
+      console.log(`start to wait ${seconds} seconds`)
+      await valTool.waitMilli(seconds * SECONED)
+      const res1_2 = await AiHelper.canReply(aiParam)
+      if(!res1_2) {
+        console.warn("don't reply!")
+        return
+      }
     }
 
     // 2. compress chats
@@ -2224,7 +2363,7 @@ class AiCompressor {
       } as OaiPrompt
       prompts.push(msg3_2)
     }
-    AiHelper.finalCheckPrompts(prompts)
+    PromptsChecker.run(prompts)
 
     // 4. construct the arg to send to LLM
     const llm = new BaseLLM(_env.LIU_SUMMARY_API_KEY, _env.LIU_SUMMARY_BASE_URL)
@@ -2341,7 +2480,6 @@ class ToolHandler {
   private _getAgreeAndEditLinks(assistantChatId: string) {
     const domain = getLiuDoman()
 
-    // WIP: compose page
     const agreeLink = `${domain}/agree?chatId=${assistantChatId}`
     const editLink = `${domain}/compose?chatId=${assistantChatId}`
 
@@ -3407,10 +3545,71 @@ export class Palette {
 }
 
 
-class AiHelper {
+interface ThinkTagContent {
+  content: string;
+  startIndex: number;
+  endIndex: number;
+}
+
+
+class PromptsChecker {
 
   // try to remove `tool` prompt when the previous prompt is not assistant
-  static finalCheckPrompts(prompts: OaiPrompt[]) {
+  // try to interleave the user/assistant messages in the message sequence for
+  // deepseek-reasoner
+  static run(
+    prompts: OaiPrompt[], 
+    bot?: AiBot
+  ) {
+    this._removeTool(prompts)
+    if(bot && AiHelper.isReasoningBot(bot)) {
+      this._interleaveUserAssistant(prompts)
+      this._keepLimitedPrompts(prompts)
+    }
+  }
+
+  /**
+   * Handle error: BadRequestError: 400 deepseek-reasoner does not support 
+   * successive user or assistant messages (messages[9] and messages[10] in your input). 
+   * You should interleave the user/assistant messages in the message sequence.
+   */
+  private static _interleaveUserAssistant(prompts: OaiPrompt[]) {
+    for(let i=0; i<prompts.length-1; i++) {
+      const currentOne = prompts[i]
+      const nextOne = prompts[i+1]
+      const currentRole = currentOne.role
+      const nextRole = nextOne.role
+
+      const twoUserPrompts = Boolean(currentRole === "user" && nextRole === "user")
+      const twoAssistantPrompts = Boolean(currentRole === "assistant" && nextRole === "assistant")
+      
+      if(twoUserPrompts || twoAssistantPrompts) {
+        const mergedContent = this._mergeTwoPrompts(currentOne, nextOne)
+        if(mergedContent) {
+          currentOne.content = mergedContent
+          if(currentRole === "assistant") {
+            delete currentOne.name
+          }
+          prompts.splice(i+1, 1)
+        }
+        else {
+          prompts.splice(i, 1)
+        }
+        i--
+      }
+    }
+  }
+
+  private static _mergeTwoPrompts(currentOne: OaiPrompt, nextOne: OaiPrompt) {
+    const currentContent = currentOne.content
+    const nextContent = nextOne.content
+    if(typeof currentContent !== "string") return
+    if(typeof nextContent !== "string") return
+    const newContent = `${currentContent}\n${nextContent}`
+    return newContent
+  }
+
+  private static _removeTool(prompts: OaiPrompt[]) {
     if(prompts.length < 3) return
     const firstPrompt = prompts[0]
     const secondPrompt = prompts[1]
@@ -3425,6 +3624,28 @@ class AiHelper {
       prompts.splice(0, 1)
     }
   }
+
+  // clip prompts to avoid Request timed out
+  private static _keepLimitedPrompts(
+    prompts: OaiPrompt[],
+    maxNum = 4,    // including system prompt
+  ) {
+    if(prompts.length <= maxNum) return
+
+    for(let i=0; i<prompts.length-1; i++) {
+      if(prompts.length <= maxNum) break
+      const currentOne = prompts[i]
+      const role = currentOne.role
+      if(role === "system") continue
+      prompts.splice(i, 1)
+      i--
+    }
+  }
+
+}
+
+
+class AiHelper {
 
   static async getMyAiRoom(
     entry: AiEntry,
@@ -3604,6 +3825,7 @@ class AiHelper {
       roomId: param.roomId,
       infoType: param.funcName ? "tool_use" : "assistant",
       text: param.text,
+      reasoning_content: param.reasoning_content,
       model: param.model,
       character: param.character,
       usage: param.usage,
@@ -3763,6 +3985,12 @@ class AiHelper {
       }
       return false
     }
+    else if(c === "ds-reasoner") {
+      if(_env.LIU_DEEPSEEK_API_KEY && _env.LIU_DEEPSEEK_BASE_URL) {
+        return true
+      }
+      return false
+    }
     else if(c === "hailuo") {
       if(_env.LIU_MINIMAX_API_KEY && _env.LIU_MINIMAX_BASE_URL) {
         return true
@@ -3834,11 +4062,25 @@ class AiHelper {
     bot: AiBot,
   ) {
     const restToken = (bot.maxWindowTokenK * 1000) - totalToken
+
+    // 1. set maxTokens to double firstChat token
     const firstToken = this.calculateChatToken(firstChat)
     let maxTokens = firstToken * 2
     if(maxTokens < 280) maxTokens = 280
-    if(maxTokens > restToken) maxTokens = restToken
+
+    // 2. adapt to wechat max characters limit
     if(maxTokens > MAX_WX_TOKEN) maxTokens = MAX_WX_TOKEN
+
+    // 3. for reasoning model with thinkingInContent
+    if(bot.metaData?.thinkingInContent) {
+      if(maxTokens < MIN_REASONING_TOKENS) {
+        maxTokens = MIN_REASONING_TOKENS
+      }
+    }
+
+    // 4. set maxTokens to restToken if exceed
+    if(maxTokens > restToken) maxTokens = restToken
+
     return maxTokens
   }
 
@@ -3865,37 +4107,59 @@ class AiHelper {
     return quota.aiConversationCount
   }
 
-  static getTextFromLLM(
+  static getContentFromLLM(
     res: OaiChatCompletion,
     bot?: AiBot,
   ) {
     const choices = res?.choices
     if(!choices || choices.length < 1) {
-      console.warn("no choices in getTextFromLLM")
+      console.warn("no choices in getContentFromLLM")
       console.log(res)
-      return
+      return {}
     }
 
-    let message = choices[0].message
+    const message = choices[0].message as DsReasonerMessage
     if(!message) {
-      console.warn("no message in getTextFromLLM")
+      console.warn("no message in getContentFromLLM")
       console.log(choices)
-      return
+      return {}
     }
 
-    let text = message.content
-    if(!text) return
+    let content = message.content
+    if(!content) {
+      console.warn("no content in getContentFromLLM")
+      return {}
+    }
 
-    text = text.trim()
+    content = content.trim()
 
-    // 1. remove "?" in the beginning for zhipu
+    // remove "?" in the beginning for zhipu
     if(bot?.character === "zhipu") {
-      let err1 = text.startsWith("？")
-      if(err1) text = text.substring(1)
+      let err1 = content.startsWith("？")
+      if(err1) content = content.substring(1)
     }
 
-    return text.trim()
+    let reasoning_content = message.reasoning_content
+
+    // extract <think>......</think>
+    const hasThinkTag = bot?.metaData?.thinkingInContent
+    if(hasThinkTag) {
+      const thinkContents = this.extractThinkContent(content)
+      if(thinkContents.length > 0) {
+        const thinkContent = thinkContents[0]
+        content = content.substring(thinkContent.endIndex).trim()
+        reasoning_content = thinkContent.content
+
+        console.warn("new content: ")
+        console.log(content)
+        console.warn("reasoning_content: ")
+        console.log(reasoning_content)
+      }
+    }
+
+    return { content, reasoning_content }
   }
+
 
   static getFinishReason(
     res: OaiChatCompletion
@@ -4057,6 +4321,11 @@ class AiHelper {
     return name
   }
 
+  static getBotsForCharacter(character: AiCharacter) {
+    const bots = aiBots.filter(v => v.character === character)
+    return bots
+  }
+
   static async updateAiChat(id: string, data: Partial<Table_AiChat>) {
     if(!data.updatedStamp) data.updatedStamp = getNowStamp()
     const cCol = db.collection("AiChat")
@@ -4130,6 +4399,41 @@ class AiHelper {
     const _env = process.env
     return _env.LIU_WX_GZ_TYPE ?? "subscription_account"
   }
+
+  static extractThinkContent(text: string): ThinkTagContent[] {
+    const regex = /<think>([\s\S]*?)<\/think>/g;
+    const results: ThinkTagContent[] = []
+    
+    let match: RegExpExecArray | null
+    let tryTimes = 0
+    while ((match = regex.exec(text)) !== null && tryTimes < 10) {
+      results.push({
+        content: match[1],
+        startIndex: match.index,
+        endIndex: match.index + match[0].length
+      })
+      tryTimes++
+    }
+    
+    return results
+  }
+
+  static isReasoningBot(bot: AiBot) {
+    return bot.abilities.includes("reasoning")
+  }
+
+  static getProviderName(bot: AiBot) {
+    const { secondaryProvider, provider } = bot
+    if(secondaryProvider === "siliconflow") return "北京硅基流动"
+    if(provider === "baichuan") return "北京百川智能"
+    if(provider === "deepseek") return "杭州深度求索"
+    if(provider === "minimax") return "上海稀宇科技"
+    if(provider === "moonshot") return "北京月之暗面"
+    if(provider === "stepfun") return "上海阶跃星辰"
+    if(provider === "zero-one") return "北京零一万物"
+    if(provider === "zhipu") return "北京智谱华章"
+  }
+  
 
 }
 
@@ -4726,6 +5030,9 @@ class TellUser {
     else if(c === "deepseek") {
       return _env.LIU_WXGZH_KF_DEEPSEEK
     }
+    else if(c === "ds-reasoner") {
+      return _env.LIU_WXGZH_KF_DS_REASONER
+    }
     else if(c === "hailuo") {
       return _env.LIU_WXGZH_KF_HAILUO
     }
@@ -5108,7 +5415,9 @@ export class Translator {
     }
 
     // 4. get translatedText
-    const translatedText = AiHelper.getTextFromLLM(res3, this._bot)
+    const {
+      content: translatedText,
+    } = AiHelper.getContentFromLLM(res3, this._bot)
     if(!translatedText) {
       console.warn("no translatedText in Translator")
       return

@@ -657,5 +657,8 @@
     "err_4": "It might not be an email address",
     "err_5": "The number in your region has not been opened yet",
     "compliance": "According to the local law, you have to bind your phone number before proceeding."
+  },
+  "ai_detail": {
+    "thinking_process": "Thinking Process"
   }
 }
