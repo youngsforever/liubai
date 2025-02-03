@@ -4195,6 +4195,9 @@ class AiHelper {
         console.log(reasoning_content)
       }
     }
+    if(reasoning_content) {
+      reasoning_content = reasoning_content.trim()
+    }
 
     return { content, reasoning_content }
   }
