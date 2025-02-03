@@ -867,18 +867,18 @@ class BaseBot {
     PromptsChecker.run(params.messages, bot)
 
     // print last 5 prompts
-    // const lastNum = 5
-    // const msgLength = params.messages.length
-    // console.log(`last ${lastNum} prompts: `)
-    // if(msgLength > lastNum) {
-    //   const messages2 = params.messages.slice(msgLength - lastNum)
-    //   const printMsg = valTool.objToStr({ messages: messages2 })
-    //   console.log(printMsg)
-    // }
-    // else {
-    //   const printMsg = valTool.objToStr({ messages: params.messages })
-    //   console.log(printMsg)
-    // }
+    const lastNum = 100
+    const msgLength = params.messages.length
+    console.log(`last ${lastNum} prompts: `)
+    if(msgLength > lastNum) {
+      const messages2 = params.messages.slice(msgLength - lastNum)
+      const printMsg = valTool.objToStr({ messages: messages2 })
+      console.log(printMsg)
+    }
+    else {
+      const printMsg = valTool.objToStr({ messages: params.messages })
+      console.log(printMsg)
+    }
     
 
     const llm = new BaseLLM(apiData.apiKey, apiData.baseURL)
@@ -3581,7 +3581,8 @@ class PromptsChecker {
     this._removeTool(prompts)
     if(bot && AiHelper.isReasoningBot(bot)) {
       this._interleaveUserAssistant(prompts)
-      this._keepLimitedPrompts(prompts)
+      this._constraintPromptsNum(prompts)
+      this._ensureFirstPromptIsUser(prompts)
     }
   }
 
@@ -3643,9 +3644,9 @@ class PromptsChecker {
   }
 
   // clip prompts to avoid Request timed out
-  private static _keepLimitedPrompts(
+  private static _constraintPromptsNum(
     prompts: OaiPrompt[],
-    maxNum = 4,    // including system prompt
+    maxNum = 6,    // including system prompt
   ) {
     if(prompts.length <= maxNum) return
 
@@ -3654,6 +3655,17 @@ class PromptsChecker {
       const currentOne = prompts[i]
       const role = currentOne.role
       if(role === "system") continue
+      prompts.splice(i, 1)
+      i--
+    }
+  }
+
+  private static _ensureFirstPromptIsUser(prompts: OaiPrompt[]) {
+    for(let i=0; i<prompts.length; i++) {
+      const v = prompts[i]
+      const role = v.role
+      if(role === "system" && i === 0) continue
+      if(role === "user") return
       prompts.splice(i, 1)
       i--
     }
