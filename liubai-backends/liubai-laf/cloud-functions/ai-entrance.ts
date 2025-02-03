@@ -99,7 +99,7 @@ const MAX_WORDS = 3000
 // see https://platform.openai.com/docs/guides/reasoning#allocating-space-for-reasoning
 const MIN_REASONING_TOKENS = 1024
 
-const MAX_TIMES_FREE = 10
+const MAX_TIMES_FREE = 20
 const MAX_TIMES_MEMBERSHIP = 200
 
 const SEC_15 = SECONED * 15
@@ -3587,6 +3587,9 @@ class PromptsChecker {
         const mergedContent = this._mergeTwoPrompts(currentOne, nextOne)
         if(mergedContent) {
           currentOne.content = mergedContent
+          if(currentRole === "assistant") {
+            delete currentOne.name
+          }
           prompts.splice(i+1, 1)
         }
         else {
