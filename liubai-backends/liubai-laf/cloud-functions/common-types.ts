@@ -2290,12 +2290,16 @@ export interface Res_SyncGet_Cloud {
 
 export namespace SyncOperateAPI {
   export interface Param {
-    operateType: "agree-aichat" | "get-aichat"
+    operateType: "agree-aichat" | "get-aichat" | "get-ai-detail"
     chatId: string
   }
 
   export const Sch_Param = vbot.object({
-    operateType: vbot.picklist(["agree-aichat", "get-aichat"]),
+    operateType: vbot.picklist([
+      "agree-aichat", 
+      "get-aichat",
+      "get-ai-detail",
+    ]),
     chatId: Sch_String_WithLength,
   })
 
