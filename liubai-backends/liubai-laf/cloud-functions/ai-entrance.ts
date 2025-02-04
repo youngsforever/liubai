@@ -215,6 +215,7 @@ interface TurnChatsIntoPromptOpt {
 interface BaseLLMChatOpt {
   maxTryTimes?: number
   user?: Table_User
+  timeoutSec?: number
 }
 
 /********************* empty function ****************/
@@ -603,18 +604,26 @@ class AiDirective {
 
   private static async toAddBot(entry: AiEntry, bot: AiBot) {
     const user = entry.user
-    const { t } = useI18n(aiLang, { user })
 
     // 1. get the user's ai room
-    const room = await AiHelper.getMyAiRoom(entry)
+    const room = await AiHelper.getMyAiRoom(entry, bot)
     if(!room) return
     const { characters } = room
 
     // 2. find the bot in the room
     const theBot = characters.find(v => v === bot.character)
     if(theBot) {
-      const msg2 = t("already_exist", { botName: bot.name })
-      TellUser.text(entry, msg2)
+      const roomCreatedStamp = room.insertedStamp
+      const diff2 = getNowStamp() - roomCreatedStamp
+      if(diff2 < 2000) {
+        // this room just added
+        this._sayHello(entry, bot)
+      }
+      else {
+        const { t } = useI18n(aiLang, { user })
+        const msg2_2 = t("already_exist", { botName: bot.name })
+        TellUser.text(entry, msg2_2)
+      }
       return
     }
 
@@ -634,14 +643,23 @@ class AiDirective {
     const res4 = await rCol.doc(room._id).update(u4)
 
     // 5. send a message to user
+    this._sayHello(entry, bot)
+    LogHelper.add([bot.character], user)
+    return true
+  }
+
+  private static _sayHello(
+    entry: AiEntry,
+    bot: AiBot,
+  ) {
     const msgList = ["called_1", "called_2", "called_3", "called_4"]
     const r = Math.floor(Math.random() * msgList.length)
     const msgKey = msgList[r]
-    const msg5 = t(msgKey, { botName: bot.name })
-    TellUser.text(entry, msg5, bot)
-    LogHelper.add([bot.character], user)
 
-    return true
+    const user = entry.user
+    const { t } = useI18n(aiLang, { user })
+    const msg = t(msgKey, { botName: bot.name })
+    TellUser.text(entry, msg, bot)
   }
 
   private static isKickBot(text: string) {
@@ -721,6 +739,8 @@ class AiDirective {
 
 /**************************** Bots ***************************/
 
+type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
+
 class BaseLLM {
   protected _client: OpenAI | undefined
   protected _baseUrl: string | undefined
@@ -737,7 +757,38 @@ class BaseLLM {
 
   private _tryTimes = 0
 
-  public async chat(
+  public chat(
+    params: OpenAI.Chat.ChatCompletionCreateParams,
+    opt?: BaseLLMChatOpt,
+  ): Promise<OaiChatCompletion | undefined> {
+    const _this = this
+    const timeoutSec = opt?.timeoutSec ?? 59
+    let hasReturn = false
+
+    const _wait = async (a: BaseChatResolver) => {
+      // 1. set timeout
+      let timeout = setTimeout(() => {
+        if(hasReturn) return
+        console.warn("custom timeout occurs!")
+        hasReturn = true
+        a(undefined)
+      }, timeoutSec * 1000)
+
+      // 2. to chat
+      const res = await _this._chat(params, opt)
+
+      // 3. decide to continue
+      if(hasReturn) return
+      hasReturn = true
+      clearTimeout(timeout)
+
+      a(res)
+    }
+
+    return new Promise(_wait)
+  }
+
+  private async _chat(
     params: OpenAI.Chat.ChatCompletionCreateParams,
     opt?: BaseLLMChatOpt,
   ): Promise<OaiChatCompletion | undefined> {
@@ -746,12 +797,9 @@ class BaseLLM {
     if(!client) return
 
     _this._tryTimes++
-    const timeout = _this._tryTimes > 1 ? 15000 : 30000
 
     try {
-      const chatCompletion = await client.chat.completions.create(params, {
-        timeout,
-      })
+      const chatCompletion = await client.chat.completions.create(params)
       _this._tryTimes = 0
       _this._log(chatCompletion as any, opt)
       return chatCompletion as OaiChatCompletion
@@ -850,18 +898,18 @@ class BaseBot {
     PromptsChecker.run(params.messages, bot)
 
     // print last 5 prompts
-    const lastNum = 100
-    const msgLength = params.messages.length
-    console.log(`last ${lastNum} prompts: `)
-    if(msgLength > lastNum) {
-      const messages2 = params.messages.slice(msgLength - lastNum)
-      const printMsg = valTool.objToStr({ messages: messages2 })
-      console.log(printMsg)
-    }
-    else {
-      const printMsg = valTool.objToStr({ messages: params.messages })
-      console.log(printMsg)
-    }
+    // const lastNum = 100
+    // const msgLength = params.messages.length
+    // console.log(`last ${lastNum} prompts: `)
+    // if(msgLength > lastNum) {
+    //   const messages2 = params.messages.slice(msgLength - lastNum)
+    //   const printMsg = valTool.objToStr({ messages: messages2 })
+    //   console.log(printMsg)
+    // }
+    // else {
+    //   const printMsg = valTool.objToStr({ messages: params.messages })
+    //   console.log(printMsg)
+    // }
     
 
     const llm = new BaseLLM(apiData.apiKey, apiData.baseURL)
@@ -3564,7 +3612,8 @@ class PromptsChecker {
     this._removeTool(prompts)
     if(bot && AiHelper.isReasoningBot(bot)) {
       this._interleaveUserAssistant(prompts)
-      this._keepLimitedPrompts(prompts)
+      this._constraintPromptsNum(prompts)
+      this._ensureFirstPromptIsUser(prompts)
     }
   }
 
@@ -3626,9 +3675,9 @@ class PromptsChecker {
   }
 
   // clip prompts to avoid Request timed out
-  private static _keepLimitedPrompts(
+  private static _constraintPromptsNum(
     prompts: OaiPrompt[],
-    maxNum = 4,    // including system prompt
+    maxNum = 10,    // including system prompt
   ) {
     if(prompts.length <= maxNum) return
 
@@ -3642,6 +3691,17 @@ class PromptsChecker {
     }
   }
 
+  private static _ensureFirstPromptIsUser(prompts: OaiPrompt[]) {
+    for(let i=0; i<prompts.length; i++) {
+      const v = prompts[i]
+      const role = v.role
+      if(role === "system" && i === 0) continue
+      if(role === "user") return
+      prompts.splice(i, 1)
+      i--
+    }
+  }
+
 }
 
 
@@ -3649,6 +3709,7 @@ class AiHelper {
 
   static async getMyAiRoom(
     entry: AiEntry,
+    botUserWannaAdd?: AiBot,
   ) {
     // 1. get room
     const userId = entry.user._id
@@ -3657,11 +3718,20 @@ class AiHelper {
     const room = res1.data
     if(room) return room
   
-    // 2. create room
+    // 2.1 get available characters
     const b2 = getBasicStampWhileAdding()
     const characters = this.fillCharacters()
-    console.log("init characters: ")
-    console.log(characters)
+
+    // 2.2 try to add bot user wants
+    if(botUserWannaAdd) {
+      const c2_2 = botUserWannaAdd.character
+      const canAdd = this.isCharacterAvailable(botUserWannaAdd.character)
+      if(canAdd && !characters.includes(c2_2)) {
+        characters.splice(0, 1, c2_2)
+      }
+    }
+
+    // 3. to create
     const room2: Partial_Id<Table_AiRoom> = {
       ...b2,
       owner: userId,
@@ -4155,6 +4225,9 @@ class AiHelper {
         console.warn("reasoning_content: ")
         console.log(reasoning_content)
       }
+    }
+    if(reasoning_content) {
+      reasoning_content = reasoning_content.trim()
     }
 
     return { content, reasoning_content }
