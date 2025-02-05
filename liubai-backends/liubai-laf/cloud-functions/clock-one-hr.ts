@@ -457,6 +457,7 @@ async function handleStatistics() {
   const appTimezone = _env.LIU_TIMEZONE ?? "0"
   const tz = formatTimezone(appTimezone)
   const hrs = currentHoursOfSpecificTimezone(tz)
+  console.warn("hrs: ", hrs)
   if(hrs !== 0) return
 
   // 2. get nocodb params
@@ -477,6 +478,8 @@ async function handleStatistics() {
 
   // 4. get overview
   const data4 = await _getStatisticForOverview()
+  console.warn("statistic overview: ")
+  console.log(data4)
 
   // 5. fetch to nocodb
   const body = {

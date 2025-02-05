@@ -392,9 +392,12 @@ function mapBots(
 /** check out if it's a directive, like "召唤..." */
 class AiDirective {
 
+  private static _bots: AiBot[] = []
+
   static check(
     entry: AiEntry
   ): AiDirectiveCheckRes | undefined {
+    this._bots = AiHelper.getAvailableBots()
 
     // 1. get text
     const text = entry.text
@@ -444,7 +447,7 @@ class AiDirective {
 
     const txt1 = text.substring(prefixMatched.length).trim()
     const txt2 = txt1.toLowerCase()
-    const botMatched = aiBots.find(v => {
+    const botMatched = this._bots.find(v => {
       const name = v.name.toLowerCase()
       const alias = v.alias.map(v => v.toLowerCase())
       if(name === txt2) return true
@@ -676,9 +679,27 @@ class AiDirective {
   }
 
   private static isAddBot(text: string) {
-    const prefix = ["召唤", "召喚", "Add"]
+    // 1. use prefix
+    const prefix = [
+      "召唤", "召喚", "Summon", "summon",
+      "我要", "我要", "I want", "i want",
+      "添加", "新增", "Add", "add",
+      "呼叫", "Call", "call",
+    ]
     const botMatched = this._getCommandedBot(prefix, text)
-    return botMatched 
+    if(botMatched) return botMatched
+    
+    // 2. text match completed
+    const lowerText = text.toLowerCase()
+    const botMatched2 = this._bots.find(v => {
+      const name = v.name.toLowerCase()
+      if(name === lowerText) return true
+      const alias = v.alias.map(v => v.toLowerCase())
+      if(alias.includes(lowerText)) return true
+      return false
+    })
+
+    return botMatched2
   }
 
   private static isClear(text: string) {
@@ -1353,17 +1374,17 @@ class BaseBot {
     }
 
     // print last 3 prompts
-    const msgLength = prompts.length
-    console.log(`last 3 prompts in _continueAfterWebSearch: `)
-    if(msgLength > 3) {
-      const messages2 = prompts.slice(msgLength - 3)
-      const printMsg = valTool.objToStr({ messages: messages2 })
-      console.log(printMsg)
-    }
-    else {
-      const printMsg = valTool.objToStr({ messages: prompts })
-      console.log(printMsg)
-    }
+    // const msgLength = prompts.length
+    // console.log(`last 3 prompts in _continueAfterWebSearch: `)
+    // if(msgLength > 3) {
+    //   const messages2 = prompts.slice(msgLength - 3)
+    //   const printMsg = valTool.objToStr({ messages: messages2 })
+    //   console.log(printMsg)
+    // }
+    // else {
+    //   const printMsg = valTool.objToStr({ messages: prompts })
+    //   console.log(printMsg)
+    // }
 
     // 4. new chat create param
     const newChatParam: OaiCreateParam = { 
@@ -1550,6 +1571,7 @@ class BaseBot {
     }
   }
 
+  /** remove the last line if we receive `finish_reason` with value `length` */
   private _handleLength(message: OaiMessage) {
     let content = message.content
     if(!content) return
@@ -3930,19 +3952,23 @@ class AiHelper {
   }
 
   private static getAvailableCharacters() {
-    const characters: AiCharacter[] = []
+    const bots = AiHelper.getAvailableBots()
+    const characters = bots.map(v => v.character)
+    return characters
+  }
+
+  static getAvailableBots() {
+    const bots: AiBot[] = []
     for(let i=0; i<aiBots.length; i++) {
       const bot = aiBots[i]
-      const c = bot.character
-      if(characters.includes(c)) continue
-
+      const existedBot = bots.find(v => v.character === bot.character)
+      if(existedBot) continue
       const apiData = this.getApiEndpointFromBot(bot)
       if(apiData) {
-        characters.push(c)
+        bots.push(bot)
       }
     }
-
-    return characters
+    return bots
   }
 
   static async addChat(data: Partial_Id<Table_AiChat>) {
