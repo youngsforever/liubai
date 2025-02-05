@@ -443,11 +443,15 @@ async function handle_scan_login(
     const res7_1 = await tryToSignInWithWxGzhOpenId(ctx, body, wx_gzh_openid, opt7_1)
     
     if(res7_1) {
-      // 7.2 TODO: send message to user: login successfully
       const lang = res7_1.data?.language
       sendLoginMsgToWxGzhUser(ctx, wx_gzh_openid, "wx-gzh-scan", { body, lang })
       _removeCredential()
       return res7_1
+    }
+    else {
+      console.warn("sign in with wx_gzh_openid failed")
+      console.log(wx_gzh_openid)
+      console.log(body)
     }
 
     return { code: "E4003", errMsg: "sign in with wx_gzh_openid failed" }
@@ -493,6 +497,10 @@ async function handle_scan_check(
     return { code: "0000", data: resData }
   }
   if(verifyNum && verifyNum > 100) {
+    console.warn("checking too much in handle_scan_check......")
+    console.log(verifyNum)
+    console.log("the credential data: ")
+    console.log(fir1)
     return { code: "E4003", errMsg: "checking too much" }
   }
 
@@ -2389,7 +2397,7 @@ class LoginStater {
     const createdStamp = res2.insertedStamp
     let num = res2.num
     num++
-    if(num > 3) {
+    if(num > 5) {
       console.warn("the state has been checked for db too many times.......")
       this.clear(state)
       return { code: "U0004", errMsg: "maximum times to interact with the state" } 

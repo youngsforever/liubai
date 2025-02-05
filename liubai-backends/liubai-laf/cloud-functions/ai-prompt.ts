@@ -43,14 +43,14 @@ export const aiBots: AiBot[] = [
     model: "DeepSeek-R1-Distill-Qwen-32B",
     abilities: ["chat", "reasoning"],
     alias: ["R1", "r1"],
-    maxWindowTokenK: 64,
+    maxWindowTokenK: 32,
     priority: 17,
     metaData: {
       thinkingInContent: true,
       onlyOneSystemRoleMsg: true,
       defaultHeaders: {
         "X-Failover-Enabled": "true",
-        "X-Package": "1910",    // 1910: 不指定算力提供商    1492: 沐曦    1917: 无问芯穹    
+        "X-Package": "1910",    // 指定资源包，其中 1910: 全模型资源包    1492: 沐曦    1917: 无问芯穹    
       },
     }
   },
@@ -62,7 +62,7 @@ export const aiBots: AiBot[] = [
     provider: "baichuan",
     model: "Baichuan4-Air",
     abilities: ["chat", "tool_use"],
-    alias: ["百川", "百川AI"],
+    alias: ["百川", "百川AI", "百川智能"],
     maxWindowTokenK: 32,
     priority: 10,
     metaData: {
