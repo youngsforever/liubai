@@ -31,7 +31,6 @@ export const aiBots: AiBot[] = [
     maxWindowTokenK: 64,
     priority: 19,
     metaData: {
-      thinkingInContent: true,
       onlyOneSystemRoleMsg: true,
     }
   },
