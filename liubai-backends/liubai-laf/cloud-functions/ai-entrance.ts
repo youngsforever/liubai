@@ -3774,7 +3774,7 @@ class PromptsChecker {
     const nextContent = nextOne.content
     if(typeof currentContent !== "string") return
     if(typeof nextContent !== "string") return
-    const newContent = `${currentContent}\n${nextContent}`
+    const newContent = `${currentContent}\n\n${nextContent}`
     return newContent
   }
 
@@ -4741,9 +4741,7 @@ class ChatIntoPrompter {
   }
 
   private turnForToolUse(v: Table_AiChat) {
-    const {
-      tool_calls,
-    } = v
+    const { tool_calls } = v
     if(!tool_calls) return
     const tool_call_id = tool_calls[0]?.id
     if(!tool_call_id) return
@@ -4763,7 +4761,16 @@ class ChatIntoPrompter {
 
     // 3. otherwise, turn the tool_call_result prompt into a user prompt
     let tmpPrompts: OaiPrompt[] = []
-    if(toolMsg) tmpPrompts.push(toolMsg)
+    if(toolMsg) {
+      const tmpToolMsg = valTool.objToStr(toolMsg)
+      const tmpUserContent = t("result_of_tool", { msg: tmpToolMsg })
+      const tmpUserPrompt: OaiPrompt = {
+        role: "user",
+        content: tmpUserContent,
+      }
+      tmpPrompts.push(tmpUserPrompt)
+    }
+
     const msg3 = this._turnToolCallIntoNormalAssistantMsg(t, v)
     if(msg3) tmpPrompts.push(msg3)
     return tmpPrompts
