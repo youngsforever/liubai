@@ -4357,8 +4357,12 @@ class AiHelper {
 
     let content = message.content
     if(!content) {
-      console.warn("no content in getContentFromLLM")
-      return {}
+      if(!message.reasoning_content) {
+        console.warn("no content and reasoning_content in getContentFromLLM")
+        return {}
+      }
+      content = message.reasoning_content
+      message.reasoning_content = undefined
     }
 
     content = content.trim()
