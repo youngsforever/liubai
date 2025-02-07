@@ -3,7 +3,6 @@
 import { 
   type AiBot,
   type AiCharacter,
-  type AiUsage,
   type AiEntry,
   type AiCommandByHuman,
   type OaiPrompt,
@@ -17,10 +16,7 @@ import {
   type Partial_Id, 
   type Table_AiChat, 
   type Table_AiRoom, 
-  type Table_User, 
-  type Wx_Gzh_Send_Msg,
-  type Wx_Gzh_Send_Msgmenu_Item,
-  type Wx_Gzh_Send_Msgmenu,
+  type Table_User,
   type Table_Order,
   type Table_Subscription,
   type AiFinishReason,
@@ -33,7 +29,6 @@ import {
   Sch_AiToolGetScheduleParam,
   Sch_AiToolGetCardsParam,
   type AiApiEndpoint,
-  type AiToolGetScheduleHoursFromNow,
   type AiToolGetScheduleSpecificDate,
   type AiToolGetScheduleParam,
   type Table_Content,
@@ -47,20 +42,17 @@ import {
 } from "@/common-types"
 import OpenAI from "openai"
 import { 
-  checkAndGetWxGzhAccessToken, 
   checkIfUserSubscribed, 
   getDocAddId,
   valTool,
   createAvailableOrderId,
   LiuDateUtil,
   getLiuDoman,
-  MarkdownParser,
   AiToolUtil,
   liuReq,
   decryptEncData,
   getSummary,
 } from "@/common-util"
-import { WxGzhSender } from "@/service-send"
 import { 
   getBasicStampWhileAdding, 
   getNowStamp, 
@@ -80,10 +72,11 @@ import {
 import cloud from "@lafjs/cloud"
 import { useI18n, aiLang, getCurrentLocale } from "@/common-i18n"
 import * as vbot from "valibot"
-import { downloadFile, responseToFormData, WxGzhUploader } from "@/file-utils"
+import { downloadFile, responseToFormData } from "@/file-utils"
 import { createRandom } from "@/common-ids"
 import { addDays, set as date_fn_set } from "date-fns"
 import axios from "axios"
+import { AiShared, TellUser } from "@/ai-shared"
 
 const db = cloud.database()
 const _ = db.command
@@ -130,73 +123,6 @@ interface AiDirectiveCheckRes {
   theBot?: AiBot
 }
 
-// pass it to aiController.run() and bot.run()
-interface AiRunParam {
-  entry: AiEntry
-  room: Table_AiRoom
-  chatId?: string
-  chats: Table_AiChat[]
-  isContinueCommand?: boolean
-}
-
-interface AiRunLog_A {
-  toolName: "get_schedule"
-  hoursFromNow?: AiToolGetScheduleHoursFromNow
-  specificDate?: AiToolGetScheduleSpecificDate
-}
-
-interface AiRunLog_B {
-  toolName: "get_cards"
-  cardType: AiToolGetCardType
-}
-
-interface AiRunLog_C {
-  toolName: "draw_picture"
-  drawResult: LiuAi.PaletteResult
-}
-
-export type AiRunLog = (AiRunLog_A | AiRunLog_B | AiRunLog_C) & {
-  character: AiCharacter
-  textToUser: string
-  logStamp: number
-}
-
-interface AiRunSuccess {
-  character: AiCharacter
-  replyStatus: "yes" | "has_new_msg"
-  assistantChatId?: string
-  chatCompletion?: OaiChatCompletion
-  toolName?: string
-  logs?: AiRunLog[]
-}
-
-type AiRunResults = Array<AiRunSuccess | undefined>
-
-interface AiHelperAssistantMsgParam {
-  roomId: string
-  text?: string
-  reasoning_content?: string
-  model: string
-  character: AiCharacter
-  usage?: AiUsage
-  requestId?: string
-  baseUrl?: string
-  funcName?: string
-  funcJson?: Record<string, any>
-  tool_calls?: OaiToolCall[]
-  finish_reason?: AiFinishReason
-  webSearchProvider?: LiuAi.SearchProvider
-  webSearchData?: Record<string, any>
-  drawPictureUrl?: string
-  drawPictureModel?: string
-  drawPictureData?: Record<string, any>
-}
-
-interface AiMenuItem {
-  operation: AiCommandByHuman
-  character?: AiCharacter
-}
-
 interface PreRunResult {
   prompts: OaiPrompt[]
   totalToken: number
@@ -206,7 +132,7 @@ interface PreRunResult {
 }
 
 interface PostRunParam {
-  aiParam: AiRunParam
+  aiParam: LiuAi.RunParam
   chatParam: OaiCreateParam
   chatCompletion?: OaiChatCompletion
   bot: AiBot
@@ -340,8 +266,8 @@ function preCheckText(text: string, entry: AiEntry) {
 
 function mapBots(
   c: AiCharacter,
-  aiParam: AiRunParam,
-  promises: Promise<AiRunSuccess | undefined>[],
+  aiParam: LiuAi.RunParam,
+  promises: Promise<LiuAi.RunSuccess | undefined>[],
 ) {
 
   const user = aiParam.entry.user
@@ -509,7 +435,7 @@ class AiDirective {
     }
     else {
       characters.forEach(v => {
-        const name = AiHelper.getCharacterName(v)
+        const name = AiShared.getCharacterName(v)
         if(name) msg += (name + "\n")
       })
     }
@@ -582,10 +508,10 @@ class AiDirective {
 
     // 5. send a message to user
     const msg5 = t("bot_left", { botName: bot.name })
-    const gzhType = AiHelper.getGzhType()
+    const gzhType = AiShared.getGzhType()
     if(gzhType === "service_account" && addedList.length > 0) {
       // 5.1 send menu
-      const menuList: AiMenuItem[] = []
+      const menuList: LiuAi.MenuItem[] = []
       const prefixMsg = msg5  + "\n\n" + t("operation_title")
       addedList.forEach(v => menuList.push({ operation: "add", character: v }))
       TellUser.menu(entry, prefixMsg, menuList, "")
@@ -607,7 +533,7 @@ class AiDirective {
   ) {
     const { t } = useI18n(aiLang, { user: entry.user })
     let prefixMessage = t("there_are_3") + `\n\n` + t("operation_title")
-    const menuList: AiMenuItem[] = []
+    const menuList: LiuAi.MenuItem[] = []
     characters.forEach(v => menuList.push({ operation: "kick", character: v }))
     TellUser.menu(entry, prefixMessage, menuList, "")
   }
@@ -923,7 +849,7 @@ class BaseBot {
     params: OpenAI.Chat.ChatCompletionCreateParams,
     bot: AiBot,
   ) {
-    const apiData = AiHelper.getApiEndpointFromBot(bot)
+    const apiData = AiShared.getApiEndpointFromBot(bot)
     if(!apiData) {
       console.warn(`no api data for ${this._character}`)
       console.log(bot)
@@ -965,7 +891,7 @@ class BaseBot {
     return res
   }
 
-  private _getBotAndChats(param: AiRunParam) {
+  private _getBotAndChats(param: LiuAi.RunParam) {
     // 1. get params
     let { chats } = param
     const _this = this
@@ -1032,7 +958,7 @@ class BaseBot {
     return chats
   }
 
-  protected preRun(param: AiRunParam): PreRunResult | undefined {
+  protected preRun(param: LiuAi.RunParam): PreRunResult | undefined {
     // 1. get bot
     const botAndChats = this._getBotAndChats(param)
     if(!botAndChats) return
@@ -1097,9 +1023,9 @@ class BaseBot {
 
     // 2. define some constants
     const character = this._character
-    const botName = AiHelper.getCharacterName(character)
+    const botName = AiShared.getCharacterName(character)
     const { t } = useI18n(aiLang, { user: aiParam.entry.user })
-    const aiLogs: AiRunLog[] = []
+    const aiLogs: LiuAi.RunLog[] = []
     const toolHandler = new ToolHandler(
       aiParam, 
       bot,
@@ -1148,7 +1074,7 @@ class BaseBot {
           botName: botName ?? "", 
           model: drawRes.model,
         })
-        const drawLog: AiRunLog = {
+        const drawLog: LiuAi.RunLog = {
           toolName: "draw_picture",
           drawResult: drawRes,
           character,
@@ -1169,7 +1095,7 @@ class BaseBot {
         )
 
         if(scheduleRes.textToUser) {
-          const scheduleLog: AiRunLog = {
+          const scheduleLog: LiuAi.RunLog = {
             toolName: "get_schedule",
             hoursFromNow: funcJson.hoursFromNow,
             specificDate: funcJson.specificDate,
@@ -1193,7 +1119,7 @@ class BaseBot {
         )
 
         if(cardsRes.textToUser) {
-          const cardLog: AiRunLog = {
+          const cardLog: LiuAi.RunLog = {
             toolName: "get_cards",
             cardType: funcJson.cardType,
             character: this._character,
@@ -1263,7 +1189,7 @@ class BaseBot {
 
     // 2. get some params
     const c = this._character
-    const assistantName = AiHelper.getCharacterName(c)
+    const assistantName = AiShared.getCharacterName(c)
     const { chatParam, bot, aiParam } = postParam
     const user = aiParam.entry.user
     const canUseTool = bot.abilities.includes("tool_use")
@@ -1345,7 +1271,7 @@ class BaseBot {
 
     // 2. get some params
     const c = this._character
-    const assistantName = AiHelper.getCharacterName(c)
+    const assistantName = AiShared.getCharacterName(c)
     const { chatParam, aiParam, bot } = postParam
     const user = aiParam.entry.user
     const canUseTool = bot.abilities.includes("tool_use")
@@ -1469,7 +1395,7 @@ class BaseBot {
 
   private async _handleAssistantText(
     chatCompletion: OaiChatCompletion,
-    aiParam: AiRunParam,
+    aiParam: LiuAi.RunParam,
     bot: AiBot,
   ) {
     const roomId = aiParam.room._id
@@ -1489,8 +1415,8 @@ class BaseBot {
     }
     
     // 3. add assistant chat
-    const apiEndpoint = AiHelper.getApiEndpointFromBot(bot)
-    const param3: AiHelperAssistantMsgParam = {
+    const apiEndpoint = AiShared.getApiEndpointFromBot(bot)
+    const param3: LiuAi.HelperAssistantMsgParam = {
       roomId,
       text: txt1_1,
       reasoning_content: txt1_2,
@@ -1538,14 +1464,14 @@ class BaseBot {
 
   private _replyToUser(
     chatCompletion: OaiChatCompletion,
-    aiParam: AiRunParam,
+    aiParam: LiuAi.RunParam,
     bot: AiBot,
     txt1_1: string,
     assistantChatId?: string,
   ) {
     const c = bot.character
     const finishReason = AiHelper.getFinishReason(chatCompletion)
-    const gzhType = AiHelper.getGzhType()
+    const gzhType = AiShared.getGzhType()
 
     let text = txt1_1
     if(assistantChatId) {
@@ -1584,7 +1510,7 @@ class BaseBot {
     console.log(message.content)
   }
 
-  protected async postRun(postParam: PostRunParam): Promise<AiRunSuccess | undefined> {
+  protected async postRun(postParam: PostRunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. get params
     const { bot, chatCompletion, aiParam } = postParam
     if(!chatCompletion) return
@@ -1630,7 +1556,7 @@ class BaseBot {
     console.log(chatCompletion.choices[0].message)
 
     // 3. tool calls
-    let aiLogs: AiRunLog[] | undefined
+    let aiLogs: LiuAi.RunLog[] | undefined
     if(finish_reason === "tool_calls" && tool_calls) {
       aiLogs = await this._handleToolUse(postParam, tool_calls)
     }
@@ -1686,7 +1612,7 @@ class BotBaichuan extends BaseBot {
     super("baixiaoying", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -1727,7 +1653,7 @@ class BotDeepSeek extends BaseBot {
     super("deepseek", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -1772,7 +1698,7 @@ class BotDsReasoner extends BaseBot {
     super("ds-reasoner", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -1819,7 +1745,7 @@ class BotDsReasoner extends BaseBot {
 
 
   private async _tryAgain(
-    param: AiRunParam,
+    param: LiuAi.RunParam,
     chatParam: OaiCreateParam,
   ) {
     console.warn("try again for ds-reasoner!")
@@ -1850,7 +1776,7 @@ class BotMiniMax extends BaseBot {
     super("hailuo", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -1953,7 +1879,7 @@ class BotMoonshot extends BaseBot {
     super("kimi", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -1996,7 +1922,7 @@ class BotStepfun extends BaseBot {
     super("yuewen", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -2038,7 +1964,7 @@ class BotYi extends BaseBot {
     super("wanzhi", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -2083,7 +2009,7 @@ class BotZhipu extends BaseBot {
     super("zhipu", user)
   }
 
-  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+  async run(aiParam: LiuAi.RunParam): Promise<LiuAi.RunSuccess | undefined> {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
@@ -2139,7 +2065,7 @@ class BotZhipu extends BaseBot {
 class AiController {
 
   // decide whether to send "typing"
-  private _handleSendTyping(aiParam: AiRunParam) {
+  private _handleSendTyping(aiParam: LiuAi.RunParam) {
     const { chats, entry } = aiParam
     if(chats.length < 3) {
       TellUser.typing(entry)
@@ -2167,7 +2093,7 @@ class AiController {
   }
 
   private _waitForSeconds(
-    aiParam: AiRunParam,
+    aiParam: LiuAi.RunParam,
     newCharacters: AiCharacter[],
   ) {
     const { entry } = aiParam
@@ -2183,7 +2109,7 @@ class AiController {
     return r
   }
 
-  async run(aiParam: AiRunParam) {
+  async run(aiParam: LiuAi.RunParam) {
     const { room, entry } = aiParam
 
     // 1. check bots in the room
@@ -2223,11 +2149,11 @@ class AiController {
     }
 
     // 3. get promises
-    const promises: Promise<AiRunSuccess | undefined>[] = []
+    const promises: Promise<LiuAi.RunSuccess | undefined>[] = []
     for(let i=0; i<newCharacters.length; i++) {
       const c = newCharacters[i]
       const _chats = valTool.copyObject(aiParam.chats)
-      const newParam: AiRunParam = { 
+      const newParam: LiuAi.RunParam = { 
         ...aiParam,
         chats: _chats,
       }
@@ -2242,7 +2168,7 @@ class AiController {
     const res4 = await Promise.all(promises)
     let hasEverSucceeded = false
     let hasEverUsedTool = false
-    const aiLogs: AiRunLog[] = []
+    const aiLogs: LiuAi.RunLog[] = []
     for(let i=0; i<res4.length; i++) {
       const v = res4[i]
       if(v && v.replyStatus === "yes") {
@@ -2265,9 +2191,9 @@ class AiController {
   }
 
   private async sendFallbackMenu(
-    aiParam: AiRunParam,
-    results: AiRunResults,
-    all_logs: AiRunLog[],
+    aiParam: LiuAi.RunParam,
+    results: LiuAi.RunResults,
+    all_logs: LiuAi.RunLog[],
   ) {
     const { entry, room } = aiParam
     const user = entry.user
@@ -2308,7 +2234,7 @@ class AiController {
     }
 
     // 3. menu
-    const menuList: AiMenuItem[] = []
+    const menuList: LiuAi.MenuItem[] = []
     kickList.forEach(v => menuList.push({ operation: "kick", character: v }))
     addedList.forEach(v => menuList.push({ operation: "add", character: v }))
     menuList.push({ operation: "clear_history" })
@@ -2429,11 +2355,11 @@ class ContinueController {
     })
 
     // 4. get promises
-    const promises: Promise<AiRunSuccess | undefined>[] = []
+    const promises: Promise<LiuAi.RunSuccess | undefined>[] = []
     for(let i=0; i<list.length; i++) {
       const v = list[i]
       const c = v.character
-      const newParam: AiRunParam = {
+      const newParam: LiuAi.RunParam = {
         entry,
         room,
         chats: v.chats,
@@ -2485,7 +2411,7 @@ class AiCompressor {
 
 
   static async run(
-    aiParam: AiRunParam,
+    aiParam: LiuAi.RunParam,
   ): Promise<Table_AiChat[] | undefined> {
     const _env = process.env
     const { chats, entry, room } = aiParam
@@ -2598,13 +2524,13 @@ class AiCompressor {
 
 class ToolHandler {
 
-  private _aiParam: AiRunParam
+  private _aiParam: LiuAi.RunParam
   private _bot: AiBot
   private _tool_calls: OaiToolCall[]
   private _chatCompletion?: OaiChatCompletion
 
   constructor(
-    aiParam: AiRunParam, 
+    aiParam: LiuAi.RunParam, 
     bot: AiBot,
     tool_calls: OaiToolCall[],
     chatCompletion?: OaiChatCompletion,
@@ -2616,13 +2542,13 @@ class ToolHandler {
   }
 
   private async _addMsgToChat(
-    param: Partial<AiHelperAssistantMsgParam>
+    param: Partial<LiuAi.HelperAssistantMsgParam>
   ) {
     const { room } = this._aiParam
     const bot = this._bot
     const chatCompletion = this._chatCompletion
-    const apiEndpoint = AiHelper.getApiEndpointFromBot(bot)
-    const arg: AiHelperAssistantMsgParam = {
+    const apiEndpoint = AiShared.getApiEndpointFromBot(bot)
+    const arg: LiuAi.HelperAssistantMsgParam = {
       roomId: room._id,
       model: bot.model,
       character: bot.character,
@@ -2830,7 +2756,7 @@ class ToolHandler {
     }
 
     // 3. add msg
-    const data3: Partial<AiHelperAssistantMsgParam> = {
+    const data3: Partial<LiuAi.HelperAssistantMsgParam> = {
       funcName: "web_search",
       funcJson,
       webSearchProvider: searchRes.provider,
@@ -2899,7 +2825,7 @@ class ToolHandler {
     }
 
     // 2. add message first because text_to_image may take a long time
-    const data2: Partial<AiHelperAssistantMsgParam> = {
+    const data2: Partial<LiuAi.HelperAssistantMsgParam> = {
       funcName: "draw_picture",
       funcJson,
       text: prompt,
@@ -3035,7 +2961,7 @@ class ToolHandler {
     console.log(textToBot)
 
     // 8. add msg
-    const data8: Partial<AiHelperAssistantMsgParam> = {
+    const data8: Partial<LiuAi.HelperAssistantMsgParam> = {
       funcName: "get_schedule",
       funcJson,
       text: hasData ? textToUser : textToBot,
@@ -3239,7 +3165,7 @@ class ToolHandler {
     console.log(textToBot)
 
     // 8. add msg
-    const data8: Partial<AiHelperAssistantMsgParam> = {
+    const data8: Partial<LiuAi.HelperAssistantMsgParam> = {
       funcName: "get_cards",
       funcJson,
       text: hasData ? textToUser : textToBot,
@@ -3902,58 +3828,6 @@ class AiHelper {
     return my_characters
   }
 
-  static getApiEndpointFromBot(bot: AiBot): AiApiEndpoint | undefined {
-    const _env = process.env
-    const p = bot.provider
-    const p2 = bot.secondaryProvider
-
-    let apiKey: string | undefined
-    let baseURL: string | undefined
-    let defaultHeaders = bot.metaData?.defaultHeaders
-
-    // If secondaryProvider exists, use it first
-    if(p2 === "siliconflow") {
-      apiKey = _env.LIU_SILICONFLOW_API_KEY
-      baseURL = _env.LIU_SILICONFLOW_BASE_URL
-    }
-    else if(p2 === "gitee-ai") {
-      apiKey = _env.LIU_GITEE_AI_API_KEY
-      baseURL = _env.LIU_GITEE_AI_BASE_URL
-    }
-    else if(p === "baichuan") {
-      apiKey = _env.LIU_BAICHUAN_API_KEY
-      baseURL = _env.LIU_BAICHUAN_BASE_URL
-    }
-    else if(p === "deepseek") {
-      apiKey = _env.LIU_DEEPSEEK_API_KEY
-      baseURL = _env.LIU_DEEPSEEK_BASE_URL
-    }
-    else if(p === "minimax") {
-      apiKey = _env.LIU_MINIMAX_API_KEY
-      baseURL = _env.LIU_MINIMAX_BASE_URL
-    }
-    else if(p === "moonshot") {
-      apiKey = _env.LIU_MOONSHOT_API_KEY
-      baseURL = _env.LIU_MOONSHOT_BASE_URL
-    }
-    else if(p === "stepfun") {
-      apiKey = _env.LIU_STEPFUN_API_KEY
-      baseURL = _env.LIU_STEPFUN_BASE_URL
-    }
-    else if(p === "zero-one") {
-      apiKey = _env.LIU_YI_API_KEY
-      baseURL = _env.LIU_YI_BASE_URL
-    }
-    else if(p === "zhipu") {
-      apiKey = _env.LIU_ZHIPU_API_KEY
-      baseURL = _env.LIU_ZHIPU_BASE_URL
-    }
-    
-    if(apiKey && baseURL) {
-      return { apiKey, baseURL, defaultHeaders }
-    }
-  }
-
   private static getAvailableCharacters() {
     const bots = AiHelper.getAvailableBots()
     const characters = bots.map(v => v.character)
@@ -3966,7 +3840,7 @@ class AiHelper {
       const bot = aiBots[i]
       const existedBot = bots.find(v => v.character === bot.character)
       if(existedBot) continue
-      const apiData = this.getApiEndpointFromBot(bot)
+      const apiData = AiShared.getApiEndpointFromBot(bot)
       if(apiData) {
         bots.push(bot)
       }
@@ -4027,7 +3901,7 @@ class AiHelper {
   }
 
   static async addAssistantMsg(
-    param: AiHelperAssistantMsgParam,
+    param: LiuAi.HelperAssistantMsgParam,
   ) {
     const b1 = getBasicStampWhileAdding()
     const data1: Partial_Id<Table_AiChat> = {
@@ -4145,7 +4019,7 @@ class AiHelper {
 
   // @param bot is required if isContinueCommand is true
   static async canReply(
-    aiParam: AiRunParam,
+    aiParam: LiuAi.RunParam,
     bot?: AiBot,
   ) {
     if(bot && this.isReasoningBot(bot)) {
@@ -4388,7 +4262,7 @@ class AiHelper {
 
   static getKickCharacters(
     characters: AiCharacter[],
-    results: AiRunResults,
+    results: LiuAi.RunResults,
   ) {
     const cLength = characters.length
     if(cLength < 2) return []
@@ -4412,7 +4286,7 @@ class AiHelper {
 
   static getAddedCharacters(
     characters: AiCharacter[],
-    results: AiRunResults,
+    results: LiuAi.RunResults,
   ) {
     const cLength = characters.length
     if(cLength >= MAX_CHARACTERS) return []
@@ -4535,14 +4409,6 @@ class AiHelper {
     }
   }
 
-  static getCharacterName(character?: AiCharacter) {
-    if(!character) return
-    let name = ""
-    const bot = aiBots.find(v => v.character === character)
-    if(bot) name = bot.name
-    return name
-  }
-
   static getBotsForCharacter(character: AiCharacter) {
     const bots = aiBots.filter(v => v.character === character)
     return bots
@@ -4609,17 +4475,12 @@ class AiHelper {
     }
 
     // 3. menu
-    const menuList: AiMenuItem[] = []
+    const menuList: LiuAi.MenuItem[] = []
     addedList.forEach(v => menuList.push({ operation: "add", character: v }))
     const { t } = useI18n(aiLang, { user: entry.user })
     const prefixMessage = t("nobody_here") + "\n\n" + t("operation_title")
     TellUser.menu(entry, prefixMessage, menuList, "")
     return true
-  }
-
-  static getGzhType() {
-    const _env = process.env
-    return _env.LIU_WX_GZ_TYPE ?? "subscription_account"
   }
 
   static extractThinkContent(text: string): ThinkTagContent[] {
@@ -4694,7 +4555,7 @@ class ChatIntoPrompter {
       }
       else if(v.infoType === "assistant") {
         if(v.text) {
-          const assistantName = AiHelper.getCharacterName(v.character)
+          const assistantName = AiShared.getCharacterName(v.character)
           messages.push({ role: "assistant", content: v.text, name: assistantName })
         }
       }
@@ -4770,7 +4631,7 @@ class ChatIntoPrompter {
     // 3. handle content
     const funcArgs = funcJson ? valTool.objToStr(funcJson) : "{}"
     const msg = t("bot_call_tools", { funcName, funcArgs })
-    const assistantName = AiHelper.getCharacterName(character)
+    const assistantName = AiShared.getCharacterName(character)
     const assistantMsg: OaiPrompt = {
       role: "assistant",
       content: msg,
@@ -4784,7 +4645,7 @@ class ChatIntoPrompter {
     v: Table_AiChat,
   ) {
     const { character, funcName, text } = v
-    const assistantName = AiHelper.getCharacterName(character)
+    const assistantName = AiShared.getCharacterName(character)
     let msg: OaiPrompt = {
       role: "assistant",
       tool_calls,
@@ -5085,202 +4946,6 @@ class UserHelper {
       ...data4,
     }
     return newOrder
-  }
-
-}
-
-class TellUser {
-
-  static async text(
-    entry: AiEntry, 
-    text: string,
-    from?: AiBot,
-    fromCharacter?: AiCharacter
-  ) {
-    const { wx_gzh_openid } = entry
-
-    // 1. send to wx gzh
-    if(wx_gzh_openid) {
-      // console.warn("markdown: ")
-      // console.log(text)
-      text = MarkdownParser.mdToWxGzhText(text)
-      // console.warn("wx gzh text: ")
-      // console.log(text)
-
-      const obj1: Wx_Gzh_Send_Msg = {
-        msgtype: "text",
-        text: { content: text },
-      }
-      this._fillWxGzhKf(obj1, from, fromCharacter)
-      const res1 = await this._sendToWxGzh(wx_gzh_openid, obj1)
-      return res1
-    }
-
-  }
-
-  static async image(
-    entry: AiEntry,
-    imageUrl: string,
-    from?: AiBot,
-    fromCharacter?: AiCharacter,
-  ) {
-    const { wx_gzh_openid } = entry
-
-    // 1. send to wx gzh
-    if(wx_gzh_openid) {
-      const res1 = await WxGzhUploader.mediaByUrl(imageUrl)
-      const media_id = res1?.media_id
-      if(!media_id) return
-
-      const obj2: Wx_Gzh_Send_Msg = {
-        msgtype: "image",
-        image: { media_id },
-      }
-      this._fillWxGzhKf(obj2, from, fromCharacter)
-      const res2 = await this._sendToWxGzh(wx_gzh_openid, obj2)
-      return res2
-    }
-  }
-
-
-  static async menu(
-    entry: AiEntry,
-    prefixMessage: string,
-    menuList: AiMenuItem[],
-    suffixMessage: string,
-    fromCharacter?: AiCharacter
-  ) {
-    const _env = process.env
-    const gzhType = AiHelper.getGzhType()
-    const { wx_gzh_openid, user } = entry
-    const { t } = useI18n(aiLang, { user })
-
-    // 1. localize the menuList
-    const wx_menu_list: Wx_Gzh_Send_Msgmenu_Item[] = []
-    for(let i=0; i<menuList.length; i++) {
-      const v = menuList[i]
-      const { operation, character } = v
-
-      if(operation === "clear_history") {
-        wx_menu_list.push({ id: "clear_history", content: t("clear_context") })
-        continue
-      }
-
-      if(operation === "kick" && character) {
-        const characterName = AiHelper.getCharacterName(character)
-        if(!characterName) continue
-        wx_menu_list.push({ id: "kick_" + character, content: t("kick") + characterName })
-      }
-
-      if(operation === "add" && character) {
-        const characterName = AiHelper.getCharacterName(character)
-        if(!characterName) continue
-        wx_menu_list.push({ id: "add_" + character, content: t("add") + characterName })
-      }
-
-      if(operation === "continue" && character) {
-        const botName = AiHelper.getCharacterName(character)
-        if(!botName) continue
-        wx_menu_list.push({
-          id: "continue_" + character,
-          content: t("continue_bot", { botName })
-        })
-
-        // turn markdown to plain-text for wx gzh
-        if(wx_gzh_openid) {
-          prefixMessage = MarkdownParser.mdToWxGzhText(prefixMessage)
-        }
-      }
-
-    }
-
-    // 2. send to wx gzh
-    if(wx_gzh_openid) {
-      if(gzhType === "subscription_account") {
-        console.warn("we cannot send the menu to the user due to subscription_account")
-        return
-      }
-
-      const obj2: Wx_Gzh_Send_Msgmenu = {
-        msgtype: "msgmenu",
-        msgmenu: {
-          head_content: prefixMessage,
-          list: wx_menu_list,
-          tail_content: suffixMessage,
-        }
-      }
-      this._fillWxGzhKf(obj2, undefined, fromCharacter)
-      const res2 = await this._sendToWxGzh(wx_gzh_openid, obj2)
-      return res2
-    }
-    
-
-  }
-
-  static async typing(entry: AiEntry) {
-    const { wx_gzh_openid } = entry
-
-    // 1. to wx gzh
-    if(wx_gzh_openid) {
-      const wxGzhAccessToken = await checkAndGetWxGzhAccessToken()
-      if(!wxGzhAccessToken) return
-      WxGzhSender.sendTyping(wx_gzh_openid, wxGzhAccessToken)
-    }
-  }
-
-  private static _fillWxGzhKf(
-    obj: Wx_Gzh_Send_Msg,
-    bot?: AiBot,
-    character?: AiCharacter,
-  ) {
-    const kf_account = this._getWxGzhKfAccount(bot, character)
-    if(kf_account) {
-      obj.customservice = { kf_account }
-    }
-  }
-
-  private static _getWxGzhKfAccount(
-    bot?: AiBot,
-    character?: AiCharacter,
-  ) {
-    let c = bot?.character ?? character
-    if(!c) return
-
-    const _env = process.env
-    if(c === "baixiaoying") {
-      return _env.LIU_WXGZH_KF_BAIXIAOYING
-    }
-    else if(c === "deepseek") {
-      return _env.LIU_WXGZH_KF_DEEPSEEK
-    }
-    else if(c === "ds-reasoner") {
-      return _env.LIU_WXGZH_KF_DS_REASONER
-    }
-    else if(c === "hailuo") {
-      return _env.LIU_WXGZH_KF_HAILUO
-    }
-    else if(c === "kimi") {
-      return _env.LIU_WXGZH_KF_KIMI
-    }
-    else if(c === "wanzhi") {
-      return _env.LIU_WXGZH_KF_WANZHI
-    }
-    else if(c === "yuewen") {
-      return _env.LIU_WXGZH_KF_YUEWEN
-    }
-    else if(c === "zhipu") {
-      return _env.LIU_WXGZH_KF_ZHIPU
-    }
-  }
-
-  private static async _sendToWxGzh(
-    wx_gzh_openid: string,
-    obj: Wx_Gzh_Send_Msg,
-  ) {
-    const accessToken = await checkAndGetWxGzhAccessToken()
-    if(!accessToken) return
-    const res = await WxGzhSender.sendMessage(wx_gzh_openid, accessToken, obj)
-    return res
   }
 
 }
@@ -5595,7 +5260,7 @@ export class Translator {
     const bot = this._bot
     const canUseChat = bot?.abilities.includes("chat")
     if(canUseChat && bot) {
-      apiEndpoint = AiHelper.getApiEndpointFromBot(bot)
+      apiEndpoint = AiShared.getApiEndpointFromBot(bot)
     }
     let model = bot?.model
     if(!apiEndpoint || !model) {

@@ -1676,6 +1676,9 @@ export interface Table_AiChat extends BaseTable {
   finish_reason?: AiFinishReason
   reasoning_content?: string        // from reasoning models like DeepSeek R1
 
+  // system 2
+  onlyInSystem2?: boolean
+
   // about web-search
   webSearchProvider?: LiuAi.SearchProvider
   webSearchData?: Record<string, any>
@@ -3376,6 +3379,79 @@ export namespace LiuAi {
     textToUser: string
     textToBot: string
     assistantChatId: string
+  }
+
+  export interface RunParam {
+    entry: AiEntry
+    room: Table_AiRoom
+    chatId?: string
+    chats: Table_AiChat[]
+    isContinueCommand?: boolean
+  }
+
+  export interface RunLog_A {
+    toolName: "get_schedule"
+    hoursFromNow?: AiToolGetScheduleHoursFromNow
+    specificDate?: AiToolGetScheduleSpecificDate
+  }
+  
+  export interface RunLog_B {
+    toolName: "get_cards"
+    cardType: AiToolGetCardType
+  }
+  
+  export interface RunLog_C {
+    toolName: "draw_picture"
+    drawResult: LiuAi.PaletteResult
+  }
+  
+  export type RunLog = (RunLog_A | RunLog_B | RunLog_C) & {
+    character: AiCharacter
+    textToUser: string
+    logStamp: number
+  }
+
+  export interface RunSuccess {
+    character: AiCharacter
+    replyStatus: "yes" | "has_new_msg"
+    assistantChatId?: string
+    chatCompletion?: OaiChatCompletion
+    toolName?: string
+    logs?: LiuAi.RunLog[]
+  }
+
+  export type RunResults = Array<RunSuccess | undefined>
+
+  export interface HelperAssistantMsgParam {
+    roomId: string
+    text?: string
+    reasoning_content?: string
+    model: string
+    character: AiCharacter
+    usage?: AiUsage
+    requestId?: string
+    baseUrl?: string
+    funcName?: string
+    funcJson?: Record<string, any>
+    tool_calls?: OaiToolCall[]
+    finish_reason?: AiFinishReason
+    webSearchProvider?: LiuAi.SearchProvider
+    webSearchData?: Record<string, any>
+    drawPictureUrl?: string
+    drawPictureModel?: string
+    drawPictureData?: Record<string, any>
+    onlyInSystem2?: boolean
+  }
+
+  export interface ApiEndpoint {
+    apiKey: string
+    baseURL: string
+    defaultHeaders?: Record<string, string>
+  }
+
+  export interface MenuItem {
+    operation: AiCommandByHuman
+    character?: AiCharacter
   }
 
 }
