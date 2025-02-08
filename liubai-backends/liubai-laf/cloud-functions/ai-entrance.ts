@@ -111,6 +111,7 @@ const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first
 const charactersTakingARest: AiCharacter[] = [
   "ds-reasoner",
   "deepseek",
+  "kimi",
 ]
 
 /************************** types ************************/
@@ -223,6 +224,16 @@ interface BaseLLMChatOpt {
   user?: Table_User
   timeoutSec?: number
 }
+
+interface ReplyToUserParam {
+  chatCompletion: OaiChatCompletion
+  entry: AiEntry
+  bot: AiBot
+  textToUser: string
+  assistantChatId?: string
+  showCoT: boolean
+}
+
 
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
@@ -939,6 +950,7 @@ class BaseBot {
 
     // print last 5 prompts
     // LogHelper.printLastItems(params.messages)
+    // console.log(`Let's ask ${bot.character} on ${apiData.baseURL}`)
 
     const llm = new BaseLLM(
       apiData.apiKey, 
@@ -1468,18 +1480,33 @@ class BaseBot {
   ) {
     const roomId = aiParam.room._id
     const c = bot.character
+    const entry = aiParam.entry
+    const user = entry.user
 
     // 1. get content & reasoning_content
     let {
       content: txt1_1,
       reasoning_content: txt1_2,
     } = AiHelper.getContentFromLLM(chatCompletion, bot)
-    if(!txt1_1) return
-    txt1_1 = this._clipContent(txt1_1)
 
-    // 2. reply to user without reasoning_content
-    if(!txt1_2) {
-      this._replyToUser(chatCompletion, aiParam, bot, txt1_1)
+    if(!txt1_1 && !txt1_2) return
+    let textToUser = txt1_1
+    let showCoT = Boolean(txt1_2 && txt1_2)
+    if(!textToUser) {
+      const { t } = useI18n(aiLang, { user })
+      textToUser = t("thinking", { text: txt1_2 ?? "" })
+    }
+    textToUser = this._clipContent(textToUser, chatCompletion)
+
+    // 2. reply to user without CoT
+    if(!showCoT) {
+      this._replyToUser({
+        chatCompletion,
+        entry,
+        bot,
+        textToUser,
+        showCoT,
+      })
     }
     
     // 3. add assistant chat
@@ -1497,16 +1524,25 @@ class BaseBot {
     }
     const assistantChatId = await AiHelper.addAssistantMsg(param3)
 
-    // 4. reply to user with reasoning_content
-    if(txt1_2) {
-      this._replyToUser(chatCompletion, aiParam, bot, txt1_1, assistantChatId)
+    // 4. reply to user with CoT
+    if(showCoT) {
+      this._replyToUser({
+        chatCompletion,
+        entry,
+        bot,
+        textToUser,
+        assistantChatId,
+        showCoT,
+      })
     }
-
 
     return assistantChatId
   }
 
-  private _clipContent(text: string) {
+  private _clipContent(
+    text: string,
+    chatCompletion: OaiChatCompletion,
+  ) {
     const MAX_REPLIED_WORDS = 600
     const MAX_CHARS = MAX_REPLIED_WORDS * 2
     if(text.length < MAX_REPLIED_WORDS) return text
@@ -1522,6 +1558,7 @@ class BaseBot {
       if(charNum > MAX_CHARS) {
         console.warn("clip the content because it exceeds the limit")
         console.log(list[i + 1])
+        AiHelper.setFinishReasonToLength(chatCompletion)
         break
       }
     }
@@ -1530,20 +1567,23 @@ class BaseBot {
     return newText
   }
 
-  private _replyToUser(
-    chatCompletion: OaiChatCompletion,
-    aiParam: AiRunParam,
-    bot: AiBot,
-    txt1_1: string,
-    assistantChatId?: string,
-  ) {
-    const c = bot.character
+  private _replyToUser(param: ReplyToUserParam) {
+    const {
+      chatCompletion,
+      entry,
+      bot,
+      textToUser,
+      assistantChatId,
+      showCoT,
+    } = param
+
+    const character = bot.character
     const finishReason = AiHelper.getFinishReason(chatCompletion)
     const gzhType = AiHelper.getGzhType()
 
-    let text = txt1_1
-    if(assistantChatId) {
-      const user = aiParam.entry.user
+    let text = textToUser
+    if(assistantChatId && showCoT) {
+      const user = entry.user
       const { t } = useI18n(aiLang, { user })
       const domain = getLiuDoman()
       const link = `${domain}/CoT?chatId=${assistantChatId}`
@@ -1553,15 +1593,15 @@ class BaseBot {
 
     if(finishReason === "length" && gzhType === "service_account") {
       TellUser.menu(
-        aiParam.entry, 
+        entry, 
         text, 
-        [{ operation: "continue", character: c }],
+        [{ operation: "continue", character }],
         "",
-        c,
+        character,
       )
     }
     else {
-      TellUser.text(aiParam.entry, text, bot)
+      TellUser.text(entry, text, bot)
     }
   }
 
@@ -1574,8 +1614,6 @@ class BaseBot {
     if(tmpList.length < 5) return
     tmpList.pop()
     message.content = tmpList.join("\n")
-    console.warn("see message.content in _handleLength: ")
-    console.log(message.content)
   }
 
   protected async postRun(postParam: PostRunParam): Promise<AiRunSuccess | undefined> {
@@ -2389,6 +2427,19 @@ class ContinueController {
     // 2. find characters and their chats to continue
     const stoppedCharacters: AiCharacter[] = []
     const list: ContinueTmpItem[] = []
+
+    const _addChat = (item: Table_AiChat) => {
+      const { character } = item
+      if(!character) return
+      const v2 = list.find(v3 => v3.character === character)
+      if(v2) {
+        v2.chats.push(item)
+      }
+      else {
+        list.push({ character, chats: [item] })
+      }
+    }
+
     for(let i=0; i<chatsBeforeUser.length; i++) {
       const v = chatsBeforeUser[i]
       const { infoType, character, finish_reason } = v
@@ -2399,6 +2450,12 @@ class ContinueController {
       // 2.2 check out if it's the selected character
       if(characterSelected) {
         if(character !== characterSelected) continue
+      }
+
+      // 2.2.1 ds-reasoner
+      if(character === "ds-reasoner") {
+        _addChat(v)
+        continue
       }
 
       // 2.3 next if character is stopped
@@ -2415,12 +2472,7 @@ class ContinueController {
       if(finish_reason !== "length") continue
       
       // 2.6 add the chat
-      const v2 = list.find(v3 => v3.character === character)
-      if(v2) {
-        v2.chats.push(v)
-        continue
-      }
-      list.push({ character, chats: [v] })
+      _addChat(v)
     }
 
     // 3. return if list is empty
@@ -4348,24 +4400,28 @@ class AiHelper {
       return {}
     }
 
-    const message = choices[0].message as DsReasonerMessage
+    const theChoice = choices[0]
+    if(!theChoice) {
+      console.warn("no choice in getContentFromLLM")
+      console.log(choices)
+      return {}
+    }
+    const message = theChoice.message as DsReasonerMessage
     if(!message) {
       console.warn("no message in getContentFromLLM")
       console.log(choices)
       return {}
     }
 
-    let content = message.content
+    let content = message.content ?? ""
+    let reasoning_content = message.reasoning_content ?? ""
     if(!content) {
-      if(!message.reasoning_content) {
+      if(!reasoning_content) {
         console.warn("no content and reasoning_content in getContentFromLLM")
         return {}
       }
-      content = message.reasoning_content
-      message.reasoning_content = undefined
+      this.setFinishReasonToLength(res)
     }
-
-    content = content.trim()
 
     // remove "?" in the beginning for zhipu
     if(bot?.character === "zhipu") {
@@ -4373,36 +4429,53 @@ class AiHelper {
       if(err1) content = content.substring(1)
     }
 
-    let reasoning_content = message.reasoning_content
-
     // extract <think>......</think>
-    const hasThinkTag = bot?.metaData?.thinkingInContent
-    if(hasThinkTag && !reasoning_content) {
+    let isReasoning = Boolean(bot && this.isReasoningBot(bot))
+    if(!reasoning_content && isReasoning) {
       const thinkContents = this.extractThinkContent(content)
       if(thinkContents.length > 0) {
+        // extracted!
         const thinkContent = thinkContents[0]
         content = content.substring(thinkContent.endIndex).trim()
         reasoning_content = thinkContent.content
-
-        // console.warn("new content: ")
-        // console.log(content)
-        // console.warn("reasoning_content: ")
-        // console.log(reasoning_content)
+      }
+      else {
+        // otherwise
+        if(content.startsWith("<think>")) {
+          reasoning_content = content.substring(7)
+          content = ""
+          this.setFinishReasonToLength(res)
+        }
       }
     }
-    if(reasoning_content) {
-      reasoning_content = reasoning_content.trim()
-    }
+
+    // finally trim
+    content = content.trim()
+    reasoning_content = reasoning_content.trim()
+
+    console.warn("let me see content and reasoning_content: ")
+    console.log("reasoning_content: ", reasoning_content)
+    console.log("content: ", content)
 
     return { content, reasoning_content }
   }
 
 
   static getFinishReason(
-    res: OaiChatCompletion
+    chatCompletion: OaiChatCompletion
   ): AiFinishReason | undefined {
-    const reason = res.choices?.[0]?.finish_reason
+    const reason = chatCompletion.choices?.[0]?.finish_reason
     if(reason === "stop" || reason === "length") return reason
+  }
+
+  static setFinishReasonToLength(
+    chatCompletion: OaiChatCompletion,
+  ) {
+    const theChoice = chatCompletion?.choices?.[0]
+    if(!theChoice) return
+    if(theChoice.finish_reason === "stop") {
+      theChoice.finish_reason = "length"
+    }
   }
 
   static getKickCharacters(
@@ -4714,9 +4787,15 @@ class ChatIntoPrompter {
         if(userPrompt) messages.push(userPrompt)
       }
       else if(v.infoType === "assistant") {
+        const assistantName = AiHelper.getCharacterName(v.character)
         if(v.text) {
-          const assistantName = AiHelper.getCharacterName(v.character)
           messages.push({ role: "assistant", content: v.text, name: assistantName })
+        }
+        else if(v.reasoning_content) {
+          let text = v.reasoning_content
+          let hasThink = text.startsWith("<think>")
+          if(!hasThink) text = `<think>${text}`
+          messages.push({ role: "assistant", content: text, name: assistantName })
         }
       }
       else if(v.infoType === "summary") {
