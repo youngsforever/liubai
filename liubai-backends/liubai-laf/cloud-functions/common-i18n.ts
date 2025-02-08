@@ -321,7 +321,7 @@ export const aiLang: LangAtom = {
     "status_1": "【群聊成员】",
     "status_2": "【使用额度】",
     "status_3": "已使用: {usedTimes}轮",
-    "status_4": "免费版共有: {maxTimes}轮",
+    "status_4": "免费版共有: 10轮\n（春节🧨期间限定提升至{maxTimes}轮）",
     "status_5": "会员每月享有: {maxTimes}轮",
     "no_member": "没有其他助手",
     "already_exist": "{botName}已在群聊中",
@@ -382,6 +382,7 @@ export const aiLang: LangAtom = {
     "bot_read_event": "{bot}查看了最近添加的事件",
     "view_thinking": "查看思考过程",
     "result_of_tool": "工具调用结果:\n{msg}",
+    "thinking": "【思考中...💭】\n{text}",
   },
   "zh-Hant": {
     "privacy_title": "🔓 隱私提示:",
@@ -425,7 +426,7 @@ export const aiLang: LangAtom = {
     "status_1": "【群聊成員】",
     "status_2": "【使用額度】",
     "status_3": "已使用: {usedTimes}輪",
-    "status_4": "免費版共有: {maxTimes}輪",
+    "status_4": "免費版共有: 10輪\n（春節🧨期間限定提升至{maxTimes}輪）",
     "status_5": "會員每月享有: {maxTimes}輪",
     "no_member": "沒有其他助手",
     "already_exist": "{botName}已在群聊中",
@@ -486,6 +487,7 @@ export const aiLang: LangAtom = {
     "bot_read_event": "{bot}檢視了最近新增的事件",
     "view_thinking": "檢視思考過程",
     "result_of_tool": "工具調用結果:\n{msg}",
+    "thinking": "［思考中...💭］\n{text}",
   },
   "en": {
     "privacy_title": "🔓 Privacy:",
@@ -529,7 +531,7 @@ export const aiLang: LangAtom = {
     "status_1": "[Group Members]",
     "status_2": "[Quota]",
     "status_3": "Used: {usedTimes}",
-    "status_4": "Freemium has: {maxTimes}",
+    "status_4": "Freemium has: 10\n(During Spring Festival🧨, it is increased to {maxTimes})",
     "status_5": "Premium has: {maxTimes}",
     "no_member": "No assistants here",
     "already_exist": "{botName} has already joined in the group chat",
@@ -590,6 +592,7 @@ export const aiLang: LangAtom = {
     "bot_read_event": "{bot} read latest added events",
     "view_thinking": "Dive into Thinking",
     "result_of_tool": "Tool call result:\n{msg}",
+    "thinking": "[Thinking..💭]\n{text}",
   }
 }
 
