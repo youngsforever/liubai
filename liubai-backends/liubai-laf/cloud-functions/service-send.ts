@@ -22,9 +22,10 @@ import {
   DAY,
 } from "@/common-time"
 import { createEmailCode } from '@/common-ids'
-import { LiuDateUtil, liuReq } from '@/common-util'
+import { LiuDateUtil, liuReq, valTool } from '@/common-util'
 import { ses as TencentSES } from "tencentcloud-sdk-nodejs-ses"
 import { sms as TencentSMS } from "tencentcloud-sdk-nodejs-sms"
+import qiniu from "qiniu"
 
 const db = cloud.database()
 const _ = db.command
@@ -33,6 +34,10 @@ export async function main(ctx: FunctionContext) {
   console.log("do nothing in service-send")
   return true
 }
+
+/********************** some types *****************/
+
+type SendResolver = (res: LiuRqReturn) => void
 
 /********************** 发送邮件相关 *****************/
 
@@ -268,6 +273,72 @@ export class LiuTencentSMS {
 
 }
 
+
+/** package Qiniu SMS */
+export class LiuQiniuSMS {
+
+  private static _getMac() {
+    const _env = process.env
+    const ak = _env.LIU_QINIU_ACCESS_KEY
+    const sk = _env.LIU_QINIU_SECRET_KEY
+    if(!ak || !sk) {
+      console.warn("ak and sk are required to generate mac for qiniu")
+      return
+    }
+    const mac = new qiniu.auth.digest.Mac(ak, sk)
+    return mac
+  }
+
+  static sendVerifyCode(
+    code: string,
+    mobile: string,   // 11 digits
+  ): Promise<LiuRqReturn> {
+    // 1. get mac
+    const mac = this._getMac()
+    if(!mac) {
+      const err1: LiuErrReturn = { code: "E5001", errMsg: "no mac while sending sms" }
+      const emptyPro = valTool.getPromise(err1)
+      return emptyPro
+    }
+
+    // 2. get template id
+    const template_id = process.env.LIU_QINIU_SMS_TEMP_ID
+    if(!template_id) {
+      console.warn("LIU_QINIU_SMS_TEMP_ID is required")
+      const err2: LiuErrReturn = { code: "E5001", errMsg: "no template id while sending sms" }
+      const emptyPro = valTool.getPromise(err2)
+      return emptyPro
+    }
+
+    // 3. construct param
+    const reqBody = {
+      template_id,
+      mobile,
+      parameters: {
+        code,
+      }
+    }
+
+    const _send = (a: SendResolver) => {
+      qiniu.sms.message.sendSingleMessage(reqBody, mac, (
+        respErr, respBody, respInfo,
+      ) => {
+        if(respErr) {
+          console.warn("sendSingleMessage failed")
+          console.log(respErr)
+          a({ code: "E5004", errMsg: "sending sms failed from qiniu" })
+          return
+        }
+        console.log("respBody: ", respBody)
+        console.log("respInfo: ", respInfo)
+        a({ code: "0000", data: respInfo })
+      })
+    }
+    
+    return new Promise(_send)
+  }
+  
+}
 
 
 /** package Resend */
