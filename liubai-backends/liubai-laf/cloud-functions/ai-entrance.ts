@@ -4365,7 +4365,7 @@ class AiHelper {
     // 4. set maxTokens to restToken if exceed
     if(maxTokens > restToken) maxTokens = restToken
 
-    console.log("maxTokens: ", maxTokens)
+    // console.log("maxTokens: ", maxTokens)
 
     return maxTokens
   }
