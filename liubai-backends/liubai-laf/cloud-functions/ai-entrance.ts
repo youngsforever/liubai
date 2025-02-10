@@ -217,6 +217,7 @@ interface TurnChatsIntoPromptOpt {
   abilities?: AiAbility[]
   metaData?: AiBotMetaData
   character?: AiCharacter
+  isContinueCommand?: boolean
 }
 
 interface BaseLLMChatOpt {
@@ -1053,6 +1054,7 @@ class BaseBot {
       abilities: bot.abilities, 
       metaData: bot.metaData,
       character: bot.character,
+      isContinueCommand: param.isContinueCommand,
     })
     const prompts = chatIntoPrompter.run(chats)
 
@@ -4363,7 +4365,7 @@ class AiHelper {
     // 4. set maxTokens to restToken if exceed
     if(maxTokens > restToken) maxTokens = restToken
 
-    console.log("maxTokens: ", maxTokens)
+    // console.log("maxTokens: ", maxTokens)
 
     return maxTokens
   }
@@ -4822,20 +4824,12 @@ class ChatIntoPrompter {
       const v = chats[i]
 
       if(v.infoType === "user") {
-        const userPrompt = _this.turnForUser(v, i, cLength)
+        const userPrompt = _this.turnForUser(v, i)
         if(userPrompt) messages.push(userPrompt)
       }
       else if(v.infoType === "assistant") {
-        const assistantName = AiHelper.getCharacterName(v.character)
-        if(v.text) {
-          messages.push({ role: "assistant", content: v.text, name: assistantName })
-        }
-        else if(v.reasoning_content) {
-          let text = v.reasoning_content
-          let hasThink = text.startsWith("<think>")
-          if(!hasThink) text = `<think>${text}`
-          messages.push({ role: "assistant", content: text, name: assistantName })
-        }
+        const assistantPrompt = _this.turnForAssistant(v, i)
+        if(assistantPrompt) messages.push(assistantPrompt)
       }
       else if(v.infoType === "summary") {
         if(!v.text) continue
@@ -5022,10 +5016,49 @@ class ChatIntoPrompter {
     return toolMsg
   }
 
+  private turnForAssistant(
+    v: Table_AiChat,
+    index: number,
+  ): OaiPrompt | undefined {
+    const { 
+      text, 
+      reasoning_content, 
+      character,
+      finish_reason,
+    } = v
+    const isContinue = this._opt?.isContinueCommand
+    const assistantName = AiHelper.getCharacterName(character)
+
+    let content = ""
+    if(isContinue && index < 3 && reasoning_content && finish_reason === "length") {
+      const hasThink = reasoning_content.startsWith("<think>")
+      if(hasThink) content = reasoning_content
+      else content = `<think>${reasoning_content}</think>`
+      if(text) {
+        content += `\n${text}`
+      }
+    }
+    else if(text) {
+      content = text
+    }
+    else if(reasoning_content) {
+      const hasThink = reasoning_content.startsWith("<think>")
+      if(hasThink) content = reasoning_content
+      else content = `<think>${reasoning_content}`
+    }
+    
+    if(!content) return
+
+    return {
+      role: "assistant",
+      content,
+      name: assistantName,
+    }
+  }
+
   private turnForUser(
     v: Table_AiChat,
     index: number,
-    chatsLength: number,
   ): OaiPrompt | undefined {
     const {
       text, 
