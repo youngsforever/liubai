@@ -214,6 +214,7 @@
     "err_9": "Fail to send the email. Contact the developer please.",
     "err_10": "Please enter 11 digits of phone number",
     "err_11": "The third-party account is not permitted for logging into Liubai",
+    "err_12": "The current account on WeChat is not supported to link",
     "get_permission": "You have not been in the allowed list. Follow our WeChat \"留白记事\" to get the permission!",
     "bound": "Succeed to Bind",
     "logged": "Succeed to Login",

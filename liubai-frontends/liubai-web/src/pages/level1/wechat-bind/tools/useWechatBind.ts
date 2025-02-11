@@ -209,11 +209,19 @@ async function toBindWeChat(
     oauth_code: oAuthCode,
   }
   const res1 = await liuReq.request(url, w1)
+  const { code } = res1
 
-  // 2. handle error
-  if(res1.code !== "0000") {
-    const res2 = await showErrMsg("other", res1)
-    rr.router.replace({ name: "index" })
+  // 2.1 US005
+  if(code === "US005") {
+    await showEmojiTip("login.err_12", "🙅")
+    rr.router.goHome()
+    return
+  }
+
+  // 2.2 handle error
+  if(code !== "0000") {
+    await showErrMsg("other", res1)
+    rr.router.goHome()
     return
   }
   
