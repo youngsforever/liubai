@@ -1647,9 +1647,9 @@ class BaseBot {
       tool_calls = message.tool_calls
     }
 
-    console.warn(`${c} finish reason: ${finish_reason}`)
-    console.log(`usage: `)
-    console.log(chatCompletion.usage)
+    console.log(`${c} finish reason: ${finish_reason}`)
+    // console.log(`usage: `)
+    // console.log(chatCompletion.usage)
     
     // 2. can i reply
     const res2 = await AiHelper.canReply(aiParam, bot)
