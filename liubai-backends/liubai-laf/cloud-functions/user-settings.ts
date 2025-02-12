@@ -35,7 +35,6 @@ import {
   type DataPass,
   type Table_Credential,
   type Partial_Id,
-  type LiuTencentSMSParam,
   type Table_BlockList,
 } from '@/common-types'
 import { getNowStamp, DAY, MINUTE, getBasicStampWhileAdding } from "@/common-time"
@@ -43,7 +42,7 @@ import * as vbot from "valibot"
 import { getCurrentLocale } from '@/common-i18n'
 import { handle_avatar, addVerifyNum } from '@/user-login'
 import { createSmsCode } from '@/common-ids'
-import { LiuTencentSMS } from '@/service-send'
+import { SmsController } from '@/service-send'
 
 const db = cloud.database()
 const _ = db.command
@@ -160,8 +159,8 @@ async function handle_bind_phone(
   // 2. get phone
   const body = res1.newBody
   const { phone, smsCode } = body
-  console.log("phone in handle_request_sms: ")
-  console.log(phone)
+  // console.log("phone in handle_request_sms: ")
+  // console.log(phone)
   if(!phone || typeof phone !== "string") {
     return { code: "E4000", errMsg: "phone is required" }
   }
@@ -243,19 +242,6 @@ async function handle_request_sms(
     return res1.rqReturn ?? { code: "E5001" }
   }
 
-  // 1.2 check out system params
-  const _env = process.env
-  const SmsSdkAppId = _env.LIU_TENCENT_SMS_SDKAPPID
-  const SignName = _env.LIU_TENCENT_SMS_SIGNNAME
-  const TemplateId = _env.LIU_TENCENT_SMS_TEMPLATEID_1
-  if(!SmsSdkAppId || !SignName || !TemplateId) {
-    console.warn("there is no SmsSdkAppId or SignName or TemplateId in handle_request_sms")
-    return { 
-      code: "E5001",
-      errMsg: "no required params on backend to send sms",
-    }
-  }
-
   // 2. get phone
   const body = res1.newBody
   const { phone } = body
@@ -311,34 +297,20 @@ async function handle_request_sms(
   }
 
   // 7. send sms
-  const phone7 = `+${regionCode}${localNumber}`
-  const param7: LiuTencentSMSParam = {
-    SmsSdkAppId,
-    SignName,
-    TemplateId,
-    TemplateParamSet: [smsCode],
-    PhoneNumberSet: [phone7],
-  }
-  const res7 = await LiuTencentSMS.send(param7)
+  const res7 = await SmsController.send(regionCode, localNumber, smsCode)
+  const { send_channel, result: result7 } = res7
 
-  // 8. handle result of sending
-  if(res7.data) {
-    console.log("send sms might be successful, let's see SendStatusSet: ")
-    console.log(res7.data?.SendStatusSet)
+  // 8. record send result
+  if(result7.code === "0000") {
     const u8: Partial<Table_Credential> = {
-      send_channel: "tencent-sms",
-      sms_sent_result: res7.data,
+      send_channel,
+      sms_sent_result: result7.data,
     }
     cCol.doc(cId).update(u8)
-
-    // take a look of sending sms
-    LiuTencentSMS.seeResult(phone7)
-  }
-  else {
-    return res7
+    return { code: "0000" }
   }
 
-  return { code: "0000" }
+  return result7
 }
 
 

@@ -320,18 +320,34 @@ export class LiuQiniuSMS {
     }
 
     const _send = (a: SendResolver) => {
+      // 1. custom timeout
+      let hasReturn = false
+      const timeout = setTimeout(() => {
+        hasReturn = true
+        console.warn("qiniu sms timeout!")
+        a({ code: "E5005", errMsg: "qiniu sms timeout" })
+      }, 5000)
+
+      // 2. send by qiniu
       qiniu.sms.message.sendSingleMessage(reqBody, mac, (
         respErr, respBody, respInfo,
       ) => {
+        clearTimeout(timeout)
         if(respErr) {
           console.warn("sendSingleMessage failed")
           console.log(respErr)
+
+          if(hasReturn) return
           a({ code: "E5004", errMsg: "sending sms failed from qiniu" })
           return
         }
-        console.log("respBody: ", respBody)
-        console.log("respInfo: ", respInfo)
-        a({ code: "0000", data: respInfo })
+        if(!respInfo || respInfo.statusCode !== 200) {
+          console.warn("qiniu sendSingleMessage got a non-200 response")
+          console.log(respInfo)
+        }
+
+        if(hasReturn) return
+        a({ code: "0000" })
       })
     }
     
@@ -339,6 +355,69 @@ export class LiuQiniuSMS {
   }
   
 }
+
+
+export interface ResultOfSMS {
+  send_channel: "tencent-sms" | "qiniu-sms"
+  result: LiuRqReturn
+}
+
+export class SmsController {
+
+  static async send(
+    regionCode: string,
+    localNumber: string,
+    smsCode: string,
+  ): Promise<ResultOfSMS> {
+    // 1. send by qiniu
+    let res = await LiuQiniuSMS.sendVerifyCode(smsCode, localNumber)
+    if(res.code === "0000") {
+      return {
+        send_channel: "qiniu-sms",
+        result: res,
+      }
+    }
+
+    // 2. check out params for tencent sms
+    const _env = process.env
+    const SmsSdkAppId = _env.LIU_TENCENT_SMS_SDKAPPID
+    const SignName = _env.LIU_TENCENT_SMS_SIGNNAME
+    const TemplateId = _env.LIU_TENCENT_SMS_TEMPLATEID_1
+    if(!SmsSdkAppId || !SignName || !TemplateId) {
+      console.warn("there is no SmsSdkAppId or SignName or TemplateId in test_sms")
+      return {
+        send_channel: "tencent-sms",
+        result: { 
+          code: "E5001", 
+          errMsg: "there is no SmsSdkAppId or SignName or TemplateId in test_sms",
+        }
+      }
+    }
+
+    // 3. send by tencent SMS
+    const phone3 = `+${regionCode}${localNumber}`
+    const param3: LiuTencentSMSParam = {
+      SmsSdkAppId,
+      SignName,
+      TemplateId,
+      TemplateParamSet: [smsCode],
+      PhoneNumberSet: [phone3],
+    }
+    res = await LiuTencentSMS.send(param3)
+
+    // 4. see result for tencent sms
+    if(res.code === "0000" && res.data) {
+      LiuTencentSMS.seeResult(phone3)
+    }
+
+    return {
+      send_channel: "tencent-sms",
+      result: res,
+    }
+  }
+
+}
+
 
 
 /** package Resend */
