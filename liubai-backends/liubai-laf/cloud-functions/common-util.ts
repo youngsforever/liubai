@@ -334,6 +334,10 @@ const getTextCharNum = (val: string) => {
   return num
 }
 
+const getPromise = <T = any>(val: T): Promise<T> => {
+  return new Promise(a => a(val)) 
+}
+
 export const valTool = {
   waitMilli,
   strToObj,
@@ -351,6 +355,7 @@ export const valTool = {
   isAllNumber,
   isStringAsNumber,
   getTextCharNum,
+  getPromise,
 }
 
 

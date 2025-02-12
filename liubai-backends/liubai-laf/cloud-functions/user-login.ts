@@ -77,8 +77,8 @@ import {
   checkIfSmsSentTooMuch, 
   getActiveEmailCode,
   LiuResend,
+  SmsController,
   LiuTencentSES,
-  LiuTencentSMS,
   WxGzhSender,
 } from "@/service-send"
 import { 
@@ -194,16 +194,6 @@ async function handle_phone(
     return { code: "E4000", errMsg: "no phone" }
   }
 
-  // 1.2 check out system params
-  const _env = process.env
-  const SmsSdkAppId = _env.LIU_TENCENT_SMS_SDKAPPID
-  const SignName = _env.LIU_TENCENT_SMS_SIGNNAME
-  const TemplateId = _env.LIU_TENCENT_SMS_TEMPLATEID_1
-  if(!SmsSdkAppId || !SignName || !TemplateId) {
-    console.warn("there is no SmsSdkAppId or SignName or TemplateId in test_sms")
-    return { code: "E5001", errMsg: "there is no SmsSdkAppId or SignName or TemplateId in test_sms" }
-  }
-
   // 2. decrypt
   const res2 = getPhoneData(enc_phone)
   if(!res2.pass) return res2.err
@@ -233,39 +223,29 @@ async function handle_phone(
     phoneNumber,
   }
   const cCol = db.collection("Credential")
+
+  // 6. add a credential
   const res6 = await cCol.add(data6)
   const cId = getDocAddId(res6)
   if(!cId) {
     return { code: "E5000", errMsg: "creating credential failed"}
   }
 
-  // 6. send sms
-  const phone7 = `+${regionCode}${localNumber}`
-  const param7: LiuTencentSMSParam = {
-    SmsSdkAppId,
-    SignName,
-    TemplateId,
-    TemplateParamSet: [smsCode],
-    PhoneNumberSet: [phone7],
-  }
-  const res7 = await LiuTencentSMS.send(param7)
-  
-  // 7. handle result
-  if(res7.data) {
+  // 7. to send
+  const res7 = await SmsController.send(regionCode, localNumber, smsCode)
+  const { send_channel, result: result7 } = res7
+
+  // 8. record send result
+  if(result7.code === "0000") {
     const u8: Partial<Table_Credential> = {
-      send_channel: "tencent-sms",
-      sms_sent_result: res7.data,
+      send_channel,
+      sms_sent_result: result7.data,
     }
     cCol.doc(cId).update(u8)
-
-    // take a look of sending sms
-    LiuTencentSMS.seeResult(phone7)
-  }
-  else {
-    return res7
+    return { code: "0000" }
   }
 
-  return { code: "0000" }
+  return result7
 }
 
 async function handle_phone_code(
