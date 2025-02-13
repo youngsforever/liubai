@@ -82,7 +82,6 @@ export async function main(ctx: FunctionContext) {
     return res
   }
 
-  console.log("msgObj: ")
   console.log(msgObj)
 
   const { MsgType, FromUserName } = msgObj

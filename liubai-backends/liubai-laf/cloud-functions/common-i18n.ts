@@ -241,7 +241,7 @@ export const wecomLang: LangAtom = {
 export const wechatLang: LangAtom = {
   "zh-Hans": {
     "welcome_1": "欢迎关注留白记事！\n\n留白记事 = AI 加持的备忘录📝 + 日历📆 + 任务📌 + 待办清单📂\n\n你可以在这里记录所有事情，所有“只属于你”的信息都将在这里汇聚。\n\n若这世界就是一个巨大的游乐园，请去体验，去创造🥂\n\n[未完待续]",
-    "login_guide": "若你想要马上拥有三个助手或 DeepSeek R1，欢迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一键登录</a>",
+    "login_guide": "若你想要马上拥有三个助手或 DeepSeek R1，欢迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一键登录</a>\n\n登录后，你可以回复\n\n「召唤ds」: 让 deepseek v3 与你聊天，但注意现在算力紧张，它可能不会回复你\n\n「召唤海螺」: 让海螺进到聊天室\n\n「踢掉xx」: xx替换为对应的 AI 名，它就会离开群聊\n\n「群聊状态」: 查看当前群里有谁",
     "already_bound": "当前微信已绑定帐号 {account}\n请先在原帐号上解绑后，再重新扫码。",
     "success_1": "绑定成功🎉\n\n小诀窍：<a href='https://mp.weixin.qq.com/s/3g1vn8wnps7nKntUKXIJuw'>如何避免漏接提醒</a>",
     "login_first": "尚未登录！\n欢迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一键登录</a>",
@@ -253,7 +253,7 @@ export const wechatLang: LangAtom = {
   },
   "zh-Hant": {
     "welcome_1": "歡迎追蹤留白記事！\n\n留白記事 = AI 加持的備忘錄📝 + 行事曆📆 + 任務📌 + 待辦清單📂\n\n你可以在這裡記錄所有事情，所有「只屬於你」的資訊都將在這裡匯聚。\n\n若這世界就是一個巨大的遊樂園，請去體驗、去創造🥂\n\n[未完待續]",
-    "login_guide": "若你想要馬上擁有三個助手或 DeepSeek R1，歡迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一鍵登入</a>",
+    "login_guide": "若你想要馬上擁有三個助手或 DeepSeek R1，歡迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一鍵登入</a>\n\n登入後，你可以回覆\n\n「召喚ds」: 讓 deepseek v3 與你聊天，但注意現在計算資源緊張，它可能不會回覆你\n\n「召喚海螺」: 讓海螺進到聊天室\n\n「踢掉xx」: xx替換為對應的 AI 名，它就會離開群聊\n\n「群聊狀態」: 查看目前群裡有誰",
     "already_bound": "當前微信已綁定帳號 {account}\n請先在原帳號上解綁後，再重新掃描 QR Code",
     "success_1": "綁定成功🎉\n\n小訣竅：<a href='https://mp.weixin.qq.com/s/3g1vn8wnps7nKntUKXIJuw'>如何避免漏接提醒</a>",
     "login_first": "尚未登入! \n歡迎使用<a href='{LIU_DOMAIN}/wechat-bind'>微信一鍵登入</a>",
@@ -265,7 +265,7 @@ export const wechatLang: LangAtom = {
   },
   "en": {
     "welcome_1": "Welcome to follow Liubai!\n\nLiubai = Notes📝 + Calendar📆 + Tasks📌 + Todo📂 with AI\n\nYou can record all your life’s events, and all information you want is out here.\n\nIf this world is a giant playground, please experience it and create it 🥂\n\n[To be continued]",
-    "login_guide": "If you want to get three assistants or DeepSeek R1 immediately, welcome to <a href='{LIU_DOMAIN}/wechat-bind'>Continue with WeChat</a>",
+    "login_guide": "If you want to get three assistants or DeepSeek R1 immediately, welcome to <a href='{LIU_DOMAIN}/wechat-bind'>Continue with WeChat</a>\n\nAfter logging in, you can reply\n\n\"Call DS\": Let deepseek v3 chat with you! But you might not reply to you due to computing constraints\n\n\"Call hailuo\": Let Hailuo enter the chat room\n\n\"Kick xx\": xx is replaced with the corresponding AI name, and it will leave the group\n\n\"Status\": Check the current group status",
     "already_bound": "Current Wechat has already bound account {account}\nPlease unbind it from the original account first, then re-scan the QR code.",
     "success_1": "Binding successful🎉\n\nTip: <a href='https://mp.weixin.qq.com/s/3g1vn8wnps7nKntUKXIJuw'>How to avoid missing reminders</a>",
     "login_first": "Not logged in yet!\nWelcome to <a href='{LIU_DOMAIN}/wechat-bind'>Login via WeChat</a>",
@@ -287,8 +287,8 @@ export const aiLang: LangAtom = {
     "kick": "踢掉",
     "add": "召唤",
     "clear_context": "清空上文",
-    "quota_warning": "免费版共有 {freeTimes} 轮对话机会（春节限定🧨）\n购买会员畅享每月 {membershipTimes} 轮对话！同时解锁留白记事所有权益。\n<a href='{link}'>戳我立即解锁</a>",
-    "deploy_tip": "若你想给自己的公众号部署一套留白记事\n<a href='{link}'>欢迎咨询</a>",
+    "quota_warning": "免费版共有 {freeTimes} 轮对话机会\n购买会员畅享每月 {membershipTimes} 轮对话！同时解锁留白记事所有权益。\n<a href='{link}'>戳我立即解锁🔓</a>",
+    "see_question_box": "更多玩法，欢迎参见\n<a href='{LIU_DOCS_DOMAIN}/guide/faq/'>提问箱📬</a>",
     "quota_warning_2": "您已使用 {membershipTimes} 轮会员版对话额度。续费会员，可将“已使用额度”归零！\n<a href='{link}'>立即续费</a>",
     "cannot_read_images": "我目前没有识图的能力",
     "history_cleared": "已清空前面的历史记录",
@@ -381,6 +381,8 @@ export const aiLang: LangAtom = {
     "bot_read_finished": "{bot}查看了最近完成的事项",
     "bot_read_event": "{bot}查看了最近添加的事件",
     "view_thinking": "查看思考过程",
+    "result_of_tool": "工具调用结果:\n{msg}",
+    "thinking": "【思考中...💭】\n{text}",
   },
   "zh-Hant": {
     "privacy_title": "🔓 隱私提示:",
@@ -390,8 +392,8 @@ export const aiLang: LangAtom = {
     "kick": "踢掉",
     "add": "召喚",
     "clear_context": "清除上文",
-    "quota_warning": "免費版共有 {freeTimes} 輪對話機會 (春節限定🧨)\n購買會員暢享每月 {membershipTimes} 輪對話！同時解鎖留白記事所有權益。\n<a href='{link}'>輕觸立即解鎖</a>",
-    "deploy_tip": "若你想給自己的公眾號部署一套留白記事\n<a href='{link}'>歡迎諮詢</a>",
+    "quota_warning": "免費版共有 {freeTimes} 輪對話機會\n購買會員暢享每月 {membershipTimes} 輪對話！同時解鎖留白記事所有權益。\n<a href='{link}'>輕觸立即解鎖🔓</a>",
+    "see_question_box": "更多玩法，歡迎參見\n<a href='{LIU_DOCS_DOMAIN}/guide/faq/'>提問箱📬</a>",
     "quota_warning_2": "您已使用 {membershipTimes} 輪會員版對話額度。續費會員，可將「已使用額度」歸零！\n<a href='{link}'>立即續費</a>",
     "cannot_read_images": "我目前沒有讀取圖片的能力",
     "history_cleared": "已清空前面的歷史記錄",
@@ -484,6 +486,8 @@ export const aiLang: LangAtom = {
     "bot_read_finished": "{bot}檢視了最近完成的事項",
     "bot_read_event": "{bot}檢視了最近新增的事件",
     "view_thinking": "檢視思考過程",
+    "result_of_tool": "工具調用結果:\n{msg}",
+    "thinking": "［思考中...💭］\n{text}",
   },
   "en": {
     "privacy_title": "🔓 Privacy:",
@@ -493,8 +497,8 @@ export const aiLang: LangAtom = {
     "kick": "Remove ",
     "add": "Add ",
     "clear_context": "Clear context",
-    "quota_warning": "Free version has {freeTimes} conversation opportunities.\nPurchase membership to enjoy {membershipTimes} conversations per month! Also unlock all Liubai rights.\n<a href='{link}'>Tap to unlock</a>",
-    "deploy_tip": "If you want to deploy a Liubai for your public account\n<a href='{link}'>Welcome to consult</a>",
+    "quota_warning": "Free version has {freeTimes} conversation opportunities.\nPurchase membership to enjoy {membershipTimes} conversations per month! Also unlock all Liubai rights.\n<a href='{link}'>Tap to unlock 🔓</a>",
+    "see_question_box": "For more ways to play, please see our\n<a href='{LIU_DOCS_DOMAIN}/guide/faq/'>Question Box 📬</a>",
     "quota_warning_2": "You have used {membershipTimes} conversations of membership. Renew membership to reset the used quota!\n<a href='{link}'>Renew now</a>",
     "cannot_read_images": "I don't have the ability to read images yet",
     "history_cleared": "History cleared",
@@ -587,6 +591,8 @@ export const aiLang: LangAtom = {
     "bot_read_finished": "{bot} read latest finished tasks",
     "bot_read_event": "{bot} read latest added events",
     "view_thinking": "Dive into Thinking",
+    "result_of_tool": "Tool call result:\n{msg}",
+    "thinking": "[Thinking..💭]\n{text}",
   }
 }
 

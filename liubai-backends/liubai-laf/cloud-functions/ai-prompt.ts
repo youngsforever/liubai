@@ -19,7 +19,21 @@ import { i18nFill } from "@/common-i18n"
 /***************************** Bots ***************************/
 export const aiBots: AiBot[] = [
 
-  /** chat using third-party */
+  /** R1 */
+  {
+    name: "DeepSeek R1",
+    character: "ds-reasoner",
+    provider: "deepseek",
+    secondaryProvider: "tencent-lkeap",
+    model: "deepseek-r1",
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1"],
+    maxWindowTokenK: 64,
+    priority: 31,
+    metaData: {
+      onlyOneSystemRoleMsg: true,
+    }
+  },
   {
     name: "DeepSeek R1",
     character: "ds-reasoner",
@@ -27,7 +41,7 @@ export const aiBots: AiBot[] = [
     secondaryProvider: "siliconflow",
     model: "deepseek-ai/DeepSeek-R1",
     abilities: ["chat", "reasoning"],
-    alias: ["R1", "r1"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1"],
     maxWindowTokenK: 64,
     priority: 19,
     metaData: {
@@ -41,7 +55,7 @@ export const aiBots: AiBot[] = [
     secondaryProvider: "gitee-ai",
     model: "DeepSeek-R1-Distill-Qwen-32B",
     abilities: ["chat", "reasoning"],
-    alias: ["R1", "r1"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1"],
     maxWindowTokenK: 32,
     priority: 17,
     metaData: {
@@ -52,6 +66,79 @@ export const aiBots: AiBot[] = [
         "X-Package": "1910",    // 指定资源包，其中 1910: 全模型资源包    1492: 沐曦    1917: 无问芯穹    
       },
     }
+  },
+  {
+    name: "DeepSeek R1",
+    character: "ds-reasoner",
+    provider: "deepseek",
+    secondaryProvider: "qiniu",
+    model: "deepseek-r1",
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1"],
+    maxWindowTokenK: 64,
+    priority: 29,
+    metaData: {
+      thinkingInContent: true,
+      onlyOneSystemRoleMsg: true,
+    }
+  },
+  {
+    name: "DeepSeek R1",
+    character: "ds-reasoner",
+    provider: "deepseek",
+    model: "deepseek-reasoner",
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1"],
+    maxWindowTokenK: 64,
+    priority: 15,
+    metaData: {
+      onlyOneSystemRoleMsg: true,
+    }
+  },
+
+  /** V3 */
+  {
+    name: "DeepSeek V3",
+    character: "deepseek",
+    provider: "deepseek",
+    secondaryProvider: "qiniu",
+    model: "deepseek-v3",
+    abilities: ["chat"],
+    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
+    priority: 9,
+    maxWindowTokenK: 64,
+  },
+  {
+    name: "DeepSeek V3",
+    character: "deepseek",
+    provider: "deepseek",
+    secondaryProvider: "siliconflow",
+    model: "deepseek-ai/DeepSeek-V3",
+    abilities: ["chat", "tool_use"],
+    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
+    priority: 19,
+    maxWindowTokenK: 64,
+  },
+  {
+    name: "DeepSeek V3",
+    character: "deepseek",
+    provider: "deepseek",
+    secondaryProvider: "tencent-lkeap",
+    model: "deepseek-v3",
+    abilities: ["chat"],
+    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
+    priority: 15,
+    maxWindowTokenK: 64,
+  },
+  {
+    name: "DeepSeek V3",
+    character: "deepseek",
+    provider: "deepseek",
+    model: "deepseek-chat",
+    abilities: ["chat", "tool_use"],
+    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
+    priority: 17,
+    maxWindowTokenK: 64,
   },
 
   /** chat using official providers */
@@ -64,29 +151,6 @@ export const aiBots: AiBot[] = [
     alias: ["百川", "百川AI", "百川智能"],
     maxWindowTokenK: 32,
     priority: 10,
-    metaData: {
-      onlyOneSystemRoleMsg: true,
-    }
-  },
-  {
-    name: "DeepSeek V3",
-    character: "deepseek",
-    provider: "deepseek",
-    model: "deepseek-chat",
-    abilities: ["chat", "tool_use"],
-    alias: ["深度求索", "ds", "v3", "deepseek"],
-    priority: 10,
-    maxWindowTokenK: 64,
-  },
-  {
-    name: "DeepSeek R1",
-    character: "ds-reasoner",
-    provider: "deepseek",
-    model: "deepseek-reasoner",
-    abilities: ["chat", "reasoning"],
-    alias: ["R1", "r1"],
-    maxWindowTokenK: 64,
-    priority: 5,
     metaData: {
       onlyOneSystemRoleMsg: true,
     }

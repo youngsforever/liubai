@@ -78,6 +78,7 @@ declare global {
       LIU_QINIU_CALLBACK_URL?: string
       LIU_QINIU_CDN_DOMAIN?: string       // 七牛云的 cdn 域名，结尾不要加 /
       LIU_QINIU_CUSTOM_KEY?: string       // 自定义密钥，用于在 webhook-qiniu 中验证使用
+      LIU_QINIU_SMS_TEMP_ID?: string      // 七牛云短信模板 ID
 
       /** 微信公众号 */
       LIU_WX_GZ_APPID?: string
@@ -150,6 +151,10 @@ declare global {
       LIU_SILICONFLOW_IMAGE_GENERATION_MODEL?: string
       LIU_GITEE_AI_BASE_URL?: string
       LIU_GITEE_AI_API_KEY?: string
+      LIU_QINIU_LLM_BASE_URL?: string
+      LIU_QINIU_LLM_API_KEY?: string
+      LIU_TENCENT_LKEAP_BASE_URL?: string
+      LIU_TENCENT_LKEAP_API_KEY?: string
 
       /** Summary */
       LIU_SUMMARY_BASE_URL?: string

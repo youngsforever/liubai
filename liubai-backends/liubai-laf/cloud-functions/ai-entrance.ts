@@ -92,7 +92,7 @@ const MAX_WORDS = 3000
 // see https://platform.openai.com/docs/guides/reasoning#allocating-space-for-reasoning
 const MIN_REASONING_TOKENS = 1024
 
-const MAX_TIMES_FREE = 20
+const MAX_TIMES_FREE = 10
 const MAX_TIMES_MEMBERSHIP = 200
 
 const SEC_15 = SECONED * 15
@@ -104,6 +104,7 @@ const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first
 const charactersTakingARest: AiCharacter[] = [
   "ds-reasoner",
   "deepseek",
+  "kimi",
 ]
 
 /************************** types ************************/
@@ -142,6 +143,7 @@ interface TurnChatsIntoPromptOpt {
   abilities?: AiAbility[]
   metaData?: AiBotMetaData
   character?: AiCharacter
+  isContinueCommand?: boolean
 }
 
 interface BaseLLMChatOpt {
@@ -149,6 +151,16 @@ interface BaseLLMChatOpt {
   user?: Table_User
   timeoutSec?: number
 }
+
+interface ReplyToUserParam {
+  chatCompletion: OaiChatCompletion
+  entry: AiEntry
+  bot: AiBot
+  textToUser: string
+  assistantChatId?: string
+  showCoT: boolean
+}
+
 
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
@@ -611,6 +623,7 @@ class AiDirective {
       "我要", "我要", "I want", "i want",
       "添加", "新增", "Add", "add",
       "呼叫", "Call", "call",
+      "@",
     ]
     const botMatched = this._getCommandedBot(prefix, text)
     if(botMatched) return botMatched
@@ -727,7 +740,7 @@ class BaseLLM {
       // 1. set timeout
       let timeout = setTimeout(() => {
         if(hasReturn) return
-        console.warn("custom timeout occurs!")
+        console.log("custom timeout occurs!")
         hasReturn = true
         a(undefined)
       }, timeoutSec * 1000)
@@ -766,8 +779,6 @@ class BaseLLM {
     catch(err) {
       console.warn("BaseLLM chat error: ")
       console.log(err)
-      console.log(`current baseURL: `, client.baseURL)
-      console.log(`current model: `, copiedParams.model)
 
       let isRateLimit = false
       const errType = typeof err
@@ -775,7 +786,7 @@ class BaseLLM {
 
       if(typeof errMsg === "string") {
         // for baichuan
-        if(isRateLimit) {
+        if(!isRateLimit) {
           isRateLimit = errMsg.includes("Rate limit reached for requests")
         }
 
@@ -792,6 +803,10 @@ class BaseLLM {
         // fallback
         if(!isRateLimit) {
           isRateLimit = errMsg.includes("RateLimitError: 429")
+        }
+
+        if(errMsg.includes("undefined message role")) {
+          LogHelper.printLastItems(params.messages)
         }
         
       }
@@ -848,29 +863,21 @@ class BaseBot {
   protected async chat(
     params: OpenAI.Chat.ChatCompletionCreateParams,
     bot: AiBot,
+    opt?: BaseLLMChatOpt,
   ) {
+    const character = bot.character
     const apiData = AiShared.getApiEndpointFromBot(bot)
     if(!apiData) {
-      console.warn(`no api data for ${this._character}`)
+      console.warn(`no api data for ${character}`)
       console.log(bot)
       return
     }
     PromptsChecker.run(params.messages, bot)
+    const theService = `${params.model} on ${apiData.baseURL}`
 
     // print last 5 prompts
-    // const lastNum = 100
-    // const msgLength = params.messages.length
-    // console.log(`last ${lastNum} prompts: `)
-    // if(msgLength > lastNum) {
-    //   const messages2 = params.messages.slice(msgLength - lastNum)
-    //   const printMsg = valTool.objToStr({ messages: messages2 })
-    //   console.log(printMsg)
-    // }
-    // else {
-    //   const printMsg = valTool.objToStr({ messages: params.messages })
-    //   console.log(printMsg)
-    // }
-    
+    // LogHelper.printLastItems(params.messages)
+    // console.log(`Let's ask ${theService}`)
 
     const llm = new BaseLLM(
       apiData.apiKey, 
@@ -878,14 +885,20 @@ class BaseBot {
       apiData.defaultHeaders,
     )
     const t1 = getNowStamp()
-    const res = await llm.chat(params, { user: this._fromUser })
+    const res = await llm.chat(params, { user: this._fromUser, ...opt })
     const t2 = getNowStamp()
     const cost = t2 - t1
-
-    const c = this._character
-    console.log(`${c} chat cost: ${cost}ms`)
+    
+    console.log(`${theService} cost: ${cost}ms`)
     if(!res) {
-      console.warn(`${c} chat got an error`)
+      console.warn(`${theService} got an error`)
+    }
+
+    const firstChoice = res?.choices?.[0]
+    if(!firstChoice) {
+      console.warn(`${theService} no choice! see chatCompletion: `)
+      console.log(res)
+      return
     }
 
     return res
@@ -974,6 +987,7 @@ class BaseBot {
       abilities: bot.abilities, 
       metaData: bot.metaData,
       character: bot.character,
+      isContinueCommand: param.isContinueCommand,
     })
     const prompts = chatIntoPrompter.run(chats)
 
@@ -1133,9 +1147,6 @@ class BaseBot {
 
     return aiLogs
   }
-
-  
-
 
   private _getRestTokensAndPrompts(
     postParam: PostRunParam,
@@ -1400,26 +1411,41 @@ class BaseBot {
   ) {
     const roomId = aiParam.room._id
     const c = bot.character
+    const entry = aiParam.entry
+    const user = entry.user
 
     // 1. get content & reasoning_content
     let {
-      content: txt1_1,
-      reasoning_content: txt1_2,
+      content: txt_a,
+      reasoning_content: txt_b,
     } = AiHelper.getContentFromLLM(chatCompletion, bot)
-    if(!txt1_1) return
-    txt1_1 = this._clipContent(txt1_1)
 
-    // 2. reply to user without reasoning_content
-    if(!txt1_2) {
-      this._replyToUser(chatCompletion, aiParam, bot, txt1_1)
+    if(!txt_a && !txt_b) return
+    let textToUser = txt_a
+    let showCoT = Boolean(txt_a && txt_b)
+    if(!textToUser) {
+      const { t } = useI18n(aiLang, { user })
+      textToUser = t("thinking", { text: txt_b ?? "" })
+    }
+    textToUser = this._clipContent(textToUser, chatCompletion)
+
+    // 2. reply to user without CoT
+    if(!showCoT) {
+      this._replyToUser({
+        chatCompletion,
+        entry,
+        bot,
+        textToUser,
+        showCoT,
+      })
     }
     
     // 3. add assistant chat
     const apiEndpoint = AiShared.getApiEndpointFromBot(bot)
     const param3: LiuAi.HelperAssistantMsgParam = {
       roomId,
-      text: txt1_1,
-      reasoning_content: txt1_2,
+      text: txt_a,
+      reasoning_content: txt_b,
       model: bot.model,
       character: c,
       usage: chatCompletion.usage,
@@ -1429,16 +1455,25 @@ class BaseBot {
     }
     const assistantChatId = await AiHelper.addAssistantMsg(param3)
 
-    // 4. reply to user with reasoning_content
-    if(txt1_2) {
-      this._replyToUser(chatCompletion, aiParam, bot, txt1_1, assistantChatId)
+    // 4. reply to user with CoT
+    if(showCoT) {
+      this._replyToUser({
+        chatCompletion,
+        entry,
+        bot,
+        textToUser,
+        assistantChatId,
+        showCoT,
+      })
     }
-
 
     return assistantChatId
   }
 
-  private _clipContent(text: string) {
+  private _clipContent(
+    text: string,
+    chatCompletion: OaiChatCompletion,
+  ) {
     const MAX_REPLIED_WORDS = 600
     const MAX_CHARS = MAX_REPLIED_WORDS * 2
     if(text.length < MAX_REPLIED_WORDS) return text
@@ -1454,6 +1489,7 @@ class BaseBot {
       if(charNum > MAX_CHARS) {
         console.warn("clip the content because it exceeds the limit")
         console.log(list[i + 1])
+        AiHelper.setFinishReasonToLength(chatCompletion)
         break
       }
     }
@@ -1462,20 +1498,23 @@ class BaseBot {
     return newText
   }
 
-  private _replyToUser(
-    chatCompletion: OaiChatCompletion,
-    aiParam: LiuAi.RunParam,
-    bot: AiBot,
-    txt1_1: string,
-    assistantChatId?: string,
-  ) {
-    const c = bot.character
+  private _replyToUser(param: ReplyToUserParam) {
+    const {
+      chatCompletion,
+      entry,
+      bot,
+      textToUser,
+      assistantChatId,
+      showCoT,
+    } = param
+
+    const character = bot.character
     const finishReason = AiHelper.getFinishReason(chatCompletion)
     const gzhType = AiShared.getGzhType()
 
-    let text = txt1_1
-    if(assistantChatId) {
-      const user = aiParam.entry.user
+    let text = textToUser
+    if(assistantChatId && showCoT) {
+      const user = entry.user
       const { t } = useI18n(aiLang, { user })
       const domain = getLiuDoman()
       const link = `${domain}/CoT?chatId=${assistantChatId}`
@@ -1485,15 +1524,15 @@ class BaseBot {
 
     if(finishReason === "length" && gzhType === "service_account") {
       TellUser.menu(
-        aiParam.entry, 
+        entry, 
         text, 
-        [{ operation: "continue", character: c }],
+        [{ operation: "continue", character }],
         "",
-        c,
+        character,
       )
     }
     else {
-      TellUser.text(aiParam.entry, text, bot)
+      TellUser.text(entry, text, bot)
     }
   }
 
@@ -1506,8 +1545,6 @@ class BaseBot {
     if(tmpList.length < 5) return
     tmpList.pop()
     message.content = tmpList.join("\n")
-    console.warn("see message.content in _handleLength: ")
-    console.log(message.content)
   }
 
   protected async postRun(postParam: PostRunParam): Promise<LiuAi.RunSuccess | undefined> {
@@ -1518,8 +1555,6 @@ class BaseBot {
 
     let firstChoice = chatCompletion?.choices?.[0]
     if(!firstChoice) {
-      console.warn(`${c} no choice! see chatCompletion: `)
-      console.log(chatCompletion)
       return
     }
     let { finish_reason, message } = firstChoice
@@ -1538,9 +1573,9 @@ class BaseBot {
       tool_calls = message.tool_calls
     }
 
-    console.warn(`${c} finish reason: ${finish_reason}`)
-    console.log(`usage: `)
-    console.log(chatCompletion.usage)
+    console.log(`${c} finish reason: ${finish_reason}`)
+    // console.log(`usage: `)
+    // console.log(chatCompletion.usage)
     
     // 2. can i reply
     const res2 = await AiHelper.canReply(aiParam, bot)
@@ -1605,6 +1640,33 @@ class BaseBot {
     return system_1
   }
 
+  protected async tryAgain(
+    param: LiuAi.RunParam,
+    chatParam: OaiCreateParam,
+  ) {
+    // 0. get params
+    const entry = param.entry
+
+    // 1. switch model
+    const secondBot = this._bots[1]
+    if(!secondBot) {
+      return
+    }
+    chatParam.model = secondBot.model
+    const p = secondBot.secondaryProvider ?? secondBot.provider
+    console.warn(`try again using ${secondBot.model} on ${p}`)
+
+    // 2. change system prompt
+    const firstMsg = chatParam.messages?.[0]
+    if(firstMsg.role === "system") {
+      const newSystemContent = this.getFirstSystemPrompt(entry, secondBot)
+      firstMsg.content = newSystemContent
+    }
+
+    const chatCompletion = await this.chat(chatParam, secondBot)
+    return { newChatCompletion: chatCompletion, newBot: secondBot }
+  }
+
 }
 
 class BotBaichuan extends BaseBot {
@@ -1657,10 +1719,11 @@ class BotDeepSeek extends BaseBot {
     // 1. pre run
     const res1 = this.preRun(aiParam)
     if(!res1) return
-    const { prompts, totalToken, bot, chats, tools } = res1
+    const { prompts, totalToken, chats, tools } = res1
 
     // 2. get other params
-    const model = bot.model
+    let bot = res1.bot
+    let model = bot.model
 
     // 3. handle other things
     if(aiParam.isContinueCommand) {
@@ -1677,7 +1740,16 @@ class BotDeepSeek extends BaseBot {
       model,
       tools,
     }
-    const chatCompletion = await this.chat(chatParam, bot)
+    let chatCompletion = await this.chat(chatParam, bot, { timeoutSec: 50 })
+
+    // 5.2 try again if needed
+    if(!chatCompletion) {
+      const res5_2 = await this.tryAgain(aiParam, chatParam)
+      if(res5_2) {
+        chatCompletion = res5_2.newChatCompletion
+        bot = res5_2.newBot
+      }
+    }
     
     // 6. post run
     const postParam: PostRunParam = {
@@ -1726,10 +1798,12 @@ class BotDsReasoner extends BaseBot {
     let chatCompletion = await this.chat(chatParam, bot)
 
     // 5.2 try again if needed
-    if(!chatCompletion && this._bots.length > 1) {
-      const { newChatCompletion, newBot } = await this._tryAgain(aiParam, chatParam)
-      chatCompletion = newChatCompletion
-      bot = newBot
+    if(!chatCompletion) {
+      const res5_2 = await this.tryAgain(aiParam, chatParam)
+      if(res5_2) {
+        chatCompletion = res5_2.newChatCompletion
+        bot = res5_2.newBot
+      }
     }
     
     // 6. post run
@@ -1742,31 +1816,6 @@ class BotDsReasoner extends BaseBot {
     const res6 = await this.postRun(postParam)
     return res6
   }
-
-
-  private async _tryAgain(
-    param: LiuAi.RunParam,
-    chatParam: OaiCreateParam,
-  ) {
-    console.warn("try again for ds-reasoner!")
-    // 0. get params
-    const entry = param.entry
-
-    // 1. switch model
-    const secondBot = this._bots[1]
-    chatParam.model = secondBot.model
-
-    // 2. change system prompt
-    const firstMsg = chatParam.messages?.[0]
-    if(firstMsg.role === "system") {
-      const newSystemContent = this.getFirstSystemPrompt(entry, secondBot)
-      firstMsg.content = newSystemContent
-    }
-
-    const chatCompletion = await this.chat(chatParam, secondBot)
-    return { newChatCompletion: chatCompletion, newBot: secondBot }
-  }
-
 
 
 }
@@ -2308,6 +2357,19 @@ class ContinueController {
     // 2. find characters and their chats to continue
     const stoppedCharacters: AiCharacter[] = []
     const list: ContinueTmpItem[] = []
+
+    const _addChat = (item: Table_AiChat) => {
+      const { character } = item
+      if(!character) return
+      const v2 = list.find(v3 => v3.character === character)
+      if(v2) {
+        v2.chats.push(item)
+      }
+      else {
+        list.push({ character, chats: [item] })
+      }
+    }
+
     for(let i=0; i<chatsBeforeUser.length; i++) {
       const v = chatsBeforeUser[i]
       const { infoType, character, finish_reason } = v
@@ -2318,6 +2380,12 @@ class ContinueController {
       // 2.2 check out if it's the selected character
       if(characterSelected) {
         if(character !== characterSelected) continue
+      }
+
+      // 2.2.1 ds-reasoner
+      if(character === "ds-reasoner") {
+        _addChat(v)
+        continue
       }
 
       // 2.3 next if character is stopped
@@ -2334,12 +2402,7 @@ class ContinueController {
       if(finish_reason !== "length") continue
       
       // 2.6 add the chat
-      const v2 = list.find(v3 => v3.character === character)
-      if(v2) {
-        v2.chats.push(v)
-        continue
-      }
-      list.push({ character, chats: [v] })
+      _addChat(v)
     }
 
     // 3. return if list is empty
@@ -3693,7 +3756,7 @@ class PromptsChecker {
     const nextContent = nextOne.content
     if(typeof currentContent !== "string") return
     if(typeof nextContent !== "string") return
-    const newContent = `${currentContent}\n${nextContent}`
+    const newContent = `${currentContent}\n\n${nextContent}`
     return newContent
   }
 
@@ -4161,7 +4224,8 @@ class AiHelper {
     if(maxTokens > MAX_WX_TOKEN) maxTokens = MAX_WX_TOKEN
 
     // 3. for reasoning model with thinkingInContent
-    if(bot.metaData?.thinkingInContent) {
+    const isReasoning = this.isReasoningBot(bot)
+    if(isReasoning) {
       if(maxTokens < MIN_REASONING_TOKENS) {
         maxTokens = MIN_REASONING_TOKENS
       }
@@ -4169,6 +4233,8 @@ class AiHelper {
 
     // 4. set maxTokens to restToken if exceed
     if(maxTokens > restToken) maxTokens = restToken
+
+    // console.log("maxTokens: ", maxTokens)
 
     return maxTokens
   }
@@ -4200,6 +4266,7 @@ class AiHelper {
     res: OaiChatCompletion,
     bot?: AiBot,
   ) {
+    // 1. check out params
     const choices = res?.choices
     if(!choices || choices.length < 1) {
       console.warn("no choices in getContentFromLLM")
@@ -4207,46 +4274,97 @@ class AiHelper {
       return {}
     }
 
-    const message = choices[0].message as DsReasonerMessage
+    const theChoice = choices[0]
+    if(!theChoice) {
+      console.warn("no choice in getContentFromLLM")
+      console.log(choices)
+      return {}
+    }
+    const message = theChoice.message as DsReasonerMessage
     if(!message) {
       console.warn("no message in getContentFromLLM")
       console.log(choices)
       return {}
     }
 
-    let content = message.content
+    // 2. get original content & reasoning_content
+    let content = message.content ?? ""
+    let reasoning_content = message.reasoning_content ?? ""
     if(!content) {
-      console.warn("no content in getContentFromLLM")
-      return {}
+      if(!reasoning_content) {
+        console.warn("no content and reasoning_content in getContentFromLLM")
+        return {}
+      }
+      this.setFinishReasonToLength(res)
     }
 
-    content = content.trim()
-
-    // remove "?" in the beginning for zhipu
+    // 3. remove "?" in the beginning for zhipu
     if(bot?.character === "zhipu") {
       let err1 = content.startsWith("？")
       if(err1) content = content.substring(1)
     }
 
-    let reasoning_content = message.reasoning_content
-
-    // extract <think>......</think>
-    const hasThinkTag = bot?.metaData?.thinkingInContent
-    if(hasThinkTag && !reasoning_content) {
-      const thinkContents = this.extractThinkContent(content)
-      if(thinkContents.length > 0) {
-        const thinkContent = thinkContents[0]
-        content = content.substring(thinkContent.endIndex).trim()
-        reasoning_content = thinkContent.content
-
-        // console.warn("new content: ")
-        // console.log(content)
-        // console.warn("reasoning_content: ")
-        // console.log(reasoning_content)
-      }
+    
+    // 4. handle reasoning_content if needed
+    let isReasoning = Boolean(bot && this.isReasoningBot(bot))
+    if(!reasoning_content && isReasoning) {
+      const res4 = this._handleContentForReasoning(
+        res,
+        bot as AiBot,
+        content,
+        reasoning_content,
+      )
+      content = res4.content
+      reasoning_content = res4.reasoning_content
     }
-    if(reasoning_content) {
-      reasoning_content = reasoning_content.trim()
+
+    // 5. finally trim
+    content = content.trim()
+    reasoning_content = reasoning_content.trim()
+
+    // console.warn("let me see content and reasoning_content: ")
+    // console.log("reasoning_content: ", reasoning_content)
+    // console.log("content: ", content)
+
+    return { content, reasoning_content }
+  }
+
+  private static _handleContentForReasoning(
+    res: OaiChatCompletion,
+    bot: AiBot,
+    content: string,
+    reasoning_content: string,
+  ) {
+
+    // 1. extract <think>......</think>
+    const thinkContents = this.extractThinkContent(content)
+    if(thinkContents.length > 0) {
+      const thinkContent = thinkContents[0]
+      content = content.substring(thinkContent.endIndex)
+      reasoning_content = thinkContent.content
+      return { content, reasoning_content }
+    }
+    
+    // 2. starts with <think>
+    if(content.startsWith("<think>")) {
+      reasoning_content = content.substring(7)
+      content = ""
+      this.setFinishReasonToLength(res)
+      return { content, reasoning_content }
+    }
+    
+    // 3. starts with "好的，" /  "嗯，" / "好，"
+    const thinkingInContent = bot.metaData?.thinkingInContent
+    const finishReason = this.getFinishReason(res)
+    const mightHaveReasoningContent = Boolean(finishReason === "length" && !thinkingInContent)
+    if(mightHaveReasoningContent) {
+      const alrightList = ["Alright, ", "好的，", "嗯，", "好，"]
+      const res3 = alrightList.some(x => content.startsWith(x))
+      console.log("Alright: ", res3)
+      if(res3) {
+        reasoning_content = content
+        content = ""
+      }
     }
 
     return { content, reasoning_content }
@@ -4254,10 +4372,20 @@ class AiHelper {
 
 
   static getFinishReason(
-    res: OaiChatCompletion
+    chatCompletion: OaiChatCompletion
   ): AiFinishReason | undefined {
-    const reason = res.choices?.[0]?.finish_reason
+    const reason = chatCompletion.choices?.[0]?.finish_reason
     if(reason === "stop" || reason === "length") return reason
+  }
+
+  static setFinishReasonToLength(
+    chatCompletion: OaiChatCompletion,
+  ) {
+    const theChoice = chatCompletion?.choices?.[0]
+    if(!theChoice) return
+    if(theChoice.finish_reason === "stop") {
+      theChoice.finish_reason = "length"
+    }
   }
 
   static getKickCharacters(
@@ -4509,6 +4637,8 @@ class AiHelper {
     const { secondaryProvider, provider } = bot
     if(secondaryProvider === "siliconflow") return "北京硅基流动"
     if(secondaryProvider === "gitee-ai") return "Gitee AI"
+    if(secondaryProvider === "qiniu") return "七牛云"
+    if(secondaryProvider === "tencent-lkeap") return "腾讯云"
     if(provider === "baichuan") return "北京百川智能"
     if(provider === "deepseek") return "杭州深度求索"
     if(provider === "minimax") return "上海稀宇科技"
@@ -4550,14 +4680,12 @@ class ChatIntoPrompter {
       const v = chats[i]
 
       if(v.infoType === "user") {
-        const userPrompt = _this.turnForUser(v, i, cLength)
+        const userPrompt = _this.turnForUser(v, i)
         if(userPrompt) messages.push(userPrompt)
       }
       else if(v.infoType === "assistant") {
-        if(v.text) {
-          const assistantName = AiShared.getCharacterName(v.character)
-          messages.push({ role: "assistant", content: v.text, name: assistantName })
-        }
+        const assistantPrompt = _this.turnForAssistant(v, i)
+        if(assistantPrompt) messages.push(assistantPrompt)
       }
       else if(v.infoType === "summary") {
         if(!v.text) continue
@@ -4585,9 +4713,7 @@ class ChatIntoPrompter {
   }
 
   private turnForToolUse(v: Table_AiChat) {
-    const {
-      tool_calls,
-    } = v
+    const { tool_calls } = v
     if(!tool_calls) return
     const tool_call_id = tool_calls[0]?.id
     if(!tool_call_id) return
@@ -4607,7 +4733,16 @@ class ChatIntoPrompter {
 
     // 3. otherwise, turn the tool_call_result prompt into a user prompt
     let tmpPrompts: OaiPrompt[] = []
-    if(toolMsg) tmpPrompts.push(toolMsg)
+    if(toolMsg) {
+      const tmpToolMsg = valTool.objToStr(toolMsg)
+      const tmpUserContent = t("result_of_tool", { msg: tmpToolMsg })
+      const tmpUserPrompt: OaiPrompt = {
+        role: "user",
+        content: tmpUserContent,
+      }
+      tmpPrompts.push(tmpUserPrompt)
+    }
+
     const msg3 = this._turnToolCallIntoNormalAssistantMsg(t, v)
     if(msg3) tmpPrompts.push(msg3)
     return tmpPrompts
@@ -4737,10 +4872,49 @@ class ChatIntoPrompter {
     return toolMsg
   }
 
+  private turnForAssistant(
+    v: Table_AiChat,
+    index: number,
+  ): OaiPrompt | undefined {
+    const { 
+      text, 
+      reasoning_content, 
+      character,
+      finish_reason,
+    } = v
+    const isContinue = this._opt?.isContinueCommand
+    const assistantName = AiShared.getCharacterName(character)
+
+    let content = ""
+    if(isContinue && index < 3 && reasoning_content && finish_reason === "length") {
+      const hasThink = reasoning_content.startsWith("<think>")
+      if(hasThink) content = reasoning_content
+      else content = `<think>${reasoning_content}</think>`
+      if(text) {
+        content += `\n${text}`
+      }
+    }
+    else if(text) {
+      content = text
+    }
+    else if(reasoning_content) {
+      const hasThink = reasoning_content.startsWith("<think>")
+      if(hasThink) content = reasoning_content
+      else content = `<think>${reasoning_content}`
+    }
+    
+    if(!content) return
+
+    return {
+      role: "assistant",
+      content,
+      name: assistantName,
+    }
+  }
+
   private turnForUser(
     v: Table_AiChat,
     index: number,
-    chatsLength: number,
   ): OaiPrompt | undefined {
     const {
       text, 
@@ -4843,11 +5017,8 @@ class UserHelper {
       membershipTimes: MAX_TIMES_MEMBERSHIP,
       link: paymentLink,
     })
-    const csLink = _env.LIU_CUSTOMER_SERVICE
-    if(csLink) {
-      msg += "\n\n"
-      msg += t("deploy_tip", { link: csLink })
-    }
+    msg += "\n\n"
+    msg += t("see_question_box")
 
     // 3. tell user
     TellUser.text(entry, msg)
@@ -5474,6 +5645,23 @@ class LogHelper {
     log = { ...b1, ...log }
     const logCol = db.collection("LogAi")
     logCol.add(log)
+  }
+
+  static printLastItems(
+    messages: Array<Record<string, any>>,
+    lastNum = 5,
+  ) {
+    const msgLength = messages.length
+    console.log(`print last ${lastNum} prompts: `)
+    if(msgLength > lastNum) {
+      const messages2 = messages.slice(msgLength - lastNum)
+      const printMsg = valTool.objToStr({ messages: messages2 })
+      console.log(printMsg)
+    }
+    else {
+      const printMsg = valTool.objToStr({ messages })
+      console.log(printMsg)
+    }
   }
 
 }

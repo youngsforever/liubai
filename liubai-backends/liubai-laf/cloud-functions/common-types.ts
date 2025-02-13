@@ -610,7 +610,10 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 export type AiProvider = "baichuan" | "deepseek" | "minimax" | "moonshot" | "stepfun" | 
   "zero-one" | "zhipu"
 
-export type AiSecondaryProvider = "siliconflow" | "gitee-ai"
+export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
+
+// tencent-lkeap: 腾讯云，知识引擎原子能力（LLM Knowledge Engine Atomic Power）
+
 
 // AiCharacter 不跟供应商绑定，它是角色，只不过现在各个供应商都有自己的 To C 角色罢了
 export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "kimi" | "yuewen" | 
@@ -1368,9 +1371,10 @@ export interface Table_AllowList extends BaseTable {
 
 /** 屏蔽表: 目前用于屏蔽特定 ip */
 export interface Table_BlockList extends BaseTable {
-  type: "ip"
+  type: "ip" | "wx_gzh_openid"
   isOn: BaseIsOn
   value: string
+  duration?: "one_month"
 }
 
 /** 内容表: 动态 + 评论 */
