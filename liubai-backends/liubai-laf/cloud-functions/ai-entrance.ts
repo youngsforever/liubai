@@ -52,6 +52,7 @@ import {
   liuReq,
   decryptEncData,
   getSummary,
+  liuFetch,
 } from "@/common-util"
 import { 
   getBasicStampWhileAdding, 
@@ -1080,6 +1081,11 @@ class BaseBot {
           )
           break
         }
+      }
+      else if(funcName === "parse_link") {
+        const parsingLinkRes = await toolHandler.parse_link(funcJson)
+        if(!parsingLinkRes) continue
+
       }
       else if(funcName === "draw_picture") {
         const drawRes = await toolHandler.draw_picture(funcJson)
@@ -3240,6 +3246,48 @@ class ToolHandler {
       textToUser,
       textToBot,
       assistantChatId,
+    }
+  }
+
+  async parse_link(
+    funcJson: Record<string, any>
+  ): Promise<LiuAi.ParseLinkResult | undefined> {
+    // 1. check out if the link is valid
+    const link = funcJson.link
+    if(!valTool.isStringWithVal(link)) {
+      console.warn("it is not a valid link:", funcJson)
+      return
+    }
+
+    // 2. to fetch
+    const url = `https://r.jina.ai/${link}`
+    const res2 = await liuFetch(url, { 
+      method: "POST",
+      headers: {
+        "X-Timeout": "10",
+      }
+    })
+
+    // 3. handle result
+    const text3 = res2.data?.text
+    if(!text3) {
+      console.warn("parsing link failed!")
+      console.log(res2)
+      return
+    }
+
+    // 4. add msg
+    const data8: Partial<LiuAi.HelperAssistantMsgParam> = {
+      funcName: "parse_link",
+      funcJson,
+      text: text3,
+    }
+    const assistantChatId = await this._addMsgToChat(data8)
+    if(!assistantChatId) return
+    
+    return {
+      markdown: text3,
+      provider: "jina-ai"
     }
   }
 

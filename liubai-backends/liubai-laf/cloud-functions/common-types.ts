@@ -3359,6 +3359,11 @@ export namespace LiuAi {
     originalResult: Record<string, any>
   }
 
+  export interface ParseLinkResult {
+    markdown: string
+    provider: "jina-ai"
+  }
+
   export interface PaletteResult {
     url: string
     prompt: string
