@@ -3275,7 +3275,7 @@ class ToolHandler {
     const res2 = await liuFetch(url, { 
       method: "POST",
       headers: {
-        "X-Timeout": "10",
+        "X-Timeout": "30",
       }
     })
 
