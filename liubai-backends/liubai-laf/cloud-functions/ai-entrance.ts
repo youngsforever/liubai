@@ -1085,7 +1085,12 @@ class BaseBot {
       else if(funcName === "parse_link") {
         const parsingLinkRes = await toolHandler.parse_link(funcJson)
         if(!parsingLinkRes) continue
-
+        await this._continueAfterParsingLink(
+          postParam,
+          tool_calls,
+          parsingLinkRes,
+          tool_call_id,
+        )
       }
       else if(funcName === "draw_picture") {
         const drawRes = await toolHandler.draw_picture(funcJson)
@@ -1156,24 +1161,47 @@ class BaseBot {
 
   private _getRestTokensAndPrompts(
     postParam: PostRunParam,
+    newText: string,
   ) {
     // 1. pre handle prompt and restTokens
-    const { chatParam, chatCompletion } = postParam
+    const { chatParam, chatCompletion, bot } = postParam
     const usage = chatCompletion?.usage
     if(!usage) return
     const usedTokens = usage.total_tokens
     const { messages } = chatParam
     let prompts = [...messages]
-    const maxWindowTokens = postParam.bot.maxWindowTokenK * 1000
+    const maxWindowTokens = bot.maxWindowTokenK * 1000
     let restTokens = maxWindowTokens - usedTokens
     if(restTokens < 1) return
     const mLength = messages.length
     if(mLength < 2) return
     if(mLength > 5) {
       const systemPrompt = messages[0]
-      const tempPrompts = messages.slice(mLength - 3)
+      const tempPrompts = messages.slice(mLength - 4)
       prompts = [systemPrompt, ...tempPrompts]
     }
+
+    // 2. calculate the new content's token
+    // and constrain the restTokens
+    const token2 = AiHelper.calculateTextToken(newText)
+    restTokens -= token2
+    const isReasoning = AiHelper.isReasoningBot(bot)
+    const thresholdTop = isReasoning ? MIN_REASONING_TOKENS : MAX_WX_TOKEN
+    if(restTokens > thresholdTop) {
+      restTokens = thresholdTop
+    }
+    const thresholdBottom = isReasoning ? MIN_REASONING_TOKENS : MIN_REST_TOKEN
+    if(restTokens < thresholdBottom) {
+      if(prompts.length > 3) {
+        restTokens = thresholdBottom
+        prompts.splice(0, prompts.length - 3)
+      }
+      else {
+        console.warn("restTokens < thresholdBottom, but prompts.length <= 3")
+        return
+      }
+    }
+
     return { restTokens, prompts }
   }
 
@@ -1184,25 +1212,10 @@ class BaseBot {
     tool_call_id: string,
   ) {
     // 1. handle max tokens
-    const data1 = this._getRestTokensAndPrompts(postParam)
+    let textToBot = readRes.textToBot
+    const data1 = this._getRestTokensAndPrompts(postParam, textToBot)
     if(!data1) return
     let { restTokens, prompts } = data1
-    let textToBot = readRes.textToBot
-    const token1 = AiHelper.calculateTextToken(textToBot)
-    restTokens -= token1
-    if(restTokens > MAX_WX_TOKEN) {
-      restTokens = MAX_WX_TOKEN
-    }
-    if(restTokens < MIN_REST_TOKEN) {
-      if(prompts.length > 3) {
-        restTokens = MAX_WX_TOKEN
-        prompts.splice(0, prompts.length - 3)
-      }
-      else {
-        console.warn("not enough rest tokens!")
-        return
-      }
-    }
 
     // 2. get some params
     const c = this._character
@@ -1266,27 +1279,12 @@ class BaseBot {
     tool_call_id: string,
   ) {
     // 1. handle max tokens
-    const data1 = this._getRestTokensAndPrompts(postParam)
+    let searchMarkdown = searchRes.markdown
+    const data1 = this._getRestTokensAndPrompts(postParam, searchMarkdown)
     if(!data1) return
     let { restTokens, prompts } = data1
-    let searchMarkdown = searchRes.markdown
-    const token1 = AiHelper.calculateTextToken(searchMarkdown)
-    restTokens -= token1
-    if(restTokens > MAX_WX_TOKEN) {
-      restTokens = MAX_WX_TOKEN
-    }
-    if(restTokens < MIN_REST_TOKEN) {
-      if(prompts.length > 3) {
-        restTokens = MAX_WX_TOKEN
-        prompts.splice(0, prompts.length - 3)
-      }
-      else {
-        console.warn("not enough rest tokens!")
-        return
-      }
-    }
 
-    // 2. get some params
+    // 2. get other params
     const c = this._character
     const assistantName = AiShared.getCharacterName(c)
     const { chatParam, aiParam, bot } = postParam
@@ -1317,17 +1315,7 @@ class BaseBot {
     }
 
     // print last 3 prompts
-    // const msgLength = prompts.length
-    // console.log(`last 3 prompts in _continueAfterWebSearch: `)
-    // if(msgLength > 3) {
-    //   const messages2 = prompts.slice(msgLength - 3)
-    //   const printMsg = valTool.objToStr({ messages: messages2 })
-    //   console.log(printMsg)
-    // }
-    // else {
-    //   const printMsg = valTool.objToStr({ messages: prompts })
-    //   console.log(printMsg)
-    // }
+    // LogHelper.printLastItems(prompts, 3)
 
     // 4. new chat create param
     const newChatParam: OaiCreateParam = { 
@@ -1342,8 +1330,6 @@ class BaseBot {
     }
 
     // 5. see result
-    console.warn(`${c}'s chat continues after web search: `)
-    console.log(res4.usage)
     const choice5 = res4.choices?.[0]
     const msg5 = choice5?.message
     console.log(msg5)
@@ -1360,54 +1346,79 @@ class BaseBot {
     if(!assistantChatId) return
   }
 
-  private async _autoContinue(
+  private async _continueAfterParsingLink(
     postParam: PostRunParam,
-    msgFromAssistant: OaiMessage,
+    tool_calls: OaiToolCall[],
+    parsingLinkRes: LiuAi.ParseLinkResult,
+    tool_call_id: string,
   ) {
     // 1. handle max tokens
-    const data1 = this._getRestTokensAndPrompts(postParam)
+    const { markdown } = parsingLinkRes
+    const data1 = this._getRestTokensAndPrompts(postParam, markdown)
     if(!data1) return
     let { restTokens, prompts } = data1
-    const { chatParam, chatCompletion, bot, aiParam } = postParam
-    if(restTokens > MAX_WX_TOKEN) {
-      restTokens = MAX_WX_TOKEN
+
+    // 2. get other params
+    const c = this._character
+    const assistantName = AiShared.getCharacterName(c)
+    const { chatParam, aiParam, bot } = postParam
+    const user = aiParam.entry.user
+    const canUseTool = bot.abilities.includes("tool_use")
+    const { t } = useI18n(aiLang, { user })
+
+    // 3. add prompts with tool_calls and its result
+    if(canUseTool) {
+      prompts.push({ role: "assistant", tool_calls, name: assistantName })
+      prompts.push({ role: "tool", content: markdown, tool_call_id })
+    }
+    else {
+      const newPrompts = AiHelper.turnToolCallsIntoNormalPrompts(
+        tool_calls,
+        tool_call_id,
+        markdown,
+        t,
+        assistantName,
+      )
+      if(newPrompts.length < 1) {
+        console.warn("fail to convert tool_calls into prompts")
+        console.log(newPrompts)
+        return
+      }
+      prompts.push(...newPrompts)
     }
 
-    // 2. add "latest message from assistant"
-    // and "Continue" if needed
-    const c = bot.character
-    prompts.push(msgFromAssistant)
-    if(c === "wanzhi") {
-      prompts.push({ role: "user", content: "继续 / Continue" })
-    }
-    console.log("restTokens in continue: ", restTokens)
+    // print
+    LogHelper.printLastItems(prompts, 4)
 
-    // 3. new chat create param
-    const newChatParam: OaiCreateParam = { 
+    // 4. new chat create param
+    const newChatParam: OaiCreateParam = {
       ...chatParam,
       messages: prompts,
       max_tokens: restTokens,
     }
-    const res3 = await this.chat(newChatParam, bot)
-    if(!res3) return
-
-    console.log("see usage in continue......")
-    console.log(res3.usage)
-
-    // 4. can i reply
-    const res4 = await AiHelper.canReply(aiParam)
-    if(!res4) return
-    
-    // 5. handle text from response
-    const assistantChatId = await this._handleAssistantText(res3, aiParam, bot)
-    if(!assistantChatId) return
-
-    return { 
-      character: c,
-      replyStatus: "yes",
-      chatCompletion, 
-      assistantChatId,
+    const res4 = await this.chat(newChatParam, bot)
+    if(!res4) {
+      console.warn("no result in _continueAfterParsingLink ......")
+      return
     }
+
+    // 5. see result
+    console.warn(`${c}'s chat continues after parsing link: `)
+    console.log(res4.usage)
+    const choice5 = res4.choices?.[0]
+    const msg5 = choice5?.message
+    console.log(msg5)
+    if(msg5?.tool_calls) {
+      console.log(msg5.tool_calls[0])
+    }
+
+    // 6. can i reply
+    const res6 = await AiHelper.canReply(aiParam, bot)
+    if(!res6) return
+
+    // 7. handle text from response
+    const assistantChatId = await this._handleAssistantText(res4, aiParam, bot)
+    if(!assistantChatId) return
   }
 
   private async _handleAssistantText(
@@ -3269,11 +3280,14 @@ class ToolHandler {
     })
 
     // 3. handle result
-    const text3 = res2.data?.text
+    let text3 = res2.data?.text
     if(!text3) {
       console.warn("parsing link failed!")
       console.log(res2)
       return
+    }
+    if(text3.length > 6666) {
+      text3 = text3.substring(0, 6666) + "......"
     }
 
     // 4. add msg
@@ -4256,6 +4270,16 @@ class AiHelper {
     return prompts
   }
 
+  /**
+   * fix max tokens after calling a tool just now
+   */
+  static calibrateRestToken(
+    restTokens: number,
+    newContent: string,
+  ) {
+
+  }
+
   static getMaxToken(
     totalToken: number,
     firstChat: Table_AiChat,
@@ -4887,6 +4911,17 @@ class ChatIntoPrompter {
     else if(funcName === "web_search") {
       if(v.text && v.webSearchData && v.webSearchProvider) {
         toolMsg = { role: "tool", content: v.text, tool_call_id }
+      }
+      else {
+        toolMsg = { role: "tool", content: t("fail_to_search"), tool_call_id }
+      }
+    }
+    else if(funcName === "parse_link") {
+      if(v.text) {
+        toolMsg = { role: "tool", content: v.text, tool_call_id }
+      }
+      else {
+        toolMsg = { role: "tool", content: t("fail_to_parse_link"), tool_call_id }
       }
     }
     else if(funcName === "draw_picture") {

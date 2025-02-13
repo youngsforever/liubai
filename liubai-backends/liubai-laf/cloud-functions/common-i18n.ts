@@ -383,6 +383,10 @@ export const aiLang: LangAtom = {
     "view_thinking": "查看思考过程",
     "result_of_tool": "工具调用结果:\n{msg}",
     "thinking": "【思考中...💭】\n{text}",
+
+    // failures
+    "fail_to_search": "网络搜索失败",
+    "fail_to_parse_link": "链接解析失败",
   },
   "zh-Hant": {
     "privacy_title": "🔓 隱私提示:",
@@ -488,6 +492,10 @@ export const aiLang: LangAtom = {
     "view_thinking": "檢視思考過程",
     "result_of_tool": "工具調用結果:\n{msg}",
     "thinking": "［思考中...💭］\n{text}",
+
+    // failures
+    "fail_to_search": "網路搜尋失敗",
+    "fail_to_parse_link": "連結解析失敗",
   },
   "en": {
     "privacy_title": "🔓 Privacy:",
@@ -593,6 +601,10 @@ export const aiLang: LangAtom = {
     "view_thinking": "Dive into Thinking",
     "result_of_tool": "Tool call result:\n{msg}",
     "thinking": "[Thinking..💭]\n{text}",
+
+    // failures
+    "fail_to_search": "Fail to search",
+    "fail_to_parse_link": "Fail to parse link",
   }
 }
 
