@@ -102,7 +102,7 @@ export const aiBots: AiBot[] = [
     character: "deepseek",
     provider: "deepseek",
     secondaryProvider: "qiniu",
-    model: "deepseek-v3",
+    model: "deepseek-v3?search",
     abilities: ["chat"],
     alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
     priority: 19,
