@@ -1,39 +1,58 @@
 import cloud from "@lafjs/cloud"
-import type { 
-  LiuAi, 
-  AiBot,
-  AiEntry,
-  AiCharacter,
-  Wx_Gzh_Send_Msg,
-  Wx_Gzh_Send_Msgmenu,
-  Wx_Gzh_Send_Msgmenu_Item,
-  Ns_Zhipu,
-  Ns_SiliconFlow,
-  AiImageSizeType,
-  Ns_Stepfun,
-  Table_User,
-  Partial_Id,
-  Table_LogAi,
-  OaiChatCompletion,
-  OaiCreateParam,
-  AiFinishReason,
-  OaiPrompt,
-  DsReasonerMessage,
-  Table_AiChat,
+import { 
+  type LiuAi, 
+  type AiBot,
+  type AiEntry,
+  type AiCharacter,
+  type Wx_Gzh_Send_Msg,
+  type Wx_Gzh_Send_Msgmenu,
+  type Wx_Gzh_Send_Msgmenu_Item,
+  type Ns_Zhipu,
+  type Ns_SiliconFlow,
+  type AiImageSizeType,
+  type Ns_Stepfun,
+  type Table_User,
+  type Partial_Id,
+  type Table_LogAi,
+  type OaiChatCompletion,
+  type OaiCreateParam,
+  type AiFinishReason,
+  type OaiPrompt,
+  type DsReasonerMessage,
+  type Table_AiChat,
+  type Table_Content,
+  type AiToolGetScheduleSpecificDate,
+  Sch_AiToolGetScheduleParam,
+  Sch_AiToolGetCardsParam,
+  type AiToolGetScheduleParam,
+  type SortWay,
+  type AiToolGetCardType,
 } from "@/common-types"
 import { WxGzhSender } from "@/service-send"
 import { 
   checkAndGetWxGzhAccessToken,
+  decryptEncData,
   getDocAddId,
+  getSummary,
+  LiuDateUtil,
+  liuFetch,
   liuReq,
   MarkdownParser,
   valTool,
 } from "@/common-util"
 import { aiBots, aiI18nShared } from "@/ai-prompt"
-import { useI18n, aiLang } from "@/common-i18n"
+import { useI18n, aiLang, getCurrentLocale } from "@/common-i18n"
 import { WxGzhUploader } from "@/file-utils"
-import { getBasicStampWhileAdding, getNowStamp } from "@/common-time"
+import { 
+  getBasicStampWhileAdding, 
+  getNowStamp,
+  localizeStamp,
+  HOUR,
+  DAY,
+} from "@/common-time"
 import OpenAI from "openai"
+import * as vbot from "valibot"
+import { addDays, set as date_fn_set } from "date-fns"
 
 const db = cloud.database()
 const _ = db.command
@@ -783,6 +802,17 @@ export class WebSearch {
 /******************** shared tools ************************/
 export class ToolShared {
 
+  private _bot: AiBot
+  private _user: Table_User
+
+  constructor(
+    bot: AiBot,
+    user: Table_User
+  ) {
+    this._bot = bot
+    this._user = user
+  }
+
   async web_search(funcJson: Record<string, any>) {
     // 1. get q
     const q = funcJson.q
@@ -799,6 +829,322 @@ export class ToolShared {
     }
 
     return searchRes
+  }
+
+  async get_schedule(funcJson: Record<string, any>) {
+    // 0. normalize for bots which are not so smart
+    if(funcJson.specificDate === "dayAfterTomorrow") {
+      funcJson.specificDate = "day_after_tomorrow"
+    }
+    if(typeof funcJson.hoursFromNow === "string") {
+      const res0_1 = valTool.isStringAsNumber(funcJson.hoursFromNow)
+      funcJson.hoursFromNow = res0_1 ? Number(funcJson.hoursFromNow) : 24
+    }
+
+    // 1. checking out param
+    const res1 = vbot.safeParse(Sch_AiToolGetScheduleParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse get_schedule param, so we make it default")
+      console.log(res1.issues)
+      funcJson = {}
+    }
+    const { hoursFromNow, specificDate } = funcJson as AiToolGetScheduleParam
+
+    // 2. construct basic query
+    const now = getNowStamp()
+    const bot = this._bot
+    const user = this._user
+    const q2: Record<string, any> = {
+      user: user._id,
+      spaceType: "ME",
+      infoType: "THREAD",
+      oState: "OK",
+      storageState: "CLOUD",
+      aiReadable: "Y",
+      calendarStamp: _.gte(now),
+    }
+    let sortWay: SortWay = "asc"
+
+    // 2.1 define replied text
+    const { t } = useI18n(aiLang, { user })
+    let textToBot = t("schedule_future")
+    let textToUser = t("bot_read_future", { bot: bot.name })
+
+    // 3. handle hoursFromNow
+    if(hoursFromNow) {
+      if(hoursFromNow < 0) {
+        sortWay = "desc"
+        const command3_1 = _.lt(now)
+        const command3_2 = _.gte(now + hoursFromNow * HOUR)
+        q2.calendarStamp = _.and(command3_1, command3_2)
+        textToBot = t("schedule_last", { hour: hoursFromNow })
+        textToUser = t("bot_read_last", { bot: bot.name, hour: hoursFromNow })
+      }
+      else {
+        const command3_3 = _.gt(now)
+        const command3_4 = _.lte(now + hoursFromNow * HOUR)
+        q2.calendarStamp = _.and(command3_3, command3_4)
+        textToBot = t("schedule_next", { hour: hoursFromNow })
+        textToUser = t("bot_read_next", { bot: bot.name, hour: hoursFromNow })
+      }
+    }
+
+     // 4. handle specificDate
+     if(specificDate) {
+      const res4 = this._handleGetScheduleForSpecificDate(specificDate)
+      if(res4) {
+        const command4_1 = _.gte(res4.fromStamp)
+        const command4_2 = _.lt(res4.toStamp)
+        q2.calendarStamp = _.and(command4_1, command4_2)
+        textToBot = res4.textToBot
+        textToUser = res4.textToUser
+      }
+    }
+
+    // 5. to query
+    const col5 = db.collection("Content")
+    const q5 = col5.where(q2).orderBy("calendarStamp", sortWay)
+    const res5 = await q5.limit(10).get<Table_Content>()
+    const list5 = res5.data
+
+    // 6. package
+    let msg6 = ""
+    for(let i=0; i<list5.length; i++) {
+      const v = list5[i]
+      const card = TransformContent.getCardData(v)
+      if(!card) continue
+      const msg6_1 = TransformContent.toPlainText(card, user)
+      if(!msg6_1) continue
+      msg6 += msg6_1
+    }
+
+    // 7. has data
+    const hasData = Boolean(msg6)
+    if(hasData) {
+      textToBot += msg6
+    }
+    else {
+      textToBot += t("no_data")
+    }
+
+    return { textToBot, textToUser, hasData }
+  }
+
+  private _handleGetScheduleForSpecificDate(
+    specificDate: AiToolGetScheduleSpecificDate,
+  ) {
+    // 1. inject required data
+    const user = this._user
+    const bot = this._bot
+    const botName = bot.name
+    const { t } = useI18n(aiLang, { user })
+
+    // 2. get today
+    const now = getNowStamp()
+    const userStamp = localizeStamp(now, user.timezone)
+    const diffStampBetweenUserAndServer = userStamp - now
+    const currentDate = new Date(userStamp)
+    const todayDate = date_fn_set(currentDate, {
+      hours: 0, minutes: 0, seconds: 0, milliseconds: 0,
+    })
+    const todayStamp = todayDate.getTime() - diffStampBetweenUserAndServer
+
+    // 3. define return data
+    let textToBot = ""
+    let textToUser = ""
+    let fromStamp: number | undefined
+    let toStamp: number | undefined
+    
+    // 4. if yesterday
+    if(specificDate === "yesterday") {
+      const yesterdayDate = addDays(todayDate, -1)
+      fromStamp = yesterdayDate.getTime() - diffStampBetweenUserAndServer
+      toStamp = todayStamp
+      textToBot = t("yesterday_schedule")
+      textToUser = t("bot_read_yesterday", { bot: botName })
+      return { fromStamp, toStamp, textToBot, textToUser }
+    }
+
+    const tomorrowDate = addDays(todayDate, 1)
+    const tomorrowStamp = tomorrowDate.getTime() - diffStampBetweenUserAndServer
+    
+    // 5. if today
+    if(specificDate === "today") {
+      fromStamp = todayStamp
+      toStamp = tomorrowStamp
+      textToBot = t("today_schedule")
+      textToUser = t("bot_read_today", { bot: botName })
+      return { fromStamp, toStamp, textToBot, textToUser }
+    }
+
+    const dayAfterTomorrow = addDays(todayDate, 2)
+    const dayAfterTomorrowStamp = dayAfterTomorrow.getTime() - diffStampBetweenUserAndServer
+
+    // 6. if tomorrow
+    if(specificDate === "tomorrow") {
+      fromStamp = tomorrowStamp
+      toStamp = dayAfterTomorrowStamp
+      textToBot = t("tomorrow_schedule")
+      textToUser = t("bot_read_tomorrow", { bot: botName })
+      return { fromStamp, toStamp, textToBot, textToUser }
+    }
+
+    const day3 = addDays(todayDate, 3)
+    const day3Stamp = day3.getTime() - diffStampBetweenUserAndServer
+
+    // 7. if day_after_tomorrow
+    if(specificDate === "day_after_tomorrow") {
+      fromStamp = dayAfterTomorrowStamp
+      toStamp = day3Stamp
+      textToBot = t("day2_schedule")
+      textToUser = t("bot_read_day2", { bot: botName })
+      return { fromStamp, toStamp, textToBot, textToUser }
+    }
+
+    // 8. calculate this or next week
+    const DAY_LIST = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    const idx8 = DAY_LIST.indexOf(specificDate)
+    if(idx8 < 0) return
+    const dayStr = t(specificDate)
+
+    const currentDay = currentDate.getDay()
+    let diffDays = idx8 - currentDay
+    if(diffDays <= 0) {
+      // next week
+      diffDays += 7
+      textToBot = t("schedule_next_week", { day: dayStr })
+      textToUser = t("bot_read_next_week", { bot: botName, day: dayStr })
+    }
+    else {
+      // this week
+      textToBot = t("schedule_this_week", { day: dayStr })
+      textToUser = t("bot_read_this_week", { bot: botName, day: dayStr })
+    }
+
+    fromStamp = addDays(todayDate, diffDays).getTime() - diffStampBetweenUserAndServer
+    toStamp = fromStamp + DAY
+
+    return { textToBot, textToUser, fromStamp, toStamp }
+  }
+
+  async get_cards(
+    funcJson: Record<string, any>,
+  ) {
+    // 1. checking out param
+    const res1 = vbot.safeParse(Sch_AiToolGetCardsParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse get_cards param: ")
+      console.log(funcJson)
+      console.log(res1.issues)
+      return
+    }
+    const cardType = funcJson.cardType as AiToolGetCardType
+
+    // 2. construct basic query
+    const bot = this._bot
+    const user = this._user
+    const userId = user._id
+    const q2: Record<string, any> = {
+      user: userId,
+      spaceType: "ME",
+      infoType: "THREAD",
+      oState: "OK",
+      storageState: "CLOUD",
+      aiReadable: "Y",
+    }
+
+    // 2.1 define replied text
+    let textToBot = ""
+    let textToUser = ""
+    const { t } = useI18n(aiLang, { user })
+    let contents: Table_Content[] | undefined
+
+    // 3. get contents
+    const cCol = db.collection("Content")
+    if(cardType === "TODO" || cardType === "FINISHED") {
+      q2.stateId = cardType
+      const q3_0 = cCol.where(q2).orderBy("stateStamp", "desc").limit(10)
+      const res3_0 = await q3_0.get<Table_Content>()
+      contents = res3_0.data
+      if(cardType === "TODO") {
+        textToBot = t("todo_cards")
+        textToUser = t("bot_read_todo", { bot: bot.name })
+      }
+      else if(cardType === "FINISHED") {
+        textToBot = t("finished_cards")
+        textToUser = t("bot_read_finished", { bot: bot.name })
+      }
+    }
+    else if(cardType === "EVENT") {
+      q2.calendarStamp = _.gt(getNowStamp() - DAY)
+      const q3_1 = cCol.where(q2).orderBy("createdStamp", "desc").limit(10)
+      const res3_1 = await q3_1.get<Table_Content>()
+      contents = res3_1.data
+      textToBot = t("event_cards")
+      textToUser = t("bot_read_event", { bot: bot.name })
+    }
+    else {
+      const q3_2 = cCol.where(q2).orderBy("createdStamp", "desc").limit(10)
+      const res3_2 = await q3_2.get<Table_Content>()
+      contents = res3_2.data
+      textToBot = t("note_cards")
+      textToUser = t("bot_read_note", { bot: bot.name })
+    }
+
+    // 6. package
+    let msg6 = ""
+    for(let i=0; i<contents.length; i++) {
+      const v = contents[i]
+      const card = TransformContent.getCardData(v)
+      if(!card) continue
+      const msg6_1 = TransformContent.toPlainText(card, user)
+      if(!msg6_1) continue
+      msg6 += msg6_1
+    }
+
+    // 7. has data
+    const hasData = Boolean(msg6)
+    if(hasData) {
+      textToBot += msg6
+    }
+    else {
+      textToBot += t("no_data")
+    }
+
+    return { textToBot, textToUser, hasData }
+  }
+
+  async parse_link(
+    funcJson: Record<string, any>
+  ): Promise<LiuAi.ParseLinkResult | undefined> {
+    // 1. check out if the link is valid
+    const link = funcJson.link
+    if(!valTool.isStringWithVal(link)) {
+      console.warn("it is not a valid link:", funcJson)
+      return
+    }
+
+    // 2. to fetch
+    const url = `https://r.jina.ai/${link}`
+    const res2 = await liuFetch(url, { 
+      method: "POST",
+      headers: {
+        "X-Timeout": "30",
+      }
+    })
+
+    // 3. handle result
+    let text3 = res2.data?.text
+    if(!text3) {
+      console.warn("parsing link failed!")
+      console.log(res2)
+      return
+    }
+    
+    return {
+      markdown: text3,
+      provider: "jina-ai"
+    }
   }
 
 }
@@ -1162,6 +1508,60 @@ export class Translator {
     return res5
   }
 
+
+}
+
+export class TransformContent {
+
+  static getCardData(v: Table_Content) {
+    const data = decryptEncData(v)
+    if(!data.pass) return
+    const summary = getSummary(data.liuDesc)
+    const obj: LiuAi.CardData = {
+      title: data.title ?? "",
+      summary,
+      contentId: v._id,
+      hasImage: Boolean(data.images?.length),
+      hasFile: Boolean(data.files?.length),
+      calendarStamp: v.calendarStamp,
+      createdStamp: v.createdStamp,
+    }
+    return obj
+  }
+
+  static toPlainText(v: LiuAi.CardData, user?: Table_User) {
+    let msg = ""
+
+    // title
+    if(v.title) {
+      msg += `  <title>${v.title}</title>\n`
+    }
+
+    // summary
+    if(v.summary) {
+      msg += `  <summary>${v.summary}</summary>\n`
+    }
+    else if(v.hasImage) {
+      msg += `  <summary>[Image]</summary>\n`
+    }
+    else if(v.hasFile) {
+      msg += `  <summary>[File]</summary>\n`
+    }
+
+    // calendarStamp
+    const locale = getCurrentLocale({ user })
+    if(v.calendarStamp) {
+      const dateStr = LiuDateUtil.displayTime(v.calendarStamp, locale, user?.timezone)
+      msg += `  <date>${dateStr}</date>\n`
+    }
+    if(!msg) return
+
+    // created
+    const createdStr = LiuDateUtil.displayTime(v.createdStamp, locale, user?.timezone)
+    msg += `  <created>${createdStr}</created>\n`
+    msg = `<${v.contentId}>\n${msg}</${v.contentId}>`
+    return msg
+  }
 
 }
 

@@ -3457,6 +3457,16 @@ export namespace LiuAi {
     timeoutSec?: number
   }
 
+  export interface CardData {
+    title: string
+    summary: string
+    contentId: string
+    hasImage: boolean
+    hasFile: boolean
+    calendarStamp?: number
+    createdStamp: number
+  }
+
 }
 
 
