@@ -76,7 +76,7 @@
 
 现在的 AI 依然会有胡言乱语的情况。当你请 AI 管理你的日程或待办时，可能会遇到以下情况:
 
-<img src="./assets-three-assistants/hallucination.png" width="600">
+<img src="./assets-three-assistants/hallucination.png" width="500">
 
 上图中，只有头像为留白记事 Logo 的消息（表示系统消息）是真实有效的✅，其他都在胡说八道🤬。你可以凭此区分谁在为你工作，谁又在胡言乱语。
 
