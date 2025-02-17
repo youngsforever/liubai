@@ -247,10 +247,10 @@ export const aiBots: AiBot[] = [
     name: "智谱",
     character: "zhipu",
     provider: "zhipu",
-    model: "glm-4v-plus",
+    model: "glm-4v-plus-0111",
     abilities: ["chat", "tool_use", "image_to_text"],
     alias: ["智谱AI", "智谱清言", "ChatGLM"],
-    maxWindowTokenK: 8,
+    maxWindowTokenK: 16,
     priority: 10,
     metaData: {
       zhipuWebSearch: true,

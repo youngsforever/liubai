@@ -202,6 +202,15 @@ export async function get_into_ai(
     entry.audio_base64 = res4_3?.audioBase64
   }
 
+  // 4.4 turn image into text if needed
+  if(msg_type === "image" && !text) {
+    const img2Txt = new Image2Text(image_url as string)
+    const res4_4 = await img2Txt.run()
+    if(res4_4) {
+      entry.text = res4_4.text
+    }
+  }
+
   // 5. add the current message into db
   const chatId = await AiHelper.addUserMsg(entry, roomId)
   if(!chatId) return
@@ -4402,9 +4411,61 @@ export class Transcriber {
     // 5. return
     return { text: data4?.text, audioBase64: b64 }
   }
+}
 
+
+/*************** Image to Text using LLM ************/
+
+class Image2Text {
+  private _url: string
+
+  constructor(url: string) {
+    this._url = url
+  }
+
+  async run() {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_IMG2TXT_API_KEY
+    const baseUrl = _env.LIU_IMG2TXT_BASE_URL
+    const model = _env.LIU_IMG2TXT_MODEL
+    if(!apiKey || !baseUrl || !model) {
+      console.warn("apiKey, baseUrl, and model are required in Image2Text")
+      return
+    }
+
+    // 2. construct prompts
+    const url = this._url
+    const messages: OaiPrompt[] = [
+      {
+        role: "user",
+        content: [
+          {
+            type: "image_url",
+            image_url: {
+              url,
+            }
+          }
+        ]
+      }
+    ]
+
+    // 3. fetch
+    const llm = new BaseLLM(apiKey, baseUrl)
+    const res = await llm.chat({ messages, model })
+    if(!res) {
+      console.warn("iamge to text failed!")
+      return
+    }
+
+    // 4. handle result 
+    const res4 = AiShared.getContentFromLLM(res)
+    if(!res4.content) return
+    return { text: res4.content }
+  }
 
 }
+
 
 /*************** Turn image url into base64 ************/
 class ImageHelper {
