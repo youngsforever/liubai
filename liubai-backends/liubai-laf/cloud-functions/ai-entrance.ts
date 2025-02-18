@@ -3123,10 +3123,14 @@ class AiHelper {
 
   static async getLatestChat(
     roomId: string,
-    limit: number = 50,
+    limit: number = 40,
   ): Promise<Table_AiChat[]> {
     const col = db.collection("AiChat")
-    const q1 = col.where({ roomId }).orderBy("sortStamp", "desc")
+    const w1 = {
+      roomId,
+      onlyInSystem2: _.neq(true),
+    }
+    const q1 = col.where(w1).orderBy("sortStamp", "desc")
     const res1 = await q1.limit(limit).get<Table_AiChat>()
     const results = res1.data
     const chats: Table_AiChat[] = []

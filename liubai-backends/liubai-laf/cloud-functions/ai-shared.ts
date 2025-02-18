@@ -337,7 +337,7 @@ export class AiShared {
     const finishReason = AiShared.getFinishReason(res)
     const mightHaveReasoningContent = Boolean(finishReason === "length" && !thinkingInContent)
     if(mightHaveReasoningContent) {
-      const alrightList = ["Alright, ", "好的，", "嗯，", "好，", "好吧，"]
+      const alrightList = ["Alright, ", "好的，", "嗯，", "好，", "好吧，", "用户问"]
       const res3 = alrightList.some(x => content.startsWith(x))
       if(res3) {
         reasoning_content = content

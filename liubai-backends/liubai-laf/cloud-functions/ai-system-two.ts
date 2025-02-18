@@ -1,10 +1,11 @@
-import { getNowStamp } from "./common-time"
+import { DAY, getNowStamp, isWithinMillis } from "@/common-time"
 import type { 
   Table_AiChat, 
   Table_AiRoom, 
   Table_User,
 } from "./common-types"
 import cloud from "@lafjs/cloud"
+import { checkIfUserSubscribed } from "@/common-util"
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -421,6 +422,11 @@ const system_prompt = `
 const db = cloud.database()
 const _ = db.command
 
+const HR_47 = DAY * 47
+
+// 最小会话论述，聊天室的轮数必须大于等于该值，才会进入系统二
+const LEAST_CONVERSATION_COUNT = 11
+
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
   invoke_by_clock()
@@ -448,25 +454,58 @@ export async function invoke_by_user() {
 
 class Controller {
 
-  private _maxLoopTimes = 10
   private _numPerLoop = 10
+  private _maxUser = 100
 
-  async run() {
-    const maxLoopTimes = this._maxLoopTimes
+  // call by invoke_by_clock
+  async batchRun() {
+    const maxUser = this._maxUser
     let minNeedSystem2Stamp = 1
-    for(let i=0; i<maxLoopTimes; i++) {
 
+    let num = 0
+    while(num < maxUser) {
       // 1. get rooms
       const res1 = await this.getRooms(minNeedSystem2Stamp)
-      if(res1.roomIds.length < 1) break
+      if(res1.newNeedSystem2Stamp) {
+        minNeedSystem2Stamp = res1.newNeedSystem2Stamp
+      }
+      if(res1.userIds.length < 1) break
 
       // 2. get users
+      const users = await this.getUsers(res1.userIds)
+      if(users.length < 1) continue
+
+      // 3. ctxs filled by users and rooms
+      const res3 = this.initUserCtxs(res1.rooms, users)
+      if(res3.length < 1) continue
+
+      // 4. get chats for each ctx
+      for(let i=0; i<res3.length; i++) {
+
+        // 4.1 get chats
+        const ctx = res3[i]
+        const chats = await this.getChats(ctx.room._id)
+        if(chats.length < 10) continue
+        ctx.chats = chats
+
+        // 4.2 start to run
 
 
+      }
+
+
+      // n. check out if we need to break the loop
+      if(!res1.newNeedSystem2Stamp) {
+        break
+      }
     }
   }
 
-  async getRooms(
+
+  // call by invoke_by_user
+
+
+  private async getRooms(
     minNeedSystem2Stamp: number,
   ) {
     const numPerLoop = this._numPerLoop
@@ -478,12 +517,79 @@ class Controller {
     const q1 = rCol.where(w1).limit(numPerLoop).orderBy("needSystem2Stamp", "asc")
     const res1 = await q1.get<Table_AiRoom>()
     const rooms = res1.data
-    const roomIds = rooms.map(v => v._id)
-    return { rooms, roomIds }
+    const userIds = rooms.map(v => v.owner)
+    const rLength = rooms.length
+    if(rLength < 1) return { rooms, userIds }
+    const lastRoom = rooms[rLength - 1]
+    const newNeedSystem2Stamp = lastRoom.needSystem2Stamp
+    return { rooms, userIds, newNeedSystem2Stamp }
   }
 
-  async getUsers() {
+  private async getUsers(
+    userIds: string[],
+  ) {
+    // 1. get users
+    const now1 = getNowStamp()
+    const HR_47_AGO = now1 - HR_47
+    const w1 = {
+      _id: _.in(userIds),
+      oState: "NORMAL",
+      activeStamp: _.gte(HR_47_AGO),
+    }
+    const uCol = db.collection("User")
+    const res1 = await uCol.where(w1).get<Table_User>()
+    const users = res1.data
+    if(users.length < 1) return []
 
+    // 2. set more fields, like:
+    // "Are they subscribed?" 
+    // "Were they chatting in the last 47 hours?"
+    // "How many conversations do they have?"
+    const newUsers: Table_User[] = []
+    for(let i=0; i<users.length; i++) {
+      const v = users[i]
+
+      const lastUserChatStamp = v.quota?.lastWxGzhChatStamp ?? 1
+      const within47 = isWithinMillis(lastUserChatStamp, HR_47)
+      if(!within47) continue
+
+      const isSubscribed = checkIfUserSubscribed(v)
+      if(isSubscribed) {
+        newUsers.push(v)
+        continue
+      }
+      const count = v.quota?.aiConversationCount ?? 0
+      if(count >= LEAST_CONVERSATION_COUNT) {
+        newUsers.push(v)
+        continue
+      }
+    }
+
+    return newUsers
+  }
+
+  private async getChats(
+    roomId: string,
+  ) {
+    const w1 = { roomId }
+    const cCol = db.collection("AiChat")
+    const q1 = cCol.where(w1).limit(50).orderBy("sortStamp", "desc")
+    const res1 = await q1.get<Table_AiChat>()
+    return res1.data
+  }
+
+  private initUserCtxs(
+    rooms: Table_AiRoom[],
+    users: Table_User[],
+  ) {
+    const list: UserCtx[] = []
+    for(let i=0; i<rooms.length; i++) {
+      const room = rooms[i]
+      const user = users.find(v => v._id === room.owner)
+      if(!user) continue
+      list.push({ user, room, chats: [] })
+    }
+    return list
   }
 
 
