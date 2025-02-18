@@ -1642,6 +1642,7 @@ export interface Table_Order extends BaseTable {
 export interface Table_AiRoom extends BaseTable {
   owner: string           // corresponds to userId
   characters: AiCharacter[]
+  needSystem2Stamp?: number
 }
 
 /********* AI Chat *********/

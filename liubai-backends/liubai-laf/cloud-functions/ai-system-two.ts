@@ -1,4 +1,10 @@
-
+import { getNowStamp } from "./common-time"
+import type { 
+  Table_AiChat, 
+  Table_AiRoom, 
+  Table_User,
+} from "./common-types"
+import cloud from "@lafjs/cloud"
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -411,10 +417,22 @@ const system_prompt = `
 接下来是你的时间。在 user prompt 的地方，我们会打印当前环境信息，并附上最近的日志，由你来决定要如何输出！
 `
 
+/********************* constants ****************/
+const db = cloud.database()
+const _ = db.command
+
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
   invoke_by_clock()
   return true
+}
+
+/********************* interfaces ****************/
+
+interface UserCtx {
+  user: Table_User
+  room: Table_AiRoom
+  chats: Table_AiChat[]
 }
 
 // invoke by CRON
@@ -427,4 +445,47 @@ export async function invoke_by_user() {
   
 }
 
+
+class Controller {
+
+  private _maxLoopTimes = 10
+  private _numPerLoop = 10
+
+  async run() {
+    const maxLoopTimes = this._maxLoopTimes
+    let minNeedSystem2Stamp = 1
+    for(let i=0; i<maxLoopTimes; i++) {
+
+      // 1. get rooms
+      const res1 = await this.getRooms(minNeedSystem2Stamp)
+      if(res1.roomIds.length < 1) break
+
+      // 2. get users
+
+
+    }
+  }
+
+  async getRooms(
+    minNeedSystem2Stamp: number,
+  ) {
+    const numPerLoop = this._numPerLoop
+    const now1 = getNowStamp()
+    const w1 = {
+      needSystem2Stamp: _.and(_.lte(now1), _.gt(minNeedSystem2Stamp)),
+    }
+    const rCol = db.collection("AiRoom")
+    const q1 = rCol.where(w1).limit(numPerLoop).orderBy("needSystem2Stamp", "asc")
+    const res1 = await q1.get<Table_AiRoom>()
+    const rooms = res1.data
+    const roomIds = rooms.map(v => v._id)
+    return { rooms, roomIds }
+  }
+
+  async getUsers() {
+
+  }
+
+
+}
 
