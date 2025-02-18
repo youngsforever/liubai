@@ -442,8 +442,9 @@ interface UserCtx {
 }
 
 // invoke by CRON
-async function invoke_by_clock() {
-  
+export async function invoke_by_clock() {
+  const controller = new Controller()
+  await controller.batchRun()
 }
 
 // continue after user approves
@@ -488,7 +489,7 @@ class Controller {
         if(chats.length < 10) continue
         ctx.chats = chats
 
-        // 4.2 start to run
+        // 4.2 start to run for the user
 
 
       }
@@ -543,6 +544,7 @@ class Controller {
 
     // 2. set more fields, like:
     // "Are they subscribed?" 
+    // "Are they premium?"
     // "Were they chatting in the last 47 hours?"
     // "How many conversations do they have?"
     const newUsers: Table_User[] = []
@@ -553,8 +555,11 @@ class Controller {
       const within47 = isWithinMillis(lastUserChatStamp, HR_47)
       if(!within47) continue
 
-      const isSubscribed = checkIfUserSubscribed(v)
-      if(isSubscribed) {
+      const subscribe = v.thirdData?.wx_gzh?.subscribe
+      if(subscribe === 0) continue
+
+      const isPremium = checkIfUserSubscribed(v)
+      if(isPremium) {
         newUsers.push(v)
         continue
       }
