@@ -607,7 +607,15 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: `🪧 指路牌
+        content: `【指路牌🪧】
+
+🤖 <a href='{LIU_DOCS_DOMAIN}/guide/three-assistants'>AI使用说明书</a>
+
+📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">开发者的小红书</a>
+
+🌐 <a href="https://github.com/yenche123/liubai">开源地址</a>
+
+📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">提问箱</a>
 
 📨 <a href="{LIU_DOMAIN}/">收件箱</a>
 
@@ -616,12 +624,6 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
 ⭐ <a href="{LIU_DOMAIN}/favorite">我的收藏</a>
 
 📂 <a href="{LIU_DOMAIN}/state">我的看板</a>
-
-📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">开发者的小红书</a>
-
-🌐 <a href="https://github.com/yenche123/liubai">开源地址</a>
-
-📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">提问箱</a>
 `,
       }
     }
@@ -656,7 +658,15 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: `🪧 指路牌
+        content: `【指路牌🪧】
+
+🤖 <a href='{LIU_DOCS_DOMAIN}/guide/three-assistants'>AI使用說明書</a>
+
+📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">開發者的小紅書</a>
+
+🌐 <a href="https://github.com/yenche123/liubai">開源網址</a>
+
+📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">提問箱</a>
 
 📨 <a href="{LIU_DOMAIN}/">收件匣</a>
 
@@ -665,12 +675,6 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
 ⭐ <a href="{LIU_DOMAIN}/favorite">我的收藏</a>
 
 📂 <a href="{LIU_DOMAIN}/state">我的看板</a>
-
-📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">開發者的小紅書</a>
-
-🌐 <a href="https://github.com/yenche123/liubai">開源網址</a>
-
-📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">提問箱</a>
 `,
       }
     }
@@ -705,7 +709,15 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: `🪧 Guidebook
+        content: `[Guidebook 🪧]
+
+🤖 <a href='{LIU_DOCS_DOMAIN}/guide/three-assistants'>AI Instructions</a>
+
+📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">Follow me on RED</a>
+
+🌐 <a href="https://github.com/yenche123/liubai">Open Source</a>
+
+📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">AMA</a>
 
 📨 <a href="{LIU_DOMAIN}/">My Inbox</a>
 
@@ -714,12 +726,6 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
 ⭐ <a href="{LIU_DOMAIN}/favorite">My Favorite</a>
 
 📂 <a href="{LIU_DOMAIN}/state">My Board</a>
-
-📕 <a href="https://www.xiaohongshu.com/user/profile/5d1642d80000000011033c24">Follow me on RED</a>
-
-🌐 <a href="https://github.com/yenche123/liubai">Open Source</a>
-
-📦 <a href="{LIU_DOCS_DOMAIN}/guide/faq/">AMA</a>
 `,
       }
     }
