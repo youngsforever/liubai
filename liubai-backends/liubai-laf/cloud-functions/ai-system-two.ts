@@ -5,6 +5,7 @@ import {
   DAY,
 } from "@/common-time"
 import type { 
+  OaiChatCompletion,
   Table_AiChat, 
   Table_AiRoom, 
   Table_User,
@@ -424,6 +425,26 @@ const system_prompt = `
 最后我们想说的是，你非常强大，具备反省、纠错和提醒的能力。你见微知著，饱含同理心，并且富有洞察力，能知道人们需要什么、烦恼什么和渴望什么。
 
 接下来是你的时间。在 user prompt 的地方，我们会打印当前环境信息，并附上最近的日志，由你来决定要如何输出！
+`.trim()
+
+const user_prompt = `
+## 当前环境
+
+当前日期: {current_date}
+当前时间: {current_time}
+沟通界面: 微信服务号
+回复限制: 若你选择 <direction> 为 1，请将回复的文字限制在 300 字内，简洁扼要地交付最终结果。这是因为在微信服务号里，我们传送文字的数量受到限制。
+
+## 日志
+
+下面是由旧至新排序的最近日志：
+
+{logs}
+
+## 最后提醒
+
+
+
 `
 
 /********************* constants ****************/
@@ -434,6 +455,7 @@ const HR_47 = DAY * 47
 
 // 最小会话论述，聊天室的轮数必须大于等于该值，才会进入系统二
 const LEAST_CONVERSATION_COUNT = 11
+const MAX_TOKENS = 16
 
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
@@ -625,6 +647,22 @@ class SystemTwo {
     this.mapToOneHourLater()
 
     // 2. 
+    const maxTimes = 5
+    let runTimes = 0
+    while(runTimes < maxTimes) {
+      runTimes++
+
+    }
+
+  }
+
+  private async getReasonerOutput() {
+
+  }
+
+  private async handleReasonerOutput(
+    chatCompletion: OaiChatCompletion,
+  ) {
 
   }
 
@@ -642,6 +680,13 @@ class SystemTwo {
     await rCol.doc(roomId).update(u1)
   }
   
+}
+
+class ChatToMessage {
+
+  static run() {
+
+  }
 
 
 }
