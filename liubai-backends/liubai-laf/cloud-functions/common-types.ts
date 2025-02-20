@@ -620,14 +620,14 @@ export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "kimi" | "yuew
   "wanzhi" | "zhipu" | "ds-reasoner"
 
 export type AiInfoType = "user" | "assistant" | "summary" | "clear" | 
-  "action" | "background" | "tool_use"
+  "background" | "tool_use" | "thinking"
 // user: 用户发来的消息
 // assistant: AI 的回复
 // summary: AI 的总结 for context
 // clear: 清除对话
-// action: 记录用户的操作，比如“同意 xxx 读取 yyy”
 // background: 比如 url 的解析结果 / 关键词搜索结果
 // tool_use: 使用工具
+// thinking: 系统二思考中
 
 
 export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" | 
@@ -1671,6 +1671,8 @@ export interface Table_AiChat extends BaseTable {
 
   // system 2
   onlyInSystem2?: boolean
+  fromSystem2?: boolean
+  directionOfSystem2?: LiuAi.Sys2Direction
 
   // about web-search
   webSearchProvider?: LiuAi.SearchProvider
@@ -3438,7 +3440,6 @@ export namespace LiuAi {
     drawPictureUrl?: string
     drawPictureModel?: string
     drawPictureData?: Record<string, any>
-    onlyInSystem2?: boolean
   }
 
   export interface ApiEndpoint {
@@ -3472,6 +3473,13 @@ export namespace LiuAi {
     fromBot?: AiBot
     fromCharacter?: AiCharacter
     fromSystem2?: boolean
+  }
+
+  export type Sys2Direction = "1" | "2" | "3" | "4"
+
+  export interface Sys2Output {
+    direction?: Sys2Direction
+    content?: string
   }
 
 }

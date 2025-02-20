@@ -3,10 +3,17 @@ import {
   isWithinMillis, 
   MINUTE,
   DAY,
+  getBasicStampWhileAdding,
+  HOUR,
 } from "@/common-time"
 import type { 
+  AiCharacter,
+  AiEntry,
+  AiInfoType,
+  LiuAi,
   OaiChatCompletion,
   OaiPrompt,
+  Partial_Id,
   Table_AiChat, 
   Table_AiRoom, 
   Table_User,
@@ -16,7 +23,8 @@ import {
   checkIfUserSubscribed, 
   valTool,
 } from "@/common-util"
-import { AiShared } from "@/ai-shared"
+import xml2js from "xml2js"
+import { AiShared, TellUser } from "@/ai-shared"
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -484,6 +492,8 @@ const LEAST_CONVERSATION_COUNT = 11
 const MAX_INPUT_TOKEN_K = 24
 const MAX_OUTPUT_TOKEN_K = 2
 
+const character: AiCharacter = "ds-reasoner"
+
 /********************* empty function ****************/
 export async function main(ctx: FunctionContext) {
   invoke_by_clock()
@@ -664,6 +674,8 @@ class SystemTwo {
 
   private _ctx: UserCtx
   private _reasonerAndUs: OaiPrompt[] = []
+  private _runLogs: LiuAi.RunLog[] = []
+  private _lastChatCompletion: OaiChatCompletion | undefined
 
   constructor(ctx: UserCtx) {
     this._ctx = ctx
@@ -672,10 +684,10 @@ class SystemTwo {
 
   async run() {
     // 1. throw needSystem2Stamp to one hour later
-    this.mapToOneHourLater()
+    this.mapToSomeHourLater(1)
 
     // 2. 
-    const maxTimes = 5
+    const maxTimes = 3
     let runTimes = 0
     while(runTimes < maxTimes) {
       runTimes++
@@ -699,35 +711,157 @@ class SystemTwo {
     // 2. handle error
     // 2.1 there is only reasoning_content
     if(!content1 && reasoning_content1) {
-      console.warn("there is only reasoning_content")
-      console.log(reasoning_content1)
+      console.warn("there is only reasoning_content: ", reasoning_content1)
       return false
     }
 
     // 2.2 see finish reason
     const finishReason = AiShared.getFinishReason(chatCompletion)
     if(!finishReason || finishReason === "length") {
-      console.warn("finish reason is unexpected")
-      console.log(finishReason)
+      console.warn("finish reason is unexpected: ", finishReason)
       return false
     }
 
+    // 2.3 no content
+    if(!content1) {
+      console.warn("no content", chatCompletion)
+      return false
+    }
 
+    // 3. parse content
+    let res3: LiuAi.Sys2Output | undefined
+    const parser = new xml2js.Parser({ explicitArray: false })
+    try {
+      const { xml } = await parser.parseStringPromise(content1)
+      res3 = xml
+    }
+    catch(err) {
+      console.warn("xml2js.Parser parse error: ", err)
+    }
+    if(!res3) {
+      console.log("try again due to no result")
+      return true
+    }
+
+    console.log("see result from SYS 2: ", res3)
+    // 4. decide which path to go
+    let res4 = false
+    const { direction, content: content4 } = res3
+    if(direction === "1" && content4) {
+      // get to reply
+      this.toReply(content4)
+    }
+    else if(direction === "2" && content4) {
+      this.toUseTool(content4)
+    }
+    else if(direction === "3" && reasoning_content1) {
+      this.toThinkLater(reasoning_content1, content4)
+    }
+    else if(direction === "4") {
+      this.toFeelAllGood()
+    }
+
+    return res4
+  }
+
+
+  private async toReply(text: string) {
+    // 1. add message to chats
+    this._addSystem2Chat("assistant", "1", {
+      text,
+      onlyInSystem2: false,
+    })
+
+    // 2. mock AiEntry
+    const entry = this._mockAiEntry()
+    TellUser.text(entry, text, { fromSystem2: true })
+  }
+
+  private toUseTool(content: string) {
 
   }
 
-  private async mapToOneHourLater() {
+  private toThinkLater(
+    reasoning_content: string,
+    hrs?: string,
+  ) {
+    this._addSystem2Chat("thinking", "3", { reasoning_content })
+    const hours = Number(hrs)
+    if(isNaN(hours)) return
+    if(hours >= 2 && hours <= 24) {
+      this.mapToSomeHourLater(hours)
+    }
+  }
+
+  private toFeelAllGood() {
+    this._addSystem2Chat("assistant", "4", {})
+  }
+
+  private async _addSystem2Chat(
+    infoType: AiInfoType,
+    direction: LiuAi.Sys2Direction,
+    otherParam: Partial<Table_AiChat>,
+  ) {
+    // 1. get model and baseUrl
+    const _env = process.env
+    const model = _env.LIU_SYSTEM2_MODEL
+    const baseUrl = _env.LIU_SYSTEM2_BASE_URL
+
+    // 2. get other params
+    const room = this._ctx.room
+    const roomId = room._id
+    const b1 = getBasicStampWhileAdding()
+    const chatCompletion = this._lastChatCompletion
+
+    // 3. construct new chat
+    const newChat: Partial_Id<Table_AiChat> = {
+      ...b1,
+      sortStamp: b1.insertedStamp,
+      roomId,
+      infoType,
+
+      model,
+      character,
+      usage: chatCompletion?.usage,
+      requestId: chatCompletion?.id,
+      baseUrl,
+      finish_reason: "stop",
+
+      onlyInSystem2: true,
+      fromSystem2: true,
+      directionOfSystem2: direction,
+
+      ...otherParam,
+    }
+    const chatId = await AiShared.addChat(newChat)
+    return chatId
+  }
+
+  private async mapToSomeHourLater(
+    hr: number
+  ) {
     const room = this._ctx.room
     const roomId = room._id
     const now1 = getNowStamp()
     const randomMinute = Math.ceil(Math.random() * 30)
-    const needSystem2Stamp = randomMinute * MINUTE + now1
+    const needSystem2Stamp = randomMinute * MINUTE + (hr * HOUR) + now1
     const rCol = db.collection("AiRoom") 
     const u1: Partial<Table_AiRoom> = {
       updatedStamp: now1,
       needSystem2Stamp,
     }
     await rCol.doc(roomId).update(u1)
+  }
+
+  private _mockAiEntry() {
+    const user = this._ctx.user
+    const wx_gzh_openid = user.wx_gzh_openid
+    const entry: AiEntry = {
+      user,
+      msg_type: "text",
+      wx_gzh_openid,
+    }
+    return entry
   }
   
 }
