@@ -25,7 +25,7 @@ import {
   valTool,
 } from "@/common-util"
 import xml2js from "xml2js"
-import { AiShared, TellUser } from "@/ai-shared"
+import { AiShared, BaseLLM, TellUser } from "@/ai-shared"
 import { aiLang, i18nFill, useI18n } from "@/common-i18n"
 
 
@@ -469,7 +469,6 @@ const user_prompt = `
 
 {logs}
 
-
 ## 最后提醒
 
 看完以上日志后，最后我们提醒您：
@@ -744,8 +743,10 @@ class SystemTwo {
     let runTimes = 0
     while(runTimes < maxTimes) {
       runTimes++
-      await this.inputToLLM()
-
+      const chatCompletion = await this.inputToLLM()
+      if(!chatCompletion) break
+      const res2 = await this.handleOutput(chatCompletion)
+      if(!res2) break
     }
 
   }
@@ -776,9 +777,44 @@ class SystemTwo {
       })
       if(tokenWeHave > maxInputToken) continue
     }
-  
 
+    // 4. generate log string
+    let logs = ""
+    for(let i=0; i<system2Logs.length; i++) {
+      const v = system2Logs[i]
+      logs = v + "\n" + logs
+    }
 
+    // 5. fill user prompt with logs
+    const {
+      date: current_date,
+      time: current_time,
+    } = LiuDateUtil.getDateAndTime(getNowStamp(), user.timezone)
+    const userPrompt = i18nFill(user_prompt, {
+      current_date,
+      current_time,
+      logs,
+    })
+
+    // 6. constructs messages
+    const messages: OaiPrompt[] = [
+      {
+        role: "system",
+        content: system_prompt,
+      },
+      {
+        role: "user",
+        content: userPrompt,
+      }
+    ]
+
+    // 7. call LLM
+    const apiData = System2Util.getApiData()
+    const { model, baseUrl, apiKey } = apiData
+    const llm = new BaseLLM(apiKey, baseUrl)
+    const res7 = await llm.chat({ messages, model, temperature: 0.6 })
+
+    return res7
   }
 
   private async handleOutput(
@@ -887,9 +923,8 @@ class SystemTwo {
     otherParam: Partial<Table_AiChat>,
   ) {
     // 1. get model and baseUrl
-    const _env = process.env
-    const model = _env.LIU_SYSTEM2_MODEL
-    const baseUrl = _env.LIU_SYSTEM2_BASE_URL
+    const apiData = System2Util.getApiData()
+    const { model, baseUrl } = apiData
 
     // 2. get other params
     const room = this._ctx.room
@@ -1141,6 +1176,18 @@ class ChatToLog {
     return text
   }
 
+
+}
+
+class System2Util {
+
+  static getApiData() {
+    const _env = process.env
+    const model = _env.LIU_SYSTEM2_MODEL ?? ""
+    const baseUrl = _env.LIU_SYSTEM2_BASE_URL ?? ""
+    const apiKey = _env.LIU_SYSTEM2_API_KEY ?? ""
+    return { model, baseUrl, apiKey }
+  }
 
 }
 

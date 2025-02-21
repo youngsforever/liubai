@@ -7,7 +7,6 @@ import {
   type AiCommandByHuman,
   type OaiPrompt,
   type OaiTool,
-  type OaiToolPrompt,
   type OaiToolCall,
   type OaiChoice,
   type OaiMessage,
@@ -3586,9 +3585,7 @@ class AiHelper {
     if(provider === "zhipu") return "北京智谱华章"
   }
   
-
 }
-
 
 class ChatIntoPrompter {
 
@@ -4411,8 +4408,8 @@ class ImageHelper {
       filename,
     })
 
-    console.warn("see contentType in getBase64: ")
-    console.log(contentType)
+    // console.warn("see contentType in getBase64: ")
+    // console.log(contentType)
 
     const imageBase64 = `data:${contentType};base64,${b64}`
     return imageBase64
