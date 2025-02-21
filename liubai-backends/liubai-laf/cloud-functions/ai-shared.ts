@@ -610,7 +610,28 @@ export class AiShared {
     tool_calls: OaiToolCall[],
     v: Table_AiChat,
   ) {
+    const { character, funcName, text } = v
+    const assistantName = AiShared.getCharacterName(character)
+    let msg: OaiPrompt = {
+      role: "assistant",
+      tool_calls,
+      name: assistantName,
+    }
 
+    if(funcName === "draw_picture" && text) {
+      const aToolCall = tool_calls[0]
+      if(!aToolCall) return msg
+      const theFunc = aToolCall["function"]
+      if(!theFunc) return msg
+      const drawArgsStr = theFunc["arguments"]
+      if(!drawArgsStr) return msg
+      const drawArgs = valTool.strToObj(drawArgsStr)
+      drawArgs.prompt = text
+      const drawArgsStr2 = valTool.objToStr(drawArgs)
+      theFunc["arguments"] = drawArgsStr2
+    }
+
+    return msg
   }
 
 

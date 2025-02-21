@@ -26,7 +26,10 @@ import {
 } from "@/common-util"
 import xml2js from "xml2js"
 import { AiShared, TellUser } from "@/ai-shared"
-import { aiLang, useI18n } from "./common-i18n"
+import { aiLang, i18nFill, useI18n } from "@/common-i18n"
+
+
+const all_good_str = "都很好，无需进一步操作"
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -40,11 +43,13 @@ const system_prompt = `
 
 你只能以 <xml> 开头的标签来开始输出，以 </xml> 来结束输出。
 
-<xml> 标签里只能存放两种标签 <direction> 和 <content>，其中
+<xml> 标签里只能存放两种标签 <direction>, <content> 和 <tool_calls>，其中
 
 <direction>: 必填，用于告知我们你的决定。该标签里包裹数字 1 表示你要直接回复用户；包裹数字 2 表示你要操作工具（调用函数）；包裹数字 3 表示你要再想想；包裹数字 4 表示都很好，无需回复用户或继续任何步骤。
 
 <content>: 选填，关于此决定的相关数据。当 direction 为 1 时，请在此标签内包裹你要回复的文本；当 direction 为 2 时，请在此标签内包裹需要对应的函数和对应的参数，请务必包裹 JSON 格式的字符串；当 direction 为 3 时，可包裹一个 1 到 24 的数字表示若干小时后再想一遍，若不填则由我们指定；当 direction 为 4 时，无需回复 <content> 标签。
+
+<tool_calls>: 选填，当 direction 为 2 时必填，表示要调用的工具们和对应参数。
 
 ### 示例
 
@@ -57,7 +62,7 @@ const system_prompt = `
 // 调用工具
 <xml>
   <direction>2</direction>
-  <content>{ "type": "function", "function": { "name": "echo", "arguments": { "text": "测试测试" } }, "id": "请为此次调用提供一个唯一值，若不指定将交由我们指定" }</content>
+  <tool_calls>[{ "type": "function", "function": { "name": "echo", "arguments": { "text": "测试测试" } }, "id": "请为此次调用提供一个唯一值，若不指定将交由我们指定" }]</tool_calls>
 </xml>
 
 // 再想想
@@ -90,7 +95,7 @@ const system_prompt = `
 - \`tool\`: 表示调用工具后的结果；
 - \`you\`: 表示你，当今世界上最强大的 AI 助手。
 
-<content>: 必有，表示内容。
+<content>: 选填，表示内容。
 
 <time>: 必有，表示该日志发生的时间。以 YYYY-MM-DD HH:mm:ss 格式表示。
 
@@ -99,6 +104,8 @@ const system_prompt = `
 <direction>: 当 role 为 you 时必填，表示你的决定。
 
 <name>: 选填，当 role 为 human 或 bot 时可能存在，用来区分不同人或机器人。
+
+<tool_calls>: 选填，当 bot 或 you 调用工具时必填，表示调用的工具列表，其中每个工具是一个 JSON 对象。
 
 ### 示例: 来自 human 的消息
 
@@ -130,7 +137,7 @@ const system_prompt = `
 // 调用工具: 获取未来 24 小时内的日程
 <log>
   <role>bot</role>
-  <content>{ "type": "function", "function": { "name": "get_schedule", "arguments": { "hoursFromNow": 24 } }, "id": "tool_id_1" }</content>
+  <tool_calls>[{ "type": "function", "function": { "name": "get_schedule", "arguments": { "hoursFromNow": 24 } }, "id": "tool_id_1" }]</tool_calls>
   <time>2025-02-07 18:43:03</time>
 </log>
 
@@ -140,16 +147,16 @@ const system_prompt = `
 <log>
   <role>tool</role>
   <content>{"results": [/** 存放一条条数据，若查无结果，则为一个空数组 */]}</content>
-  <time>2025-02-07 18:43:04</time>
   <tool_call_id>tool_id_1</tool_call_id>
+  <time>2025-02-07 18:43:04</time>
 </log>
 
 // 调用工具 "web_search" 后的结果
 <log>
   <role>tool</role>
   <content>【关键词】：今日新闻\n【原始意图】：告诉我今天的新闻\n【搜索结果】：......</content>
-  <time>2025-02-08 08:13:49</time>
   <tool_call_id>tool_id_2</tool_call_id>
+  <time>2025-02-08 08:13:49</time>
 </log>
 
 ### 示例: 来自你的消息
@@ -158,7 +165,7 @@ const system_prompt = `
 <log>
   <role>you</role>
   <direction>2</direction>
-  <content>{ "type": "function", "function": { "name": "get_schedule", "arguments": { "specificDate": "today" } }, "id": "tool_id_5" }</content>
+  <tool_calls>[{ "type": "function", "function": { "name": "get_schedule", "arguments": { "specificDate": "today" } }, "id": "tool_id_5" }]</tool_calls>
   <time>2025-02-06 14:40:00</time>
 </log>
 
@@ -182,7 +189,7 @@ const system_prompt = `
 <log>
   <role>you</role>
   <direction>4</direction>
-  <content>都很好，无需进一步操作</content>
+  <content>${all_good_str}</content>
   <time>2025-02-06 15:55:31</time>
 </log>
 
@@ -490,7 +497,42 @@ const basic_log_tmpl = `
   <content>{content}</content>
   <time>{time}</time>
 </log>
-`
+`.trim()
+
+const tool_log_tmpl = `
+<log>
+  <role>tool</role>
+  <content>{content}</content>
+  <tool_call_id>{tool_call_id}</tool_call_id>
+  <time>{time}</time>
+</log>
+`.trim()
+
+const bot_with_tool_calls = `
+<log>
+  <role>bot</role>
+  <tool_calls>{tool_calls}</tool_calls>
+  <time>{time}</time>
+</log>
+`.trim()
+
+const you_with_tool_calls = `
+<log>
+  <role>you</role>
+  <direction>2</direction>
+  <tool_calls>{tool_calls}</tool_calls>
+  <time>{time}</time>
+</log>
+`.trim()
+
+const you_log_tmpl = `
+<log>
+  <role>you</role>
+  <direction>{direction}</direction>
+  <content>{content}</content>
+  <time>{time}</time>
+</log>
+`.trim()
 
 /********************* constants ****************/
 const db = cloud.database()
@@ -710,8 +752,9 @@ class SystemTwo {
 
   private async inputToLLM() {
     // 1. get params
-    const chats = this._ctx.chats
+    const { chats, user } = this._ctx
     const reasonerAndUs = this._reasonerAndUs
+    const maxInputToken = MAX_INPUT_TOKEN_K * 1000
 
     // 2. get token we have
     let tokenWeHave = AiShared.calculateTextToken(system_prompt)
@@ -725,8 +768,13 @@ class SystemTwo {
     let system2Logs: string[] = []
     for(let i=0; i<chats.length; i++) {
       const v = chats[i]
-      
-
+      const res3_1 = ChatToLog.run(v, user)
+      if(!res3_1) continue
+      system2Logs.push(...res3_1)
+      res3_1.forEach(v2 => {
+        tokenWeHave += AiShared.calculateTextToken(v2)
+      })
+      if(tokenWeHave > maxInputToken) continue
     }
   
 
@@ -821,7 +869,7 @@ class SystemTwo {
     reasoning_content: string,
     hrs?: string,
   ) {
-    this._addSystem2Chat("thinking", "3", { reasoning_content })
+    this._addSystem2Chat("assistant", "3", { reasoning_content })
     const hours = Number(hrs)
     if(isNaN(hours)) return
     if(hours >= 2 && hours <= 24) {
@@ -922,16 +970,12 @@ class SystemTwo {
 
 class ChatToLog {
 
+  // it may turn a chat into two logs,
+  // so we have to return an array
   static run(
     chat: Table_AiChat,
     user?: Table_User,
   ) {
-    // 1. handle <time>
-    const res1 = LiuDateUtil.getDateAndTime(
-      chat.sortStamp,
-      user?.timezone,
-    )
-    let timeStr = `${res1.date} ${res1.time}`
 
     // 2. handle <role> and <content>
     let roleStr: LiuAi.Sys2Role | undefined
@@ -939,12 +983,16 @@ class ChatToLog {
 
     // 3. specifically handle
     if(chat.infoType === "tool_use") {
-
+      const logs3_1 = this._turnForToolUse(chat, user)
+      return logs3_1
+    }
+    else if(chat.fromSystem2) {
+      const logs3_2 = this._turnForSystem2(chat)
+      return logs3_2
     }
     if(chat.infoType === "user") {
       roleStr = "human"
-      contentStr = this._getContentForHuman(chat)
-      if(!contentStr) return
+      contentStr = this._getBasicContent(chat)
     }
     else if(chat.infoType === "background" && chat.text) {
       roleStr = "system"
@@ -958,12 +1006,66 @@ class ChatToLog {
       roleStr = "system"
       contentStr = `【前方对话摘要】\n${chat.text}`
     }
+    else if(chat.infoType === "assistant") {
+      roleStr = "bot"
+      contentStr = this._getBasicContent(chat)
+    }
 
     // 3. handle content
+    if(!roleStr || !contentStr) return
+    const timeStr = this._getTimeStr(chat.sortStamp, user)
+    const logStr = i18nFill(basic_log_tmpl, {
+      role: roleStr,
+      content: contentStr,
+      time: timeStr,
+    })
+    return [logStr]
+  }
 
+  private static _getTimeStr(
+    stamp: number,
+    user?: Table_User,
+  ) {
+    const res1 = LiuDateUtil.getDateAndTime(
+      stamp,
+      user?.timezone,
+    )
+    const timeStr = `${res1.date} ${res1.time}`
+    return timeStr
+  }
+
+  private static _turnForSystem2(
+    v: Table_AiChat,
+  ) {
+    const { reasoning_content, directionOfSystem2 } = v
+
+    let directionStr = directionOfSystem2
+    let contentStr: string | undefined
+
+    if(directionOfSystem2 === "1") {
+     contentStr = this._getBasicContent(v)
+    }
+    else if(directionOfSystem2 === "3") {
+      if(reasoning_content) {
+        contentStr = `思考过程: ${reasoning_content}`
+      }
+      else {
+        contentStr = `再想想`
+      }
+    }
+    else if(directionOfSystem2 === "4") {
+      contentStr = all_good_str
+    }
+
+    if(!directionStr || !contentStr) return
     
-
-
+    const timeStr = this._getTimeStr(v.sortStamp, undefined)
+    const logStr = i18nFill(you_log_tmpl, {
+      direction: directionStr,
+      content: contentStr,
+      time: timeStr,
+    })
+    return [logStr]
   }
 
   private static _turnForToolUse(
@@ -979,13 +1081,41 @@ class ChatToLog {
 
     // 2. get tool msg
     const toolMsg = AiShared.getToolMessage(tool_call_id, t, v)
+    let toolContent = "[Fail to use the tool]"
+    if(toolMsg && typeof toolMsg.content === "string") {
+      toolContent = toolMsg.content
+    }
+    const toolTime = this._getTimeStr(v.sortStamp + 1000, user)
+    const toolLog = i18nFill(tool_log_tmpl, {
+      content: toolContent,
+      tool_call_id,
+      time: toolTime,
+    })
 
+    // 3. get assistant msg
+    const tool_calls_msg = valTool.objToStr(tool_calls)
+    if(!tool_calls_msg) return
+    const assistantTime = this._getTimeStr(v.sortStamp, user)
+    let assistantLog = ""
+    if(v.fromSystem2) {
+      assistantLog = i18nFill(bot_with_tool_calls, {
+        tool_calls: tool_calls_msg,
+        time: assistantTime,
+      })
+    }
+    else {
+      assistantLog = i18nFill(you_with_tool_calls, {
+        tool_calls: tool_calls_msg,
+        time: assistantTime,
+      })
+    }
 
-
+    // n.
+    return [toolLog, assistantLog]
   }
   
 
-  private static _getContentForHuman(
+  private static _getBasicContent(
     v: Table_AiChat,
   ) {
     const {

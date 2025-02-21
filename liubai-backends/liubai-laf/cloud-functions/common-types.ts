@@ -620,15 +620,13 @@ export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "kimi" | "yuew
   "wanzhi" | "zhipu" | "ds-reasoner"
 
 export type AiInfoType = "user" | "assistant" | "summary" | "clear" | 
-  "background" | "tool_use" | "thinking"
+  "background" | "tool_use"
 // user: 用户发来的消息
 // assistant: AI 的回复
 // summary: AI 的总结 for context
 // clear: 清除对话
 // background: 比如 url 的解析结果 / 关键词搜索结果
 // tool_use: 使用工具
-// thinking: 系统二思考中
-
 
 export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" | 
   "input_audio" | "reasoning"

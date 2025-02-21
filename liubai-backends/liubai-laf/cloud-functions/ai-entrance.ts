@@ -3665,7 +3665,7 @@ class ChatIntoPrompter {
 
     // 2. if we can use tool
     if(canUseTool && toolMsg) {
-      const msg2 = this._getAssistantMsgWithToolMsg(tool_calls, v)
+      const msg2 = AiShared.getAssistantMsgWithTool(tool_calls, v)
       return [toolMsg, msg2]
     }
 
@@ -3711,114 +3711,6 @@ class ChatIntoPrompter {
       name: assistantName,
     }
     return assistantMsg
-  }
-
-  private _getAssistantMsgWithToolMsg(
-    tool_calls: OaiToolCall[],
-    v: Table_AiChat,
-  ) {
-    const { character, funcName, text } = v
-    const assistantName = AiShared.getCharacterName(character)
-    let msg: OaiPrompt = {
-      role: "assistant",
-      tool_calls,
-      name: assistantName,
-    }
-
-    if(funcName === "draw_picture" && text) {
-      const aToolCall = tool_calls[0]
-      if(!aToolCall) return msg
-      const theFunc = aToolCall["function"]
-      if(!theFunc) return msg
-      const drawArgsStr = theFunc["arguments"]
-      if(!drawArgsStr) return msg
-      const drawArgs = valTool.strToObj(drawArgsStr)
-      drawArgs.prompt = text
-      const drawArgsStr2 = valTool.objToStr(drawArgs)
-      theFunc["arguments"] = drawArgsStr2
-    }
-
-    return msg
-  }
-
-
-  private _getToolMsg(
-    tool_call_id: string,
-    t: T_I18N,
-    v: Table_AiChat,
-  ) {
-    const { funcName, contentId } = v
-
-    let toolMsg: OaiToolPrompt | undefined
-    if (funcName === "add_note") {
-      if (contentId) {
-        toolMsg = { role: "tool", content: t("added_note"), tool_call_id }
-      }
-      else {
-        toolMsg = { role: "tool", content: t("not_agree_yet"), tool_call_id }
-      }
-    }
-    else if (funcName === "add_todo") {
-      if (contentId) {
-        toolMsg = { role: "tool", content: t("added_todo"), tool_call_id }
-      }
-      else {
-        toolMsg = { role: "tool", content: t("not_agree_yet"), tool_call_id }
-      }
-    }
-    else if (funcName === "add_calendar") {
-      if (contentId) {
-        toolMsg = { role: "tool", content: t("added_calendar"), tool_call_id }
-      }
-      else {
-        toolMsg = { role: "tool", content: t("not_agree_yet"), tool_call_id }
-      }
-    }
-    else if(funcName === "web_search") {
-      if(v.text && v.webSearchData && v.webSearchProvider) {
-        toolMsg = { role: "tool", content: v.text, tool_call_id }
-      }
-      else {
-        toolMsg = { role: "tool", content: t("fail_to_search"), tool_call_id }
-      }
-    }
-    else if(funcName === "parse_link") {
-      if(v.text) {
-        toolMsg = { role: "tool", content: v.text, tool_call_id }
-      }
-      else {
-        toolMsg = { role: "tool", content: t("fail_to_parse_link"), tool_call_id }
-      }
-    }
-    else if(funcName === "draw_picture") {
-      if(v.text && v.drawPictureUrl) {
-        toolMsg = { 
-          role: "tool", 
-          content: `[Finish to draw]`, 
-          tool_call_id,
-        }
-      }
-    }
-    else if(funcName === "get_cards") {
-      if(v.text) {
-        toolMsg = {
-          role: "tool",
-          content: v.text,
-          tool_call_id,
-        }
-      }
-    }
-    else if(funcName === "get_schedule") {
-      if(v.text) {
-        toolMsg = {
-          role: "tool",
-          content: v.text,
-          tool_call_id,
-        }
-      }
-    }
-
-    return toolMsg
   }
 
   private turnForAssistant(
