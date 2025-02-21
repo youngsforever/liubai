@@ -113,6 +113,7 @@ const charactersTakingARest: AiCharacter[] = [
   "ds-reasoner",
   "deepseek",
   "kimi",
+  "tongyi-qwen",
 ]
 
 /************************** types ************************/
