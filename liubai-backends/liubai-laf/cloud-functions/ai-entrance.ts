@@ -4043,6 +4043,10 @@ class AiHelper {
       apiKey = _env.LIU_TENCENT_LKEAP_API_KEY
       baseURL = _env.LIU_TENCENT_LKEAP_BASE_URL
     }
+    else if(p === "aliyun-bailian") {
+      apiKey = _env.LIU_ALIYUN_BAILIAN_API_KEY
+      baseURL = _env.LIU_ALIYUN_BAILIAN_BASE_URL
+    }
     else if(p === "baichuan") {
       apiKey = _env.LIU_BAICHUAN_API_KEY
       baseURL = _env.LIU_BAICHUAN_BASE_URL

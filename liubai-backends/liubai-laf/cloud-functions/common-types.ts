@@ -607,8 +607,8 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 
 /*********************** About AI **********************/
-export type AiProvider = "baichuan" | "deepseek" | "minimax" | "moonshot" | "stepfun" | 
-  "zero-one" | "zhipu" | "aliyun-bailian"
+export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "minimax" | "moonshot" | "stepfun" | 
+  "zero-one" | "zhipu"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
 
