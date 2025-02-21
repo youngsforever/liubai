@@ -244,7 +244,7 @@ export type SyncSpeed = "instant" | "normal" | "slow"
 
 // about AI
 export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "kimi" | 
-  "wanzhi" | "yuewen" | "zhipu"
+  "wanzhi" | "yuewen" | "zhipu" | "ds-reasoner" | "tongyi-qwen"
 
 // for compose-page
 export interface ComposingData {

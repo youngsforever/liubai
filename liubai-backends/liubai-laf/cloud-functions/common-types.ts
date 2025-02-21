@@ -608,7 +608,7 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 /*********************** About AI **********************/
 export type AiProvider = "baichuan" | "deepseek" | "minimax" | "moonshot" | "stepfun" | 
-  "zero-one" | "zhipu"
+  "zero-one" | "zhipu" | "aliyun-bailian"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
 
@@ -617,7 +617,7 @@ export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencen
 
 // AiCharacter 不跟供应商绑定，它是角色，只不过现在各个供应商都有自己的 To C 角色罢了
 export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "kimi" | "yuewen" | 
-  "wanzhi" | "zhipu" | "ds-reasoner"
+  "wanzhi" | "zhipu" | "ds-reasoner" | "tongyi-qwen"
 
 export type AiInfoType = "user" | "assistant" | "summary" | "clear" | 
   "action" | "background" | "tool_use"

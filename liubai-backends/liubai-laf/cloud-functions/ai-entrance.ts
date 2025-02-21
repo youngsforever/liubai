@@ -384,6 +384,11 @@ function mapBots(
     const pro2 = bot2.run(aiParam)
     promises.push(pro2)
   }
+  else if(c === "tongyi-qwen") {
+    const botTyqw = new BotTongyiQwen(user)
+    const pro3 = botTyqw.run(aiParam)
+    promises.push(pro3)
+  }
   else if(c === "wanzhi") {
     const bot3 = new BotYi(user)
     const pro3 = bot3.run(aiParam)
@@ -2080,6 +2085,46 @@ class BotStepfun extends BaseBot {
     return res6
   }
 
+}
+
+class BotTongyiQwen extends BaseBot {
+  constructor(user?: Table_User) {
+    super("tongyi-qwen", user)
+  }
+
+  async run(aiParam: AiRunParam): Promise<AiRunSuccess | undefined> {
+    // 1. pre run
+    const res1 = this.preRun(aiParam)
+    if(!res1) return
+    const { prompts, totalToken, bot, chats, tools } = res1
+
+    // 2. get other params
+    const model = bot.model
+
+    // 3. handle other things
+
+    // 4. calculate maxTokens
+    const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
+
+    // 5. to chat
+    const chatParam: OaiCreateParam = {
+      messages: prompts,
+      max_tokens: maxToken,
+      model,
+      tools,
+    }
+    const chatCompletion = await this.chat(chatParam, bot)
+    
+    // 6. post run
+    const postParam: PostRunParam = {
+      aiParam,
+      chatParam,
+      chatCompletion,
+      bot,
+    }
+    const res6 = await this.postRun(postParam)
+    return res6
+  }
 }
 
 class BotYi extends BaseBot {
@@ -4279,37 +4324,43 @@ class AiHelper {
       }
       return false
     }
-    else if(c === "ds-reasoner") {
+    if(c === "ds-reasoner") {
       if(_env.LIU_DEEPSEEK_API_KEY && _env.LIU_DEEPSEEK_BASE_URL) {
         return true
       }
       return false
     }
-    else if(c === "hailuo") {
+    if(c === "hailuo") {
       if(_env.LIU_MINIMAX_API_KEY && _env.LIU_MINIMAX_BASE_URL) {
         return true
       }
       return false
     }
-    else if(c === "kimi") {
+    if(c === "kimi") {
       if(_env.LIU_MOONSHOT_API_KEY && _env.LIU_MOONSHOT_BASE_URL) {
         return true
       }
       return false
     }
-    else if(c === "wanzhi") {
+    if(c === "tongyi-qwen") {
+      if(_env.LIU_ALIYUN_BAILIAN_API_KEY && _env.LIU_ALIYUN_BAILIAN_BASE_URL) {
+        return true
+      }
+      return false
+    }
+    if(c === "wanzhi") {
       if(_env.LIU_YI_API_KEY && _env.LIU_YI_BASE_URL) {
         return true
       }
       return false
     }
-    else if(c === "yuewen") {
+    if(c === "yuewen") {
       if(_env.LIU_STEPFUN_API_KEY && _env.LIU_STEPFUN_BASE_URL) {
         return true
       }
       return false
     }
-    else if(c === "zhipu") {
+    if(c === "zhipu") {
       if(_env.LIU_ZHIPU_API_KEY && _env.LIU_ZHIPU_BASE_URL) {
         return true
       }
@@ -4794,6 +4845,7 @@ class AiHelper {
     if(secondaryProvider === "gitee-ai") return "Gitee AI"
     if(secondaryProvider === "qiniu") return "七牛云"
     if(secondaryProvider === "tencent-lkeap") return "腾讯云"
+    if(provider === "aliyun-bailian") return "阿里云"
     if(provider === "baichuan") return "北京百川智能"
     if(provider === "deepseek") return "杭州深度求索"
     if(provider === "minimax") return "上海稀宇科技"
@@ -5437,25 +5489,28 @@ class TellUser {
     if(c === "baixiaoying") {
       return _env.LIU_WXGZH_KF_BAIXIAOYING
     }
-    else if(c === "deepseek") {
+    if(c === "deepseek") {
       return _env.LIU_WXGZH_KF_DEEPSEEK
     }
-    else if(c === "ds-reasoner") {
+    if(c === "ds-reasoner") {
       return _env.LIU_WXGZH_KF_DS_REASONER
     }
-    else if(c === "hailuo") {
+    if(c === "hailuo") {
       return _env.LIU_WXGZH_KF_HAILUO
     }
-    else if(c === "kimi") {
+    if(c === "kimi") {
       return _env.LIU_WXGZH_KF_KIMI
     }
-    else if(c === "wanzhi") {
+    if(c === "tongyi-qwen") {
+      return _env.LIU_WXGZH_KF_TONGYI_QWEN
+    }
+    if(c === "wanzhi") {
       return _env.LIU_WXGZH_KF_WANZHI
     }
-    else if(c === "yuewen") {
+    if(c === "yuewen") {
       return _env.LIU_WXGZH_KF_YUEWEN
     }
-    else if(c === "zhipu") {
+    if(c === "zhipu") {
       return _env.LIU_WXGZH_KF_ZHIPU
     }
   }
