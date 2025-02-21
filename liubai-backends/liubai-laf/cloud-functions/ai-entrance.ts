@@ -4179,6 +4179,7 @@ class AiHelper {
         token += 1
       }
     }
+    token = Math.ceil(token)
     return token
   }
 
