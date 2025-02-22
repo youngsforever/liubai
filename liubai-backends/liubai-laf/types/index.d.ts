@@ -130,6 +130,8 @@ declare global {
       LIU_ALIPAY_NOTIFY_URL?: string
 
       /** Official LLMs */
+      LIU_ALIYUN_BAILIAN_BASE_URL?: string   // 阿里云百炼 base url
+      LIU_ALIYUN_BAILIAN_API_KEY?: string    // 阿里云百炼 api key
       LIU_BAICHUAN_BASE_URL?: string         // 百川 AI 的 base url
       LIU_BAICHUAN_API_KEY?: string          // 百川 AI 的 api key
       LIU_DEEPSEEK_BASE_URL?: string         // DeepSeek AI 的 base url
@@ -184,6 +186,7 @@ declare global {
       LIU_WXGZH_KF_DS_REASONER?: string      // kf_account of ds-reasoner
       LIU_WXGZH_KF_HAILUO?: string           // kf_account of hailuo
       LIU_WXGZH_KF_KIMI?: string             // kf_account of kimi
+      LIU_WXGZH_KF_TONGYI_QWEN?: string      // kf_account of tongyi-qwen
       LIU_WXGZH_KF_WANZHI?: string           // kf_account of wanzhi
       LIU_WXGZH_KF_YUEWEN?: string           // kf_account of yuewen
       LIU_WXGZH_KF_ZHIPU?: string            // kf_account of zhipu

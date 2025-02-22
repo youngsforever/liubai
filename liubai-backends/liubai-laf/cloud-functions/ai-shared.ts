@@ -229,6 +229,10 @@ export class AiShared {
       apiKey = _env.LIU_GITEE_AI_API_KEY
       baseURL = _env.LIU_GITEE_AI_BASE_URL
     }
+    else if(p === "aliyun-bailian") {
+      apiKey = _env.LIU_ALIYUN_BAILIAN_API_KEY
+      baseURL = _env.LIU_ALIYUN_BAILIAN_BASE_URL
+    }
     else if(p === "baichuan") {
       apiKey = _env.LIU_BAICHUAN_API_KEY
       baseURL = _env.LIU_BAICHUAN_BASE_URL
@@ -807,6 +811,9 @@ export class TellUser {
     }
     if(c === "kimi") {
       return _env.LIU_WXGZH_KF_KIMI
+    }
+    if(c === "tongyi-qwen") {
+      return _env.LIU_WXGZH_KF_TONGYI_QWEN
     }
     if(c === "wanzhi") {
       return _env.LIU_WXGZH_KF_WANZHI

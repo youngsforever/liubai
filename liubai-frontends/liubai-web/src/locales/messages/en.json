@@ -636,6 +636,7 @@
     "deepseek": "DeepSeek",
     "hailuo": "Hailuo",
     "kimi": "Kimi",
+    "tongyi-qwen": "Qwen",
     "wanzhi": "Wanzhi",
     "yuewen": "Yuewen",
     "zhipu": "Zhipu"
@@ -645,6 +646,7 @@
     "deepseek": "DeepSeek",
     "hailuo": "MiniMax",
     "kimi": "Moonshot",
+    "tongyi-qwen": "Aliyun",
     "wanzhi": "01.ai",
     "yuewen": "Stepfun",
     "zhipu": "Zhipu"

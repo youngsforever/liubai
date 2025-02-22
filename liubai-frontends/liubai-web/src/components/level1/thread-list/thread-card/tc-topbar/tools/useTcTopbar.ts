@@ -17,6 +17,7 @@ export function useTcTopbar(
     if(a === "deepseek") return "deepseek.svg"
     if(a === "hailuo") return "hailuo.svg"
     if(a === "kimi") return "kimi.png"
+    if(a === "tongyi-qwen") return "tongyi-qwen.svg"
     if(a === "wanzhi") return "01-ai.png"
     if(a === "yuewen") return "yuewen.svg"
     if(a === "zhipu") return "zhipu.svg"
