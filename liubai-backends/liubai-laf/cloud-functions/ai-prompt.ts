@@ -179,6 +179,16 @@ export const aiBots: AiBot[] = [
     priority: 10,
   },
   {
+    name: "通义千问",
+    character: "tongyi-qwen",
+    provider: "aliyun-bailian",
+    model: "qwen-plus-latest",
+    abilities: ["chat", "tool_use"],
+    alias: ["通义", "千问", "qwen", "qwq", "tongyi", "ty"],
+    maxWindowTokenK: 128,
+    priority: 10,
+  },
+  {
     name: "跃问",
     character: "yuewen",
     provider: "stepfun",
@@ -221,6 +231,16 @@ export const aiBots: AiBot[] = [
     abilities: ["chat", "tool_use", "image_to_text"],
     alias: ["Moonshot", "月之暗面"],
     maxWindowTokenK: 8,
+    priority: 10,
+  },
+  {
+    name: "通义千问",
+    character: "tongyi-qwen",
+    provider: "aliyun-bailian",
+    model: "qwen-vl-plus-latest",
+    abilities: ["chat", "image_to_text"],
+    alias: ["通义", "千问", "qwen", "qwq", "tongyi", "ty"],
+    maxWindowTokenK: 128,
     priority: 10,
   },
   {
@@ -461,6 +481,29 @@ ${system_settings}
 ${system_last_request}
 `
 
+const wx_tongyi_qwen_system_1 = `
+你叫通义千问，是由阿里云（阿里巴巴集团）开发的人工智能助手。
+你将协同应用“留白记事”，为人们提供信息检索、内容整理、待办创建、查看最近的日程等服务，帮助每个人都成为超级个体！
+
+【留白记事介绍】
+${system_intro}
+
+【当前环境】
+${system_wx_env}
+
+【常用入口、捷径、网址】
+${system_wx_entry}
+
+【问答示例】
+${system_example}
+
+【你的设定】
+${system_settings}
+
+【最后的请求】
+${system_last_request}
+`
+
 const wx_wanzhi_system_1 = `
 你叫“万知”，是由零一万物公司 01.ai 开发的人工智能助手。
 你将协同应用“留白记事”，为人们提供信息检索、内容整理、待办创建、查看最近的日程等服务，帮助每个人都成为超级个体！
@@ -546,6 +589,9 @@ const wx_gzh_prompts = {
   },
   "kimi": {
     "system_1": wx_kimi_system_1
+  },
+  "tongyi-qwen": {
+    "system_1": wx_tongyi_qwen_system_1
   },
   "wanzhi": {
     "system_1": wx_wanzhi_system_1
