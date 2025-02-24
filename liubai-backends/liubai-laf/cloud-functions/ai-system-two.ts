@@ -21,9 +21,11 @@ import type {
 } from "./common-types"
 import cloud from "@lafjs/cloud"
 import { 
+  AiToolUtil,
   checkIfUserSubscribed, 
   LiuDateUtil, 
   valTool,
+  ValueTransform,
 } from "@/common-util"
 import xml2js from "xml2js"
 import { AiShared, BaseLLM, TellUser, ToolShared } from "@/ai-shared"
@@ -830,6 +832,7 @@ class SystemTwo {
     const res1 = AiShared.getContentFromLLM(chatCompletion, undefined, true)
     const content1 = res1.content
     const reasoning_content1 = res1.reasoning_content
+    this._lastChatCompletion = chatCompletion
 
     // 2. handle error
     // 2.1 there is only reasoning_content
@@ -879,7 +882,7 @@ class SystemTwo {
       this.toReply(content4)
     }
     else if(direction === "2" && tool_calls) {
-      this.toUseTool(tool_calls)
+      this.toUseTools(tool_calls)
     }
     else if(direction === "3" && reasoning_content1) {
       this.toThinkLater(reasoning_content1, content4)
@@ -907,7 +910,7 @@ class SystemTwo {
     this.mapToSomeHourLater(23)
   }
 
-  private toUseTool(tool_calls_str: string) {
+  private async toUseTools(tool_calls_str: string) {
     // 1. parse tool calls
     let tool_calls: Record<string, any>[] = []
     try {
@@ -922,21 +925,58 @@ class SystemTwo {
       return true
     }
 
+    // 2. let's call tools
+    const aiLogs: LiuAi.RunLog[] = []
     for(let i=0; i<tool_calls.length; i++) {
       const v = tool_calls[i]
-      const funcData = v["function"]
-
-      if(v.type !== "function" || !funcData) continue
-      const tool_call_id = v.id
-
-      const funcName = funcData.name
-      const funcArgs = funcData.arguments
-      const funcJson = valTool.strToObj(funcArgs)
-      console.log("funcName: ", funcName)
-      console.log(funcJson)
+      await this.useATool(v)
 
     }
 
+
+  }
+
+  private async useATool(
+    tool_call: Record<string, any>,
+  ) {
+    const funcData = tool_call["function"]
+    if(tool_call.type !== "function" || !funcData) return false
+    const tool_call_id = tool_call.id
+
+    const funcName = funcData.name as LiuAi.ToolName
+    const funcArgs = funcData.arguments
+    const funcJson = valTool.strToObj(funcArgs)
+    console.log("funcName: ", funcName)
+    console.log(funcJson)
+
+    const toolHandler2 = new ToolHandler2(
+      this._ctx, 
+      [tool_call] as OaiToolCall[], 
+      this._lastChatCompletion,
+    )
+
+    if(funcName === "add_note") {
+      await toolHandler2.add_note(funcJson)
+    }
+    else if(funcName === "add_todo") {
+      await toolHandler2.add_todo(funcJson)
+    }
+    else if(funcName === "add_calendar") {
+      await toolHandler2.add_calendar(funcJson)
+    }
+    else if(funcName === "web_search") {
+      await toolHandler2.web_search(funcJson)
+    }
+    else if(funcName === "parse_link") {
+      await toolHandler2.parse_link(funcJson)
+    }
+    else if(funcName === "get_schedule") {
+      await toolHandler2.get_schedule(funcJson)
+    }
+    else if(funcName === "get_cards") {
+      await toolHandler2.get_cards(funcJson)
+    }
+    
 
   }
 
@@ -1071,8 +1111,173 @@ class ToolHandler2 {
     return chatId
   }
 
+  private async _replyToUser(msg: string) {
+    const entry = System2Util.mockAiEntry(this._user)
+    TellUser.text(entry, msg, { fromSystem2: true })
+  }
 
+  async add_note(funcJson: Record<string, any>) {
+    // 1. check out param
+    const waitingData = AiToolUtil.turnJsonToWaitingData("add_note", funcJson)
+    if(!waitingData) {
+      console.warn("fail to parse funcJson in add_note: ")
+      console.log(funcJson)
+      return
+    }
 
+    // 2. add msg
+    const chatId = await this._addMsgToChat({
+      funcName: "add_note",
+      funcJson,
+    })
+    if(!chatId) return
+
+    // 3. reply
+    const toolShared = this._toolShared
+    const msg = toolShared.get_msg_for_adding_note(funcJson, chatId)
+    this._replyToUser(msg)
+  }
+
+  async add_todo(funcJson: Record<string, any>) {
+    // 1. check out param
+    const waitingData = AiToolUtil.turnJsonToWaitingData("add_todo", funcJson)
+    if(!waitingData) {
+      console.warn("fail to parse funcJson in add_todo: ")
+      console.log(funcJson)
+      return
+    }
+
+    // 2. add msg
+    const chatId = await this._addMsgToChat({
+      funcName: "add_note",
+      funcJson,
+    })
+    if(!chatId) return
+
+    // 3. reply
+    const toolShared = this._toolShared
+    const msg = toolShared.get_msg_for_adding_todo(chatId, funcJson)
+    this._replyToUser(msg)
+  }
+
+  async add_calendar(funcJson: Record<string, any>) {
+    // 0. normalize for bots which are not so smart
+    const check0_1 = ValueTransform.str2Num(funcJson.earlyMinute)
+    if(check0_1.pass) funcJson.earlyMinute = check0_1.data
+    const check0_2 = ValueTransform.str2Num(funcJson.laterHour)
+    if(check0_2.pass) funcJson.laterHour = check0_2.data
+
+    // 1. check out param
+    const waitingData = AiToolUtil.turnJsonToWaitingData("add_calendar", funcJson)
+    if(!waitingData) {
+      console.warn("cannot parse funcJson in add_calendar: ")
+      console.log(funcJson)
+      return
+    }
+
+    // 2. add chat
+    const chatId = await this._addMsgToChat({
+      funcName: "add_calendar",
+      funcJson,
+    })
+    if(!chatId) return
+
+    // 3. reply
+    const toolShared = this._toolShared
+    const msg = toolShared.get_msg_for_adding_calendar(chatId, funcJson)
+    this._replyToUser(msg)
+  }
+
+  async web_search(funcJson: Record<string, any>) {
+    // 1. search by ToolShared
+    const toolShared = this._toolShared
+    const searchRes = await toolShared.web_search(funcJson)
+    if(!searchRes) return
+
+    // 2. add to chat
+    const data2: Partial<Table_AiChat> = {
+      funcName: "web_search",
+      funcJson,
+      webSearchProvider: searchRes.provider,
+      webSearchData: searchRes.originalResult,
+      text: searchRes.markdown,
+    }
+    await this._addMsgToChat(data2)
+    return searchRes
+  }
+
+  async get_schedule(
+    funcJson: Record<string, any>,
+  ) {
+    // 1. get schedule from ai-shared.ts
+    const toolShared = this._toolShared
+    const data1 = await toolShared.get_schedule(funcJson)
+    const { textToBot } = data1
+
+    // 2. add chat
+    const data2: Partial<Table_AiChat> = {
+      funcName: "get_schedule",
+      funcJson,
+      text: textToBot,
+    }
+    const chatId = await this._addMsgToChat(data2)
+    if(!chatId) return
+
+    return {
+      textToBot,
+      chatId,
+    }
+  }
+
+  async get_cards(
+    funcJson: Record<string, any>,
+  ) {
+    // 1. get cards using ToolShared
+    const toolShared = this._toolShared
+    const res1 = await toolShared.get_cards(funcJson)
+    if(!res1) return
+    const { textToBot } = res1
+
+    // 2. add msg
+    const data2: Partial<LiuAi.HelperAssistantMsgParam> = {
+      funcName: "get_cards",
+      funcJson,
+      text: textToBot,
+    }
+    const chatId = await this._addMsgToChat(data2)
+    if(!chatId) return
+
+    return {
+      textToBot,
+      chatId,
+    }
+  }
+
+  async parse_link(
+    funcJson: Record<string, any>,
+  ) {
+    // 1. get to parse
+    const toolShared = this._toolShared
+    const res1 = await toolShared.parse_link(funcJson)
+    if(!res1) return
+
+    // 2. clip
+    let { markdown } = res1
+    if(markdown.length > 6666) {
+      markdown = markdown.substring(0, 6666) + "......"
+    }
+
+    // 3. add chat
+    const data3: Partial<Table_AiChat> = {
+      funcName: "parse_link",
+      funcJson,
+      text: markdown,
+    }
+    const chatId = await this._addMsgToChat(data3)
+    if(!chatId) return
+
+    return res1
+  }
 
 
 }

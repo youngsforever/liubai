@@ -2617,7 +2617,7 @@ class ToolHandler {
       webSearchData: searchRes.originalResult,
       text: searchRes.markdown,
     }
-    const assistantChatId = await this._addMsgToChat(data3)
+    await this._addMsgToChat(data3)
     return searchRes
   }
 

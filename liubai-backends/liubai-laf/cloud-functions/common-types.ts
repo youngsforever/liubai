@@ -3483,6 +3483,9 @@ export namespace LiuAi {
 
   export type Sys2Role = "human" | "developer" | "bot" | "system" | "tool" | "you"
 
+  export type ToolName = "add_note" | "add_todo" | "add_calendar" 
+    | "web_search" | "parse_link" | "draw_picture" | "get_schedule" | "get_cards"
+
 }
 
 
