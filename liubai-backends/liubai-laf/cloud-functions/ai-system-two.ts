@@ -21,6 +21,7 @@ import type {
   Table_AiChat, 
   Table_AiRoom, 
   Table_User,
+  DataPass,
 } from "./common-types"
 import cloud from "@lafjs/cloud"
 import { 
@@ -486,7 +487,7 @@ const user_prompt = `
 现在是你的时间。
 `.trim()
 
-const tool_result_prompt = `
+const tool_result_tmpl = `
 ## 工具调用结果
 
 {tool_result}
@@ -815,18 +816,21 @@ class SystemTwo {
       }
     ]
 
-    // 7. call LLM
+    // 7. add _reasonerAndUs
+    messages.push(...reasonerAndUs)
+
+    // 8. call LLM
     const apiData = System2Util.getApiData()
     const { model, baseUrl, apiKey } = apiData
     const llm = new BaseLLM(apiKey, baseUrl)
-    const res7 = await llm.chat({ 
+    const res8 = await llm.chat({ 
       messages, 
       model, 
       temperature: 0.6,
       max_tokens: MAX_OUTPUT_TOKENS,
     })
 
-    return res7
+    return res8
   }
 
   private async handleOutput(
@@ -964,39 +968,106 @@ class SystemTwo {
 
     // 3. decide which path to go
     if(funcName === "add_note") {
-      await toolHandler2.add_note(funcJson)
+      const addNoteRes1 = await toolHandler2.add_note(funcJson)
+      const addNoteRes2 = this.afterAddingCard(addNoteRes1)
+      return addNoteRes2
     }
-    else if(funcName === "add_todo") {
-      await toolHandler2.add_todo(funcJson)
+    if(funcName === "add_todo") {
+      const addTodoRes1 = await toolHandler2.add_todo(funcJson)
+      const addTodoRes2 = this.afterAddingCard(addTodoRes1)
+      return addTodoRes2
     }
-    else if(funcName === "add_calendar") {
-      await toolHandler2.add_calendar(funcJson)
+    if(funcName === "add_calendar") {
+      const addCalendarRes1 = await toolHandler2.add_calendar(funcJson)
+      const addCalendarRes2 = this.afterAddingCard(addCalendarRes1)
+      return addCalendarRes2
     }
-    else if(funcName === "web_search") {
+    
+    if(funcName === "web_search") {
       await toolHandler2.web_search(funcJson)
     }
-    else if(funcName === "parse_link") {
+    
+    if(funcName === "parse_link") {
       await toolHandler2.parse_link(funcJson)
     }
-    else if(funcName === "draw_picture") {
-      let drawRes = await toolHandler2.draw_picture(funcJson)
-      if(!drawRes) return
-      
+    
+    if(funcName === "draw_picture") {
+      const drawRes1 = await toolHandler2.draw_picture(funcJson)
+      const drawRes2 = this.afterDrawingPicture(drawRes1)
+      return drawRes2
     }
-    else if(funcName === "get_schedule") {
+
+    if(funcName === "get_schedule") {
       await toolHandler2.get_schedule(funcJson)
     }
-    else if(funcName === "get_cards") {
+    
+    if(funcName === "get_cards") {
       await toolHandler2.get_cards(funcJson)
     }
     
 
   }
 
-  private afterDrawingPicture(
-    drawRes: LiuAi.PaletteResult,
-    tool_call: Record<string, any>,
+  private _addPromptsForToolUse(
+    tool_result: string,
   ) {
+    // 1. check out lastChatCompletion
+    const lastChatCompletion = this._lastChatCompletion
+    if(!lastChatCompletion) return false
+
+    // 2. get content from LLM
+    const res2 = AiShared.getContentFromLLM(lastChatCompletion, undefined, true)
+    const content2 = res2.content
+    if(!content2) return false
+
+    // 3. add assitant prompt
+    const assistantMessage: OaiPrompt = {
+      role: "assistant",
+      content: content2,
+    }
+    this._reasonerAndUs.push(assistantMessage)
+
+    // 4. add user prompt
+    const newUserContent = i18nFill(tool_result_tmpl, { tool_result })
+    const userPrompt: OaiPrompt = {
+      role: "user",
+      content: newUserContent,
+    }
+    this._reasonerAndUs.push(userPrompt)
+
+    return true
+  }
+
+
+  /** return `true` to represent `continue`,
+   * otherwise to represent `stop`
+  */
+  private afterAddingCard(
+    res: CommonPass,
+  ) {
+    if(res.pass) return false
+
+    // 1. add prompts
+    const message = valTool.objToStr(res.err)
+    const res1 = this._addPromptsForToolUse(message)
+    return res1
+  }
+
+
+  /** return `true` to represent `continue`,
+   * otherwise to represent `stop`
+  */
+  private afterDrawingPicture(
+    dataPass: DataPass<LiuAi.PaletteResult>,
+  ) {
+    // 0. if error
+    if(!dataPass.pass) {
+      const text0 = valTool.objToStr(dataPass.err)
+      const res0 = this._addPromptsForToolUse(text0)
+      return res0
+    }
+    const drawRes = dataPass.data
+
     // 1. get text which will be sent to user
     const user = this._ctx.user
     const { t } = useI18n(aiLang, { user })
@@ -1016,9 +1087,7 @@ class SystemTwo {
     }
     this._runLogs.push(drawLog)
 
-    // 3. add prompts
-    
-
+    return false
   }
 
 
@@ -1211,7 +1280,7 @@ class ToolHandler2 {
     return { pass: true }
   }
 
-  async add_calendar(funcJson: Record<string, any>) {
+  async add_calendar(funcJson: Record<string, any>): Promise<CommonPass> {
     // 0. normalize for bots which are not so smart
     const check0_1 = ValueTransform.str2Num(funcJson.earlyMinute)
     if(check0_1.pass) funcJson.earlyMinute = check0_1.data
@@ -1287,13 +1356,17 @@ class ToolHandler2 {
 
   async draw_picture(
     funcJson: Record<string, any>,
-  ) {
+  ): Promise<DataPass<LiuAi.PaletteResult>> {
+    // 0. define error result
+    const errRes = checker.getErrResult()
+
     // 1. check out param
     const prompt = funcJson.prompt
     if(!prompt || typeof prompt !== "string") {
       console.warn("draw_picture prompt is not string")
       console.log(funcJson)
-      return
+      errRes.err.errMsg = "draw_picture prompt is not string"
+      return errRes
     }
     let sizeType = funcJson.sizeType as AiImageSizeType
     if(sizeType !== "portrait" && sizeType !== "square") {
@@ -1307,11 +1380,14 @@ class ToolHandler2 {
       text: prompt,
     }
     const chatId = await this._addMsgToChat(data2)
-    if(!chatId) return
+    if(!chatId) return this._getErrForAddingMsg()
 
     // 3. draw
     const res3 = await this._getDrawResult(prompt, sizeType)
-    if(!res3) return
+    if(!res3) {
+      errRes.err.errMsg = "fail to draw picture"
+      return errRes
+    }
 
     // 4. update chat
     const data4: Partial<Table_AiChat> = {
@@ -1330,7 +1406,7 @@ class ToolHandler2 {
       fromSystem2: true,
     })
 
-    return res3
+    return { pass: true, data: res3 }
   }
 
   async get_schedule(
