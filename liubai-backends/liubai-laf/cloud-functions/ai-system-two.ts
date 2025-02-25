@@ -11,7 +11,6 @@ import type {
   AiEntry,
   AiImageSizeType,
   AiInfoType,
-  CommonPass_A,
   CommonPass,
   LiuAi,
   OaiChatCompletion,
@@ -34,7 +33,14 @@ import {
   ValueTransform,
 } from "@/common-util"
 import xml2js from "xml2js"
-import { AiShared, BaseLLM, Palette, TellUser, ToolShared, Translator } from "@/ai-shared"
+import { 
+  AiShared, 
+  BaseLLM, 
+  Palette, 
+  TellUser, 
+  ToolShared, 
+  Translator,
+} from "@/ai-shared"
 import { aiLang, i18nFill, useI18n } from "@/common-i18n"
 
 
@@ -491,8 +497,12 @@ const user_prompt = `
 const tool_result_tmpl = `
 ## 工具调用结果
 
-{tool_result}
-
+<log>
+  <role>tool</role>
+  <content>{tool_result}</content>
+  <tool_call_id>{tool_call_id}</tool_call_id>
+  <time>{time}</time>
+</log>
 
 ## 再次提醒
 
@@ -541,6 +551,13 @@ const you_log_tmpl = `
   <time>{time}</time>
 </log>
 `.trim()
+
+const xml_with_tool_calls = `
+<xml>
+  <direction>2</direction>
+  <tool_calls>{tool_calls}</tool_calls>
+</xml>
+`
 
 /********************* constants ****************/
 const db = cloud.database()
@@ -938,7 +955,7 @@ class SystemTwo {
     const aiLogs: LiuAi.RunLog[] = []
     for(let i=0; i<tool_calls.length; i++) {
       const v = tool_calls[i]
-      await this.useATool(v)
+      await this.useATool(v as OaiToolCall)
 
     }
 
@@ -946,12 +963,11 @@ class SystemTwo {
   }
 
   private async useATool(
-    tool_call: Record<string, any>,
+    tool_call: OaiToolCall,
   ) {
     // 1. check out param
     const funcData = tool_call["function"]
     if(tool_call.type !== "function" || !funcData) return false
-    const tool_call_id = tool_call.id
 
     // 2. get required params
     const funcName = funcData.name as LiuAi.ToolName
@@ -970,23 +986,23 @@ class SystemTwo {
     // 3. decide which path to go
     if(funcName === "add_note") {
       const addNoteRes1 = await toolHandler2.add_note(funcJson)
-      const addNoteRes2 = this.afterAddingCard(addNoteRes1)
+      const addNoteRes2 = this.afterAddingCard(addNoteRes1, tool_call)
       return addNoteRes2
     }
     if(funcName === "add_todo") {
       const addTodoRes1 = await toolHandler2.add_todo(funcJson)
-      const addTodoRes2 = this.afterAddingCard(addTodoRes1)
+      const addTodoRes2 = this.afterAddingCard(addTodoRes1, tool_call)
       return addTodoRes2
     }
     if(funcName === "add_calendar") {
       const addCalendarRes1 = await toolHandler2.add_calendar(funcJson)
-      const addCalendarRes2 = this.afterAddingCard(addCalendarRes1)
+      const addCalendarRes2 = this.afterAddingCard(addCalendarRes1, tool_call)
       return addCalendarRes2
     }
     
     if(funcName === "web_search") {
       const searchRes1 = await toolHandler2.web_search(funcJson)
-      const searchRes2 = this.afterSearching(searchRes1)
+      const searchRes2 = this.afterSearching(searchRes1, tool_call)
       return searchRes2
     }
     
@@ -996,7 +1012,7 @@ class SystemTwo {
     
     if(funcName === "draw_picture") {
       const drawRes1 = await toolHandler2.draw_picture(funcJson)
-      const drawRes2 = this.afterDrawingPicture(drawRes1)
+      const drawRes2 = this.afterDrawingPicture(drawRes1, tool_call)
       return drawRes2
     }
 
@@ -1013,25 +1029,29 @@ class SystemTwo {
 
   private _addPromptsForToolUse(
     tool_result: string,
+    tool_call: OaiToolCall,
   ) {
-    // 1. check out lastChatCompletion
-    const lastChatCompletion = this._lastChatCompletion
-    if(!lastChatCompletion) return false
+    // 1. generate message from LLM
+    const tool_call_msg = valTool.objToStr(tool_call)
+    const tool_calls_str = `[${tool_call_msg}]`
+    const content1 = i18nFill(xml_with_tool_calls, {
+      tool_calls: tool_calls_str,
+    })
 
-    // 2. get content from LLM
-    const res2 = AiShared.getContentFromLLM(lastChatCompletion, undefined, true)
-    const content2 = res2.content
-    if(!content2) return false
-
-    // 3. add assitant prompt
+    // 2. add assitant prompt
     const assistantMessage: OaiPrompt = {
       role: "assistant",
-      content: content2,
+      content: content1,
     }
     this._reasonerAndUs.push(assistantMessage)
 
-    // 4. add user prompt
-    const newUserContent = i18nFill(tool_result_tmpl, { tool_result })
+    // 3. add user prompt
+    const timeStr = this._getCurrentTimeStr()
+    const newUserContent = i18nFill(tool_result_tmpl, {
+      time: timeStr,
+      tool_call_id: tool_call.id,
+      tool_result,
+    })
     const userPrompt: OaiPrompt = {
       role: "user",
       content: newUserContent,
@@ -1043,9 +1063,20 @@ class SystemTwo {
 
   private _addErrPromptsForToolUse(
     err: LiuErrReturn,
+    tool_call: OaiToolCall,
   ) {
     const msg = valTool.objToStr(err)
-    return this._addPromptsForToolUse(msg)
+    return this._addPromptsForToolUse(msg, tool_call)
+  }
+
+  private _getCurrentTimeStr() {
+    const user = this._ctx.user
+    const res1 = LiuDateUtil.getDateAndTime(
+      getNowStamp(),
+      user?.timezone,
+    )
+    const timeStr = `${res1.date} ${res1.time}`
+    return timeStr
   }
 
 
@@ -1054,11 +1085,12 @@ class SystemTwo {
   */
   private afterAddingCard(
     res: CommonPass,
+    tool_call: OaiToolCall,
   ) {
     if(res.pass) return false
 
     // add error prompts
-    return this._addErrPromptsForToolUse(res.err)
+    return this._addErrPromptsForToolUse(res.err, tool_call)
   }
 
   /** return `true` to represent `continue`,
@@ -1066,13 +1098,14 @@ class SystemTwo {
   */
   private afterSearching(
     dataPass: DataPass<LiuAi.SearchResult>,
+    tool_call: OaiToolCall,
   ) {
     if(!dataPass.pass) {
-      return this._addErrPromptsForToolUse(dataPass.err)
+      return this._addErrPromptsForToolUse(dataPass.err, tool_call)
     }
     const searchRes = dataPass.data
     const searchMd = searchRes.markdown
-    return this._addPromptsForToolUse(searchMd)
+    return this._addPromptsForToolUse(searchMd, tool_call)
   }
 
 
@@ -1081,10 +1114,11 @@ class SystemTwo {
   */
   private afterDrawingPicture(
     dataPass: DataPass<LiuAi.PaletteResult>,
+    tool_call: OaiToolCall,
   ) {
     // 0. if error
     if(!dataPass.pass) {
-      return this._addErrPromptsForToolUse(dataPass.err)
+      return this._addErrPromptsForToolUse(dataPass.err, tool_call)
     }
     const drawRes = dataPass.data
 
