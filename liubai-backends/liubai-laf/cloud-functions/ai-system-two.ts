@@ -1020,11 +1020,15 @@ class SystemTwo {
     }
 
     if(funcName === "get_schedule") {
-      await toolHandler2.get_schedule(funcJson)
+      const getSchRes1 = await toolHandler2.get_schedule(funcJson)
+      const getSchRes2 = this.afterGettingSchedules(getSchRes1, funcJson, tool_call)
+      return getSchRes2
     }
     
     if(funcName === "get_cards") {
-      await toolHandler2.get_cards(funcJson)
+      const getCardsRes1 = await toolHandler2.get_cards(funcJson)
+      const getCardsRes2 = this.afterGettingCards(getCardsRes1, funcJson, tool_call)
+      return getCardsRes2
     }
     
     return true
@@ -1082,6 +1086,56 @@ class SystemTwo {
     return timeStr
   }
 
+  private afterGettingCards(
+    dataPass: DataPass<LiuAi.ReadCardsResult>,
+    funcJson: Record<string, any>,
+    tool_call: OaiToolCall,
+  ) {
+    // 1. if error
+    if(!dataPass.pass) {
+      return this._addErrPromptsForToolUse(dataPass.err, tool_call)
+    }
+    const readingRes = dataPass.data
+
+    // 2. add running log
+    const log: LiuAi.RunLog = {
+      toolName: "get_cards",
+      cardType: funcJson.cardType,
+      character: SYS2_CHARACTER,
+      textToUser: readingRes.textToUser,
+      logStamp: getNowStamp(),
+    }
+    this._runLogs.push(log)
+
+    // 3. add prompts
+    return this._addPromptsForToolUse(readingRes.textToBot, tool_call)
+  }
+
+  private afterGettingSchedules(
+    dataPass: DataPass<LiuAi.ReadCardsResult>,
+    funcJson: Record<string, any>,
+    tool_call: OaiToolCall,
+  ) {
+    // 1. if error
+    if(!dataPass.pass) {
+      return this._addErrPromptsForToolUse(dataPass.err, tool_call)
+    }
+    const readingRes = dataPass.data
+
+    // 2. add running log
+    const log: LiuAi.RunLog = {
+      toolName: "get_schedule",
+      hoursFromNow: funcJson.hoursFromNow,
+      specificDate: funcJson.specificDate,
+      character: SYS2_CHARACTER,
+      textToUser: readingRes.textToUser,
+      logStamp: getNowStamp(),
+    }
+    this._runLogs.push(log)
+
+    // 3. add prompts
+    return this._addPromptsForToolUse(readingRes.textToBot, tool_call)
+  }
 
   /** return `true` to represent `continue`,
    * otherwise to represent `stop`
@@ -1481,11 +1535,12 @@ class ToolHandler2 {
 
   async get_schedule(
     funcJson: Record<string, any>,
-  ) {
+  ): Promise<DataPass<LiuAi.ReadCardsResult>> {
     // 1. get schedule from ai-shared.ts
     const toolShared = this._toolShared
-    const data1 = await toolShared.get_schedule(funcJson)
-    const { textToBot } = data1
+    const res1 = await toolShared.get_schedule(funcJson)
+    if(!res1.pass) return res1
+    const { textToBot, textToUser } = res1.data
 
     // 2. add chat
     const data2: Partial<Table_AiChat> = {
@@ -1494,22 +1549,26 @@ class ToolHandler2 {
       text: textToBot,
     }
     const chatId = await this._addMsgToChat(data2)
-    if(!chatId) return
+    if(!chatId) return this._getErrForAddingMsg()
 
     return {
-      textToBot,
-      chatId,
+      pass: true,
+      data: {
+        textToBot,
+        textToUser,
+        assistantChatId: chatId,
+      }
     }
   }
 
   async get_cards(
     funcJson: Record<string, any>,
-  ) {
+  ): Promise<DataPass<LiuAi.ReadCardsResult>> {
     // 1. get cards using ToolShared
     const toolShared = this._toolShared
     const res1 = await toolShared.get_cards(funcJson)
-    if(!res1) return
-    const { textToBot } = res1
+    if(!res1.pass) return res1
+    const { textToBot, textToUser } = res1.data
 
     // 2. add msg
     const data2: Partial<LiuAi.HelperAssistantMsgParam> = {
@@ -1518,11 +1577,15 @@ class ToolHandler2 {
       text: textToBot,
     }
     const chatId = await this._addMsgToChat(data2)
-    if(!chatId) return
+    if(!chatId) return this._getErrForAddingMsg()
 
     return {
-      textToBot,
-      chatId,
+      pass: true,
+      data: {
+        textToBot,
+        textToUser,
+        assistantChatId: chatId,
+      }
     }
   }
 

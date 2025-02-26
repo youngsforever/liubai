@@ -2706,8 +2706,9 @@ class ToolHandler {
     funcJson: Record<string, any>,
   ): Promise<LiuAi.ReadCardsResult | undefined> {
     // 1. get schedule from ai-shared.ts
-    const data1 = await this._toolShared.get_schedule(funcJson)
-    const { textToUser, textToBot, hasData } = data1
+    const res1 = await this._toolShared.get_schedule(funcJson)
+    if(!res1.pass) return
+    const { textToUser, textToBot, hasData } = res1.data
 
     // 2. add msg into chats
     const data8: Partial<LiuAi.HelperAssistantMsgParam> = {
@@ -2731,8 +2732,8 @@ class ToolHandler {
     // 1. get cards using ToolShared
     const toolShared = this._toolShared
     const res1 = await toolShared.get_cards(funcJson)
-    if(!res1) return
-    const { textToUser, textToBot, hasData } = res1
+    if(!res1.pass) return
+    const { textToUser, textToBot, hasData } = res1.data
 
     // 2. add msg
     const data8: Partial<LiuAi.HelperAssistantMsgParam> = {

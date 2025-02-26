@@ -3373,6 +3373,12 @@ export namespace LiuAi {
     originalResult: Record<string, any>
   }
 
+  export interface ReadCardsSharedRes {
+    textToUser: string
+    textToBot: string
+    hasData: boolean
+  }
+
   export interface ReadCardsResult {
     textToUser: string
     textToBot: string

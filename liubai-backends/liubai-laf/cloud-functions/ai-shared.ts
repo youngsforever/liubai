@@ -1009,7 +1009,9 @@ export class ToolShared {
     return { pass: true, data: searchRes }
   }
 
-  async get_schedule(funcJson: Record<string, any>) {
+  async get_schedule(
+    funcJson: Record<string, any>
+  ): Promise<DataPass<LiuAi.ReadCardsSharedRes>> {
     // 0. normalize for bots which are not so smart
     if(funcJson.specificDate === "dayAfterTomorrow") {
       funcJson.specificDate = "day_after_tomorrow"
@@ -1105,7 +1107,10 @@ export class ToolShared {
       textToBot += t("no_data")
     }
 
-    return { textToBot, textToUser, hasData }
+    return {
+      pass: true,
+      data: { textToBot, textToUser, hasData }
+    }
   }
 
   private _handleGetScheduleForSpecificDate(
@@ -1206,14 +1211,17 @@ export class ToolShared {
 
   async get_cards(
     funcJson: Record<string, any>,
-  ) {
+  ): Promise<DataPass<LiuAi.ReadCardsSharedRes>> {
+    const errRes = checker.getErrResult()
+
     // 1. checking out param
     const res1 = vbot.safeParse(Sch_AiToolGetCardsParam, funcJson)
     if(!res1.success) {
       console.warn("cannot parse get_cards param: ")
       console.log(funcJson)
       console.log(res1.issues)
-      return
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res1.issues)
+      return errRes
     }
     const cardType = funcJson.cardType as AiToolGetCardType
 
@@ -1288,7 +1296,10 @@ export class ToolShared {
       textToBot += t("no_data")
     }
 
-    return { textToBot, textToUser, hasData }
+    return {
+      pass: true,
+      data: { textToBot, textToUser, hasData }
+    }
   }
 
   async parse_link(
