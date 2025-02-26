@@ -42,7 +42,7 @@ import {
   Translator,
 } from "@/ai-shared"
 import { aiLang, i18nFill, useI18n } from "@/common-i18n"
-
+import { ai_cfg } from "@/common-config"
 
 const all_good_str = "都很好，无需进一步操作"
 
@@ -712,7 +712,7 @@ class Controller {
         continue
       }
       const count = v.quota?.aiConversationCount ?? 0
-      if(count >= LEAST_CONVERSATION_COUNT) {
+      if(count >= ai_cfg.minConversationsToTriggerSystemTwo) {
         newUsers.push(v)
         continue
       }

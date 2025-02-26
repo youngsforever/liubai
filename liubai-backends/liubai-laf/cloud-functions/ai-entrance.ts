@@ -64,6 +64,7 @@ import {
   LogHelper,
   Translator,
 } from "@/ai-shared"
+import { ai_cfg } from "@/common-config"
 
 const db = cloud.database()
 const _ = db.command
@@ -2134,7 +2135,7 @@ class AiController {
     if(!hasEverSucceeded) return
 
     // 5. add quota for user
-    const num5 = AiHelper.addQuotaForUser(entry)
+    const num5 = AiHelper.addQuotaForUser(entry, room)
     if(aiLogs.length > 0) {
       this.sendFallbackMenu(aiParam, res4, aiLogs) 
     }
@@ -2352,7 +2353,7 @@ class ContinueController {
     if(!hasEverSucceeded) return
 
     // 5. add quota for user
-    AiHelper.addQuotaForUser(entry)
+    AiHelper.addQuotaForUser(entry, room)
   }
 
 }
@@ -3261,7 +3262,10 @@ class AiHelper {
     return maxTokens
   }
 
-  static addQuotaForUser(entry: AiEntry) {
+  static addQuotaForUser(
+    entry: AiEntry,
+    room: Table_AiRoom,
+  ) {
     // 1. add
     const user = entry.user
     const userId = user._id
@@ -3271,7 +3275,7 @@ class AiHelper {
       quota.lastWxGzhChatStamp = getNowStamp()
     }
 
-    // 2. update
+    // 2. update user
     const now2 = getNowStamp()
     const u2: Partial<Table_User> = {
       quota,
@@ -3280,8 +3284,46 @@ class AiHelper {
     }
     const uCol = db.collection("User")
     uCol.doc(userId).update(u2)
+
+    // 3. update room for needSystem2Stamp
+    const minRecordNum = ai_cfg.minCoversationsToRecordForSystemTwo
+    if(quota.aiConversationCount >= minRecordNum) {
+      this._updateNeedSystem2Stamp(room)
+    }
     
     return quota.aiConversationCount
+  }
+
+  private static _updateNeedSystem2Stamp(
+    room: Table_AiRoom,
+  ) {
+    // 1. check if need to update
+    const now = getNowStamp()
+    const lastStamp = room.needSystem2Stamp ?? 0
+    if(lastStamp > (now + MIN_3)) return
+    const roomId = room._id
+    
+    // 2. define map hours
+    const _update = (hr: number) => {
+      // 2.1 get new stamp
+      const randomMinute = Math.ceil(Math.random() * 30)
+      const newStamp = randomMinute * MINUTE + (hr * HOUR) + now
+
+      // 2.2 new data
+      const u2: Partial<Table_AiRoom> = {
+        needSystem2Stamp: newStamp,
+        updatedStamp: now,
+      }
+      const rCol = db.collection("AiRoom")
+      rCol.doc(roomId).update(u2)
+    }
+
+    if(!lastStamp) {
+      _update(23)
+    }
+    else {
+     _update(1) 
+    }
   }
 
   static getKickCharacters(
