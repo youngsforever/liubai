@@ -3439,10 +3439,10 @@ class AiHelper {
 
     // 3. turn all images into text
     const newChats = chats.map(v => {
-      const { msgType, imageUrl } = v
+      const { msgType, imageUrl, text } = v
       if(msgType === "image" || imageUrl) {
         v.msgType = "text"
-        v.text = "[image]"
+        v.text = AiHelper.imageRecognitionText(text)
         delete v.imageUrl
       }
       return v
@@ -3450,6 +3450,22 @@ class AiHelper {
     return newChats
   }
 
+  static imageRecognitionText(
+    originalText?: string,
+  ) {
+    const imgPrefix = "【识图结果】"
+    let text = originalText || ""
+    if(text) {
+      if(text === "[image]") return text
+      if(text.startsWith(imgPrefix)) return text
+      text = `${imgPrefix}：\n${text}`
+    }
+
+    if(!text) {
+      text = "[image]"
+    }
+    return text
+  }
 
   static needImageToTextAbility(
     chats: Table_AiChat[],
@@ -3457,7 +3473,7 @@ class AiHelper {
     let need = false
     for(let i=0; i<chats.length; i++) {
       const chat = chats[i]
-      if(chat.msgType === "image") {
+      if(chat.msgType === "image" && !chat.text) {
         need = true
         break
       }
@@ -3565,6 +3581,7 @@ class ChatIntoPrompter {
   private _user: Table_User
   private _canUseTool: boolean
   private _canInputAudio: boolean
+  private _canReadPhoto: boolean
   private _opt?: TurnChatsIntoPromptOpt
 
   constructor(user: Table_User, opt?: TurnChatsIntoPromptOpt) {
@@ -3574,6 +3591,7 @@ class ChatIntoPrompter {
     this._opt = opt
     this._canUseTool = abilities.includes("tool_use")
     this._canInputAudio = abilities.includes("input_audio")
+    this._canReadPhoto = abilities.includes("image_to_text")
   }
 
   run(
@@ -3734,14 +3752,29 @@ class ChatIntoPrompter {
       msgType,
     } = v
     const canInputAudio = this._canInputAudio
+    const canReadPhoto = this._canReadPhoto
     const c = this._opt?.character
 
-    if(imageUrl) {
-      return {
-        role: "user",
-        content: [{ type: "image_url", image_url: { url: imageUrl } }]
+    if(msgType === "image") {
+      if(imageUrl && canReadPhoto) {
+        return {
+          role: "user",
+          content: [
+            { 
+              type: "image_url", 
+              image_url: { url: imageUrl },
+            }
+          ]
+        }
+      }
+      if(text) {
+        return {
+          role: "user",
+          content: AiHelper.imageRecognitionText(text),
+        }
       }
     }
+
     if(msgType === "voice" && audioBase64 && canInputAudio) {
       const audioPrompt: OaiPrompt = {
         role: "user",
