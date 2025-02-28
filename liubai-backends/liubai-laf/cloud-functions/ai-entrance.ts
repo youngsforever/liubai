@@ -475,7 +475,7 @@ class AiDirective {
       const name = v.name.toLowerCase()
       const alias = v.alias.map(v => v.toLowerCase())
       if(name === txt2) return true
-      if(name === v.character) return true
+      if(v.character === txt2) return true
       if(alias.includes(txt2)) return true
       return false
     })
