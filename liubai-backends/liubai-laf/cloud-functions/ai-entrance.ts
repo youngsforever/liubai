@@ -2110,11 +2110,13 @@ class BotTencentHunyuan extends BaseBot {
 
     // 3. handle other things
     // 3.1 interleave user assistant
+    if(aiParam.isContinueCommand) {
+      prompts.push({ role: "user", content: "Continue / 继续" })
+    }
     PromptsChecker.interleaveUserAssistant(prompts)
 
     // 4. calculate maxTokens
     const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
-    console.warn("maxToken: ", maxToken)
 
     // 5. to chat
     const chatParam: OaiCreateParam = {
@@ -3899,12 +3901,29 @@ class PromptsChecker {
    * Handle error: BadRequestError: 400 deepseek-reasoner does not support 
    * successive user or assistant messages (messages[9] and messages[10] in your input). 
    * You should interleave the user/assistant messages in the message sequence.
+   * 
+   * Error from Hunyuan:
+   *   messages 中 user（tool） 和 assistant 角色需交替出现 (一问一答)，以 user 提问开始， user（tool）提问结束, tool 可以连续出现多次
+   * 
    */
   static interleaveUserAssistant(prompts: OaiPrompt[]) {
+    let hasUserAppeared = false
     for(let i=0; i<prompts.length-1; i++) {
       const currentOne = prompts[i]
-      const nextOne = prompts[i+1]
       const currentRole = currentOne.role
+
+      if(!hasUserAppeared) {
+        if(currentRole === "user") {
+          hasUserAppeared = true
+        }
+        else if(currentRole !== "system") {
+          prompts.splice(i, 1)
+          i--
+          continue
+        }
+      }
+
+      const nextOne = prompts[i+1]
       const nextRole = nextOne.role
 
       const twoUserPrompts = Boolean(currentRole === "user" && nextRole === "user")
