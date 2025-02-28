@@ -269,6 +269,7 @@ export const liuIDETypes = [
   "stackblitz.com",
   "project-idx",
   "cloud-studio",
+  "cnb.cool"
 ] as const
 export type LiuIDEType = typeof liuIDETypes[number]
 

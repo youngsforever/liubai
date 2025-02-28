@@ -8,7 +8,7 @@ let _info: LiuInfo
 
 const getIdeType = (): LiuIDEType | undefined => {
   const _env = vscode.env
-  const { appName, appHost, uriScheme } = _env
+  const { appName, appHost, uriScheme, remoteName } = _env
 
   console.log("see appName: ", appName)
   console.log("see appHost: ", appHost)
@@ -24,6 +24,7 @@ const getIdeType = (): LiuIDEType | undefined => {
   if(appName === "StackBlitz") return "stackblitz.com"
   if(appName === "Project IDX") return "project-idx"
   if(uriScheme === "cloud-studio") return "cloud-studio"
+  if(remoteName?.endsWith(".cnb.cool")) return "cnb.cool"
 }
 
 const _getDeviceData = (isWeb: boolean) => {
