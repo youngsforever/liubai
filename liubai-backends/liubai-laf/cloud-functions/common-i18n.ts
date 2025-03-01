@@ -653,7 +653,7 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: '<a href="{LIU_DOMAIN}/wechat-bind">戳我绑定微信</a>',
+        content: '<a href="{LIU_DOMAIN}/connect/wechat">戳我绑定微信</a>',
       }
     }
   ],
@@ -704,7 +704,7 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: '<a href="{LIU_DOMAIN}/wechat-bind">輕觸我綁定微信</a>',
+        content: '<a href="{LIU_DOMAIN}/connect/wechat">輕觸我綁定微信</a>',
       }
     }
   ],
@@ -755,7 +755,7 @@ export const wxClickReplies: Record<string, Wx_Gzh_Send_Msg[]> = {
     {
       msgtype: "text",
       text: {
-        content: '<a href="{LIU_DOMAIN}/wechat-bind">Click me to bind WeChat</a>',
+        content: '<a href="{LIU_DOMAIN}/connect/wechat">Click me to bind WeChat</a>',
       }
     }
   ],
