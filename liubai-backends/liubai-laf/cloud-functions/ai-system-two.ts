@@ -1275,12 +1275,16 @@ class SystemTwo {
     // 2. check out activeStamp
     const user = this._ctx.user
     const activeStamp = user.activeStamp
-    if(!activeStamp) return
+    if(!activeStamp) {
+      return
+    }
     const maxStamp = activeStamp + (47 * HOUR)
     if(needSystem2Stamp > maxStamp) {
       needSystem2Stamp = maxStamp
     }
-    if(needSystem2Stamp > now1) return
+    if(needSystem2Stamp < now1) {
+      return
+    }
 
     // 3. update
     const rCol = db.collection("AiRoom") 
