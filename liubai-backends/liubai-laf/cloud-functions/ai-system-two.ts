@@ -747,7 +747,7 @@ class SystemTwo {
     // 1. throw needSystem2Stamp to one hour later
     this.mapToSomeHourLater(1)
 
-    // 2. 
+    // 2. run system two in loop
     const maxTimes = 3
     let runTimes = 0
     while(runTimes < maxTimes) {
@@ -758,6 +758,52 @@ class SystemTwo {
       if(!res2) break
     }
 
+    // 3. handle _runLogs
+    this.handleRunLogs()
+  }
+
+  private async handleRunLogs() {
+    // 1. get logs
+    const allLogs = this._runLogs
+    if(allLogs.length < 1) return
+    allLogs.sort((a, b) => a.logStamp - b.logStamp)
+
+    // 2. extract logs into privacy & working
+    const privacyLogs = allLogs.filter(v => {
+      const bool = Boolean(v.toolName === "get_cards" || v.toolName === "get_schedule")
+      return bool
+    })
+    const workingLogs = allLogs.filter(v => v.toolName === "draw_picture")
+
+    // 3. get i18n
+    const { t } = useI18n(aiLang, { user: this._ctx.user })
+    let msg = ""
+
+    // 4. privacy logs
+    if(privacyLogs.length > 0) {
+      msg += (t("privacy_title") + "\n")
+      privacyLogs.forEach(v => {
+        msg += (v.textToUser + "\n")
+      })
+      msg += "\n"
+    }
+
+    // 5. working logs
+    if(workingLogs.length > 0) {
+      msg += (t("working_title") + "\n")
+      workingLogs.forEach(v => {
+        msg += (v.textToUser + "\n")
+      })
+      msg += "\n"
+    }
+    console.log("see msg: ", msg)
+
+    // 6. send
+    if(msg) {
+      await valTool.waitMilli(900)
+      const entry = System2Util.mockAiEntry(this._ctx.user)
+      TellUser.text(entry, msg, { fromSystem2: true })
+    }
   }
 
   private async inputToLLM() {
@@ -853,6 +899,9 @@ class SystemTwo {
     const content1 = res1.content
     const reasoning_content1 = res1.reasoning_content
     this._lastChatCompletion = chatCompletion
+
+    console.log("content1: ", content1)
+    console.log("reasoning_content1: ", reasoning_content1)
 
     // 2. handle error
     // 2.1 there is only reasoning_content

@@ -2259,7 +2259,7 @@ class AiController {
     // console.log(suffixMessage)
 
     // 5. send
-    await valTool.waitMilli(500)
+    await valTool.waitMilli(900)
     TellUser.menu(entry, prefixMessage, menuList, suffixMessage)
   }
 
