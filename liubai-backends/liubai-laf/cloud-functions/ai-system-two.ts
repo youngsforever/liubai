@@ -953,7 +953,7 @@ class SystemTwo {
     } = res3
     if(direction === "1" && content4) {
       // get to reply
-      this.toReply(content4)
+      this.toReply(content4, reasoning_content1)
     }
     else if(direction === "2" && tool_calls) {
       res4 = await this.toUseTools(tool_calls)
@@ -969,10 +969,14 @@ class SystemTwo {
   }
 
 
-  private async toReply(text: string) {
+  private async toReply(
+    text: string,
+    reasoning_content?: string,
+  ) {
     // 1. add message to chats
     this._addSystem2Chat("assistant", "1", {
       text,
+      reasoning_content,
       onlyInSystem2: false,
     })
 

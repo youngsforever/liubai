@@ -41,6 +41,7 @@ import {
   getBasicStampWhileAdding, 
   getNowStamp, 
   HOUR, 
+  DAY,
   isWithinMillis,
   MINUTE,
   SECONED,
@@ -3181,6 +3182,11 @@ class AiHelper {
         imageNum++
 
         if(imageNum > 3 || i > INDEX_TO_PRESERVE_IMAGES) {
+          v.msgType = "text"
+          v.text = AiHelper.imageRecognitionText(v.text)
+          delete v.imageUrl
+        }
+        else if(!isWithinMillis(v.insertedStamp, DAY)) {
           v.msgType = "text"
           v.text = AiHelper.imageRecognitionText(v.text)
           delete v.imageUrl
