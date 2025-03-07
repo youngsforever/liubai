@@ -67,6 +67,16 @@ export function useTcTopbar(
     })
   }
 
+  const onTapNoAI = () => {
+    cui.showModal({
+      title: "🔒",
+      content_key: "thread_related.no_ai_desc",
+      showCancel: false,
+      confirm_key: "tip.got_it",
+      isTitleEqualToEmoji: true,
+    })
+  }
+
 
   return {
     td,
@@ -74,5 +84,6 @@ export function useTcTopbar(
     cloudOffPlacement,
     aiCharacterUrl,
     onTapAiCharacter,
+    onTapNoAI
   }
 }

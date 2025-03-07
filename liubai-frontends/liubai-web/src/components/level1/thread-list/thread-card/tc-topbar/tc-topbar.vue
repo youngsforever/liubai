@@ -22,6 +22,7 @@ const {
   cloudOffPlacement,
   aiCharacterUrl,
   onTapAiCharacter,
+  onTapNoAI,
 } = useTcTopbar(props)
 
 
@@ -45,8 +46,9 @@ const {
     </div>
 
     <!-- No AI -->
-    <div class="tct-item-container" 
+    <div class="tct-item-container tct-no-ai" 
       v-else-if="!td.aiReadable || td.aiReadable === 'N'"
+      @click.stop="onTapNoAI"
     >
       <LiuTooltip
         :aria-label="t('thread_related.no_ai')"
@@ -124,6 +126,17 @@ const {
   width: 20px;
   height: 20px;
   outline: 0;
+}
+
+@media(hover: none) {
+  .tct-no-ai::before {
+    position: absolute;
+    content: "";
+    top: -5px;
+    left: 0;
+    right: -10px;
+    bottom: -5px;
+  }
 }
 
 
