@@ -333,7 +333,8 @@
     "content_deleted": "🗑️ 该动态已被删除",
     "captured_that": "已接住你的{event}",
     "created_by_ai": "本卡片由 {name}（{company}）协助创建",
-    "created_by_ai2": "本卡片由 {name} 协助创建"
+    "created_by_ai2": "本卡片由 {name} 协助创建",
+    "no_ai": "拒绝 AI 的卡片"
   },
   "state_related": {
     "add_state": "添加状态",
@@ -634,6 +635,7 @@
   "ai_character": {
     "baixiaoying": "百小应",
     "deepseek": "DeepSeek",
+    "ds-reasoner": "DeepSeek R1",
     "hailuo": "海螺",
     "hunyuan": "混元",
     "kimi": "Kimi",
@@ -645,6 +647,7 @@
   "ai_provider": {
     "baixiaoying": "百川智能",
     "deepseek": "深度求索",
+    "ds-reasoner": "深度求索",
     "hailuo": "MiniMax",
     "hunyuan": "腾讯",
     "kimi": "月之暗面",

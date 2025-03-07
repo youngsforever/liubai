@@ -425,7 +425,7 @@ async function handle_scan_login(
     const t7_1 = getNowStamp()
     const res7_1 = await tryToSignInWithWxGzhOpenId(ctx, body, wx_gzh_openid, opt7_1)
     const t7_2 = getNowStamp()
-    console.warn(`user-login tryToSignInWithWxGzhOpenId takes ${t7_2 - t7_1}ms`)
+    // console.warn(`user-login tryToSignInWithWxGzhOpenId takes ${t7_2 - t7_1}ms`)
     
     if(res7_1) {
       const lang = res7_1.data?.language
