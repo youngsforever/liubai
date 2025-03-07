@@ -731,8 +731,8 @@ class BaseBot {
     const theService = `${params.model} on ${apiData.baseURL}`
 
     // print last 5 prompts
-    LogHelper.printLastItems(params.messages)
-    console.log(`Let's ask ${theService}`)
+    // LogHelper.printLastItems(params.messages)
+    // console.log(`Let's ask ${theService}`)
 
     const llm = new BaseLLM(
       apiData.apiKey, 
@@ -1113,9 +1113,9 @@ class BaseBot {
     const res4 = await this.chat(newChatParam, bot)
     if(!res4) return
 
-    console.warn(`${c}'s chat _continueAfterReadingCards: `)
-    console.log(res4.choices?.[0]?.message)
-    console.log(res4.choices?.[0].finish_reason)
+    // console.warn(`${c}'s chat _continueAfterReadingCards: `)
+    // console.log(res4.choices?.[0]?.message)
+    // console.log(res4.choices?.[0].finish_reason)
 
     // 5. handle text from response
     const assistantChatId = await this._handleAssistantText(res4, aiParam, bot)
@@ -1944,6 +1944,9 @@ class BotTongyiQwen extends BaseBot {
     const model = bot.model
 
     // 3. handle other things
+    if(bot.abilities.includes("image_to_text")) {
+      PromptsChecker.interleaveUserAssistant(prompts)
+    }
 
     // 4. calculate maxTokens
     const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
@@ -2147,15 +2150,15 @@ class AiController {
     // 2. compress chats
     const needCompress = AiCompressor.doINeedCompress(aiParam.chats)
     if(needCompress) {
-      console.log("get to compress..............")
+      // console.log("get to compress..............")
       const newChats = await AiCompressor.run(aiParam)
       if(newChats) {
         aiParam.chats = newChats
       }
       const res2 = await AiHelper.canReply(aiParam)
       if(!res2) {
-        console.warn("we don't need to reply because ")
-        console.log("there is a new message after compressing")
+        // console.warn("we don't need to reply because ")
+        // console.log("there is a new message after compressing")
         return
       }
     }

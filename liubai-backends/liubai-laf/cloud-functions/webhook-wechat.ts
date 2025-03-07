@@ -494,7 +494,7 @@ async function login_with_wechat_gzh(
   userInfo?: Wx_Res_GzhUserInfo,
   opt?: OperationOpt,
 ) {
-  console.log("login_with_wechat_gzh......")
+  // console.log("login_with_wechat_gzh......")
 
   // 1. get credential
   const cCol = db.collection("Credential")
