@@ -34,7 +34,7 @@ import type {
   GetChaRes,
   Table_Order,
   Wx_Res_GzhUserInfo,
-  Wx_Res_Common,
+  Res_Common,
   Wx_Res_GzhOAuthAccessToken,
   WxpayReqAuthorizationOpt,
   Wxpay_Cert_Info,
@@ -2507,7 +2507,7 @@ export async function tagWxUserLang(
     openid_list: [wx_gzh_openid],
     tagid: tagId,
   }
-  const res3 = await liuReq<Wx_Res_Common>(link4, q4)
+  const res3 = await liuReq<Res_Common>(link4, q4)
   const errcode = res3.data?.errcode
   if(errcode !== 0) {
     console.warn("tag user for wechat gzh failed")
@@ -2533,7 +2533,7 @@ export async function untagWxUser(
     openid_list: [wx_gzh_openid],
     tagid,
   }
-  const res = await liuReq<Wx_Res_Common>(link, q)
+  const res = await liuReq<Res_Common>(link, q)
   const errcode = res.data?.errcode
   if(errcode !== 0) {
     console.warn("untag user for wechat gzh failed")

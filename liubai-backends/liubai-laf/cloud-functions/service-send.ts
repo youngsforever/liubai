@@ -13,7 +13,7 @@ import type {
   Wx_Gzh_Send_Msg,
   Wx_Gzh_Send_Text,
   Wx_Param_Msg_Templ_Send,
-  Wx_Res_Common,
+  Res_Common,
   LiuErrReturn,
 } from "@/common-types"
 import { 
@@ -648,7 +648,7 @@ export class WxGzhSender {
       touser: wx_gzh_openid,
       command: "Typing",
     }
-    const res = await liuReq<Wx_Res_Common>(url, arg)
+    const res = await liuReq<Res_Common>(url, arg)
     const { code, data } = res
     if(code !== "0000" || data?.errcode !== 0) {
       console.warn("sendTyping failed")
@@ -663,7 +663,7 @@ export class WxGzhSender {
     param: Wx_Param_Msg_Templ_Send,
   ) {
     const url = `${API_WECHAT_TMPL_SEND}?access_token=${access_token}`
-    const res = await liuReq<Wx_Res_Common>(url, param)
+    const res = await liuReq<Res_Common>(url, param)
     const { code, data } = res
     if(code !== "0000" || data?.errcode !== 0) {
       console.warn("sendTemplateMessage failed")
@@ -699,7 +699,7 @@ export class WxGzhSender {
     const url = new URL(API_WECHAT_MSG_SEND)
     url.searchParams.set("access_token", access_token)
     const link = url.toString()
-    const res = await liuReq<Wx_Res_Common>(link, obj)
+    const res = await liuReq<Res_Common>(link, obj)
     const { code, data } = res
     if(code !== "0000" || data?.errcode !== 0) {
       console.warn("sendMessage failed")
@@ -709,3 +709,61 @@ export class WxGzhSender {
     return res
   }
 }
+
+
+export class LiuReporter {
+  
+  private _dingtalkUrl?: string
+
+  constructor() {
+    const _env = process.env
+    if(_env.LIU_DINGTALK_REPORTER) {
+      this._dingtalkUrl = _env.LIU_DINGTALK_REPORTER
+    }
+  }
+
+  async send(
+    text: string,
+    title?: string,
+  ) {
+    const res = await this._sendByDingtalk(text, title)
+    return res
+  }
+
+  private async _sendByDingtalk(
+    text: string,
+    title?: string,
+  ) {
+    const url = this._dingtalkUrl
+    if(!url) return
+
+    const msgtype = Boolean(title) ? "markdown" : "text"
+    const body: Record<string, any> = {
+      msgtype,
+    }
+    if(msgtype === "text") {
+      body.text = {
+        content: text,
+      }
+    }
+    else {
+      body.markdown = {
+        title,
+        text,
+      }
+    }
+
+    const res1 = await liuReq<Res_Common>(url, body)
+    const data1 = res1.data
+    const isSuccess = data1?.errcode === 0
+    if(!isSuccess) {
+      console.warn("fail to report by dingtalk!", data1)
+    }
+
+    return isSuccess
+  }
+
+
+}
+
+

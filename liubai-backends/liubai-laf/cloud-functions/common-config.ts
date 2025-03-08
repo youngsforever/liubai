@@ -46,6 +46,6 @@ export const ai_cfg = {
   minCoversationsToRecordForSystemTwo: 4,
 
   // 当前会话大于等于该值时，“系统二”才去处理
-  minConversationsToTriggerSystemTwo: 11,
+  minConversationsToTriggerSystemTwo: 6,
 
 }

@@ -204,6 +204,9 @@ declare global {
       /** devbox + ffmpeg */
       LIU_FFMPEG_BASEURL?: string            // like "https://xxxxxx.sealoshzh.site"
 
+      /** DingTalk */
+      LIU_DINGTALK_REPORTER?: string         // like "https://oapi.dingtalk.com/robot/send?access_token=xxxxxx"
+
     }
   }
 }

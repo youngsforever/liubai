@@ -28,7 +28,7 @@ import type {
   DataPass,
   LiuErrReturn,
   Table_Member,
-} from "./common-types"
+} from "@/common-types"
 import cloud from "@lafjs/cloud"
 import { 
   AiToolUtil,
@@ -49,6 +49,7 @@ import {
 } from "@/ai-shared"
 import { aiLang, i18nFill, useI18n } from "@/common-i18n"
 import { ai_cfg } from "@/common-config"
+import { LiuReporter } from "@/service-send"
 
 const all_good_str = "都很好，无需进一步操作"
 
@@ -905,13 +906,15 @@ class SystemTwo {
     const reasoning_content1 = res1.reasoning_content
     this._lastChatCompletion = chatCompletion
 
-    console.log("content1: ", content1)
-    console.log("reasoning_content1: ", reasoning_content1)
+    // console.log("content1: ", content1)
+    // console.log("reasoning_content1: ", reasoning_content1)
 
     // 2. handle error
     // 2.1 there is only reasoning_content
     if(!content1 && reasoning_content1) {
       console.warn("there is only reasoning_content: ", reasoning_content1)
+      const msg2_1 = `### Only reasoning_content\n\n${reasoning_content1}`
+      this._toReporter(msg2_1)
       return false
     }
 
@@ -919,12 +922,17 @@ class SystemTwo {
     const finishReason = AiShared.getFinishReason(chatCompletion)
     if(!finishReason || finishReason === "length") {
       console.warn("finish reason is unexpected: ", finishReason)
+      const msg2_2 = `### Finish Reason\n\n${finishReason}`
+      this._toReporter(msg2_2)
       return false
     }
 
     // 2.3 no content
     if(!content1) {
       console.warn("no content", chatCompletion)
+      const ccMsg = valTool.objToStr(chatCompletion)
+      const msg2_3 = `### No Content\n\n${ccMsg}`
+      this._toReporter(msg2_3)
       return false
     }
 
@@ -940,6 +948,8 @@ class SystemTwo {
     }
     if(!res3) {
       console.log("try again due to no result")
+      const msg3_1 = `### Parse Error\n\n${content1}`
+      this._toReporter(msg3_1)
       return true
     }
 
@@ -956,9 +966,13 @@ class SystemTwo {
       this.toReply(content4, reasoning_content1)
     }
     else if(direction === "2" && tool_calls) {
+      const msg4_2 = `### Tool calls\n\n${tool_calls}`
+      this._toReporter(msg4_2)
       res4 = await this.toUseTools(tool_calls)
     }
     else if(direction === "3" && reasoning_content1) {
+      const msg4_3 = `### Think Later\n\n${reasoning_content1}`
+      this._toReporter(msg4_3)
       this.toThinkLater(reasoning_content1, content4)
     }
     else if(direction === "4") {
@@ -968,6 +982,28 @@ class SystemTwo {
     return res4
   }
 
+
+  private _toReporter(
+    markdown: string,
+    title = "Liubai System Two",
+  ) {
+    // 1. add more info into markdown
+    const { user, room, chats } = this._ctx
+    markdown += "\n\n------\n\n"
+    markdown += `**User id:** ${user._id}\n\n`
+    markdown += `**Room id:** ${room._id}\n\n`
+    markdown += `**Chat length:** ${chats.length}\n\n`
+
+    // 2. get request id
+    const requestId = this._lastChatCompletion?.id
+    if(requestId) {
+      markdown += `**Request id:** ${requestId}`
+    }
+
+    // 3. send
+    const reporter = new LiuReporter()
+    reporter.send(markdown, title)
+  }
 
   private async toReply(
     text: string,

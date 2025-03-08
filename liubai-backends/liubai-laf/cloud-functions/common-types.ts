@@ -1287,6 +1287,7 @@ export interface Table_LogAi extends BaseTable {
   userId?: string
   choices?: any
   model?: string
+  requestId?: string
 }
 
 /** User表 */
@@ -2468,7 +2469,7 @@ export interface Shared_LoginState {
 /******************* Some Types from WeChat ****************/
 
 // common result: { errcode: 0, errmsg: "ok" }  
-export interface Wx_Res_Common {
+export interface Res_Common {
   errcode: number
   errmsg: string
   msgid?: string
