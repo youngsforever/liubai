@@ -199,6 +199,7 @@ export class BaseLLM {
       userId: opt?.user?._id,
       choices: chatCompletion.choices,
       model: chatCompletion.model,
+      requestId: chatCompletion.id,
     }
     logCol.add(aLog)
   }
