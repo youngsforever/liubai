@@ -992,11 +992,12 @@ class SystemTwo {
     title = "Liubai System Two",
   ) {
     // 1. add more info into markdown
-    const { user, room, chats } = this._ctx
+    const { user, room, chats, member } = this._ctx
     markdown += "\n\n------\n\n"
     markdown += `**User id:** ${user._id}\n\n`
     markdown += `**Room id:** ${room._id}\n\n`
     markdown += `**Chat length:** ${chats.length}\n\n`
+    markdown += `**Nickname:** ${member.name || "Unknown"}\n\n`
 
     // 2. get request id
     const requestId = this._lastChatCompletion?.id
