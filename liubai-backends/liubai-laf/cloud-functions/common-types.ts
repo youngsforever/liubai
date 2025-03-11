@@ -3501,6 +3501,16 @@ export namespace LiuAi {
   export type ToolName = "add_note" | "add_todo" | "add_calendar" 
     | "web_search" | "parse_link" | "draw_picture" | "get_schedule" | "get_cards"
 
+  export type Sys2Preference = "midnight" | "other"
+
+  export interface Sys2Ai {
+    character: AiCharacter
+    provider: AiProvider
+    secondaryProvider?: AiSecondaryProvider
+    model: string
+    maxInputTokenK: number
+  }
+
 }
 
 
