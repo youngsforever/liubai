@@ -370,13 +370,14 @@ export class SmsController {
     smsCode: string,
   ): Promise<ResultOfSMS> {
     // 1. send by qiniu
-    let res = await LiuQiniuSMS.sendVerifyCode(smsCode, localNumber)
-    if(res.code === "0000") {
-      return {
-        send_channel: "qiniu-sms",
-        result: res,
-      }
-    }
+    let res: LiuRqReturn
+    // res = await LiuQiniuSMS.sendVerifyCode(smsCode, localNumber)
+    // if(res.code === "0000") {
+    //   return {
+    //     send_channel: "qiniu-sms",
+    //     result: res,
+    //   }
+    // }
 
     // 2. check out params for tencent sms
     const _env = process.env
