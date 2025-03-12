@@ -245,7 +245,8 @@ export class BaseLLM {
       object: "chat.completion",
       usage,
     } as OaiChatCompletion
-    this._log(result, opt)
+    _this._tryTimes = 0
+    _this._log(result, opt)
     return result
   }
 
