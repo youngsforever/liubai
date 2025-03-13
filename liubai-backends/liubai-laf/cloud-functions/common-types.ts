@@ -212,7 +212,8 @@ export const liuIDETypes = [
   "gitpod.io",
   "stackblitz.com",
   "project-idx",
-  "cloud-studio"
+  "cloud-studio",
+  "cnb.cool",
 ] as const
 export type LiuIDEType = typeof liuIDETypes[number]
 export const Sch_LiuIDEType = vbot.picklist(liuIDETypes)
@@ -1237,6 +1238,8 @@ export interface SyncSetCtx {
 
   // to avoid duplicating updatedStamp or insertedStamp
   lastUsedStamp: number
+
+  ideType?: LiuIDEType
 }
 
 export type SyncSetTable = Table_Content | 
@@ -1437,6 +1440,7 @@ export interface Table_Content extends BaseTable {
   levelOneAndTwo?: number   // 一级 + 二级评论数
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
 }
 
 /** 草稿表 */
@@ -2273,6 +2277,7 @@ export interface LiuDownloadContent {
   levelOneAndTwo?: number   // 一级 + 二级评论数
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
 
   myFavorite?: LiuDownloadCollection
   myEmoji?: LiuDownloadCollection

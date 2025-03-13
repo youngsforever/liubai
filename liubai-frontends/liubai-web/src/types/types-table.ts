@@ -20,6 +20,7 @@ import type {
   LiuUploadTask,
   UploadTaskProgressType,
   AiCharacter,
+  LiuIDEType,
 } from "./types-atom"
 import type { LiuFileStore, LiuImageStore } from "./index"
 import type { TipTapJSONContent } from "./types-editor"
@@ -117,6 +118,7 @@ export interface ContentLocalTable extends BaseLocalTable {
   aiChatId?: string
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
 }
 
 export interface DraftLocalTable extends BaseLocalTable {

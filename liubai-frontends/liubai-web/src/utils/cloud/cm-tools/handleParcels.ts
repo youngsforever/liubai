@@ -500,6 +500,7 @@ async function mergeContent(
     g.aiReadable = d.aiReadable
     g.stateId = d.stateId
     g.stateStamp = d.stateStamp
+    g.ideType = d.ideType
 
     const imgRes = CloudFiler.updateImages(d.images, oc.images)
     if(imgRes.updated) {
@@ -675,6 +676,7 @@ function createContent(
     firstSyncStamp: b.insertedStamp,
     aiCharacter: d.aiCharacter,
     aiReadable: d.aiReadable,
+    ideType: d.ideType,
   }
 
   if(!c.search_title && c.title) {

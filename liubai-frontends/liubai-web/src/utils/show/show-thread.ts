@@ -125,6 +125,7 @@ function packThread(
     config: v.config,
     aiCharacter: v.aiCharacter,
     aiReadable: v.aiReadable,
+    ideType: v.ideType,
   }
   return obj
 }

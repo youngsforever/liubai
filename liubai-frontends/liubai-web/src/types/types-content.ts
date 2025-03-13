@@ -7,7 +7,7 @@ import type {
   SpaceType,
   BaseIsOn,
 } from "./types-basic"
-import type { AiCharacter, LiuRemindMe } from "./types-atom"
+import type { AiCharacter, LiuIDEType, LiuRemindMe } from "./types-atom"
 import type { ImageShow, LiuFileStore } from "./index"
 import type { TipTapJSONContent } from "./types-editor"
 import type { ContentConfig, ImgLayout } from "./other/types-custom"
@@ -97,6 +97,7 @@ export interface ThreadShow {
   config?: ContentConfig
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
 }
 
 // 评论的结构

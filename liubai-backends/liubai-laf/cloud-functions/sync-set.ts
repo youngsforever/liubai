@@ -40,6 +40,7 @@ import type {
   EmojiData,
   PartialSth,
   ContentInfoType,
+  VerifyTokenRes_B,
 } from "@/common-types"
 import { 
   Sch_Simple_SyncSetAtom,
@@ -93,7 +94,7 @@ export async function main(ctx: FunctionContext) {
   if(res4) return res4
 
   // 5. to init ctx
-  const ssCtx = initSyncSetCtx(user, workspaces)
+  const ssCtx = initSyncSetCtx(user, workspaces, vRes)
 
   // 6. to execute
   const results = await toExecute(newBody, ssCtx)
@@ -621,6 +622,7 @@ async function toPostThread(
     levelOneAndTwo: 0,
     aiCharacter: aiChat?.character,
     aiReadable: thread.aiReadable,
+    ideType: ssCtx.ideType,
   }
 
   // 8. insert content
@@ -2394,7 +2396,9 @@ function _amIInTheSpace(
 function initSyncSetCtx(
   user: Table_User,
   space_ids: string[],
+  vRes: VerifyTokenRes_B,
 ) {
+  const ideType = vRes.tokenData.ideType
   const ssCtx: SyncSetCtx = {
     content: new Map<string, SyncSetCtxAtom<Table_Content>>(),
     draft: new Map<string, SyncSetCtxAtom<Table_Draft>>(),
@@ -2405,11 +2409,10 @@ function initSyncSetCtx(
     me: user,
     space_ids,
     lastUsedStamp: 0,
+    ideType,
   }
   return ssCtx
 }
-
-
 
 
 
