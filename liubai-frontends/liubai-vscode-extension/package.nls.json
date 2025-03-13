@@ -1,7 +1,7 @@
 {
   "package.displayName": "Liubai",
   "package.description": "Liubai for VS-Code-Based IDE",
-  "liubai.helloWorld.title": "Liubai: Hello",
-  "liubai.record.title": "Liubai: Add Something",
-  "liubai.login_or_logout.title": "Liubai: Login / Logout"
+  "liubai.record.title": "Add Something",
+  "liubai.record_with_code.title": "Note (Liubai)",
+  "liubai.login_or_logout.title": "Login / Logout"
 }

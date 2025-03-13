@@ -30,13 +30,35 @@
     "commands": [
       {
         "command": "ptsd.liubai-vscode-extension.record",
-        "title": "%liubai.record.title%"
+        "title": "%liubai.record.title%",
+        "category": "Liubai"
+      },
+      {
+        "command": "ptsd.liubai-vscode-extension.recordWithCode",
+        "title": "%liubai.record_with_code.title%",
+        "category": "Liubai"
       },
       {
         "command": "ptsd.liubai-vscode-extension.loginOrLogout",
-        "title": "%liubai.login_or_logout.title%"
+        "title": "%liubai.login_or_logout.title%",
+        "category": "Liubai"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "ptsd.liubai-vscode-extension.recordWithCode",
+          "when": "editorHasSelection",
+          "group": "9_cutcopypaste"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ptsd.liubai-vscode-extension.recordWithCode",
+          "when": "editorHasSelection"
+        }
+      ]
+    }
   },
   "extensionKind": [
     "ui",

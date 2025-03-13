@@ -44,13 +44,20 @@ export class LiuRecorder {
     // 1. register `record` command
     const _this = this
     const extId = liuInfo.getExtId()
-    const commandId = `${extId}.record`
-    const disposable1 = vscode.commands.registerCommand(commandId, async () => {
+    const cmdId_1 = `${extId}.record`
+    const disposable1 = vscode.commands.registerCommand(cmdId_1, async () => {
       _this._prepareToRecord()
     })
     this._context.subscriptions.push(disposable1)
 
-    // 2. listen to login
+    // 2. register `recordWithCode`
+    const cmdId_2 = `${extId}.recordWithCode`
+    const disposable2 = vscode.commands.registerCommand(cmdId_2, async () => {
+      _this._recordWithCode()
+    })
+    this._context.subscriptions.push(disposable2)
+
+    // 3. listen to login
     const authStatus = await this._authManager.getAuthStatus()
     if(authStatus) return
     const eventBus = SimpleEventBus.getInstance()
@@ -66,6 +73,20 @@ export class LiuRecorder {
       }
       subscription2.dispose()
     })
+  }
+
+  private async _recordWithCode() {
+    const editor = vscode.window.activeTextEditor
+    if(!editor || editor.selection.isEmpty) {
+      Logger.warn("no selection")
+      return
+    }
+
+    const selectedText = editor.document.getText(editor.selection)
+    const tmpText = selectedText.trim()
+    if(!tmpText) return
+    Logger.info("selectedText: ", selectedText)
+
   }
 
   private async _prepareToRecord() {
