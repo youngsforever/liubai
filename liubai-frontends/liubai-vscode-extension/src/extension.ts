@@ -7,6 +7,7 @@ import { i18n } from './locales/i18n';
 import liuUtil from './utils/liu-util';
 import { Logger } from './utils/Logger';
 import { LiuRecorder } from './managers/LiuRecorder';
+import { LiuStatusBar } from './managers/LiuStatusBar';
 
 function isSafeEnvironment() {
 	const theCrypto = liuUtil.crypto.getCrypto()
@@ -61,10 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// 4. init recorder
 	LiuRecorder.initialize(context, authManager)
 
-	const disposable1 = vscode.commands.registerCommand(`${info.extensionId}.helloWorld`, async () => {
-		
-	})
-	context.subscriptions.push(disposable1)
+	// 5. add Liubai in Status Bar
+	LiuStatusBar.initialize()
 }
 
 export function deactivate() {

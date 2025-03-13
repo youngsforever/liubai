@@ -19,11 +19,13 @@
   "common.record_1": "去記錄",
   "common.cancel": "取消",
   "common.env_unsupported": "當前環境不支援執行本擴充套件",
+  "common.shortname": "留白",
   "tip.err_1": "出現未知的錯誤，請稍後再試 (狀態碼: {code})",
   "tip.err_2": "{errMsg} (狀態碼: {code})",
   "tip.unknown_err": "[未知的異常] ",
   "tip.try_again_later": "請稍後再試",
   "tip.contact_us": "聯絡客服", 
   "record.title": "Liubai: 記一件事",
-  "record.placeholder": "想記些什麼？"
+  "record.placeholder": "想記些什麼？",
+  "record.recording": "記錄中.."
 }

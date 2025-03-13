@@ -10,6 +10,7 @@ import ider from '~/utils/ider';
 import APIs from '~/requests/APIs';
 import liuReq from '~/requests/liu-req';
 import { Logger } from '~/utils/Logger';
+import { LiuStatusBar } from './LiuStatusBar';
 
 const MIN_3 = time.MINUTE * 3
 
@@ -99,6 +100,10 @@ export class LiuRecorder {
       return
     }
 
+    // 2.1 show loading
+    const statusBar = LiuStatusBar.getInstance()
+    statusBar.setLoading()
+
     // 3. fetch
     const url3 = APIs.SYNC_SET
     const body3 = {
@@ -111,7 +116,10 @@ export class LiuRecorder {
     console.log(code)
     console.log(data)
     Logger.info("see res3: ", code, data)
-    
+
+    // 3.2 reset status bar
+    statusBar.reset()
+
   }
 
 

@@ -29,10 +29,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "ptsd.liubai-vscode-extension.helloWorld",
-        "title": "%liubai.helloWorld.title%"
-      },
-      {
         "command": "ptsd.liubai-vscode-extension.record",
         "title": "%liubai.record.title%"
       },
