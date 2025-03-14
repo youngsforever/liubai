@@ -47,18 +47,23 @@ export class LiuRecorder {
     // 1. register `record` command
     const _this = this
     const extId = liuInfo.getExtId()
-    const cmdId_1 = `${extId}.record`
-    const disposable1 = vscode.commands.registerCommand(cmdId_1, async () => {
+    const cmdId1 = `${extId}.record`
+    const dp1 = vscode.commands.registerCommand(cmdId1, async () => {
       _this._prepareToRecord()
     })
-    this._context.subscriptions.push(disposable1)
 
-    // 2. register `recordWithCode`
-    const cmdId_2 = `${extId}.recordWithCode`
-    const disposable2 = vscode.commands.registerCommand(cmdId_2, async () => {
+    // 2.1 register `recordWithCode`
+    const cmdId2_1 = `${extId}.recordWithCode`
+    const dp2_1 = vscode.commands.registerCommand(cmdId2_1, async () => {
       _this._recordWithCode()
     })
-    this._context.subscriptions.push(disposable2)
+
+    // 2.2 register `recordWithCode2`
+    const cmdId2_2 = `${extId}.recordWithCode2`
+    const dp2_2 = vscode.commands.registerCommand(cmdId2_2, async () => {
+      _this._recordWithCode()
+    })
+    this._context.subscriptions.push(dp1, dp2_1, dp2_2)
 
     // 3. listen to login
     const authStatus = await this._authManager.getAuthStatus()

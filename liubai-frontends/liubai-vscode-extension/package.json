@@ -39,6 +39,11 @@
         "category": "Liubai"
       },
       {
+        "command": "ptsd.liubai-vscode-extension.recordWithCode2",
+        "title": "%liubai.record_with_code2.title%",
+        "category": "Liubai"
+      },
+      {
         "command": "ptsd.liubai-vscode-extension.loginOrLogout",
         "title": "%liubai.login_or_logout.title%",
         "category": "Liubai"
@@ -55,7 +60,15 @@
       "commandPalette": [
         {
           "command": "ptsd.liubai-vscode-extension.recordWithCode",
+          "when": "false"
+        },
+        {
+          "command": "ptsd.liubai-vscode-extension.recordWithCode2",
           "when": "editorHasSelection"
+        },
+        {
+          "command": "ptsd.liubai-vscode-extension.record",
+          "when": "!editorHasSelection"
         }
       ]
     }
