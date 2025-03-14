@@ -3,7 +3,12 @@ import { useI18n } from 'vue-i18n';
 import { useAgreePage } from "./tools/useAgreePage";
 import { computed } from 'vue';
 
-const { apData, onTapOK, onTapCheckItOut } = useAgreePage()
+const { 
+  apData, 
+  onTapHome,
+  onTapOK, 
+  onTapCheckItOut,
+} = useAgreePage()
 const { t } = useI18n()
 
 const eventKey = computed(() => {
@@ -25,6 +30,16 @@ const eventKey = computed(() => {
         class="liu-no-user-select liu-mc-box"
       >
 
+        <!-- navi bar -->
+        <div class="ap-navi-bar" v-if="apData.showNaviBar">
+          <div class="liu-hover apnb-item" @click.stop="onTapHome">
+            <svg-icon name="home"
+              class="apnb-home"
+            ></svg-icon>
+          </div>
+        </div>
+
+        <!-- icon -->
         <div class="ap-icon-box">
           <svg-icon name="emojis-ok_hand_color_default" 
             class="ap-icon"
@@ -32,6 +47,7 @@ const eventKey = computed(() => {
           ></svg-icon>
         </div>
 
+        <!-- title -->
         <div class="ap-title">
           <span>{{ t('thread_related.captured_that', { event: t(eventKey) }) }}</span>
         </div>
@@ -67,6 +83,26 @@ const eventKey = computed(() => {
   justify-content: center;
   height: 100vh;
   height: 100dvh;
+}
+
+.ap-navi-bar {
+  width: 100%;
+  position: absolute;
+  top: 24px;
+  display: flex;
+}
+
+.apnb-item {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apnb-home {
+  width: 30px;
+  height: 30px;
 }
 
 .ap-icon-box {

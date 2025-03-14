@@ -17,10 +17,11 @@ import liuApi from "~/utils/liu-api"
 import cui from "~/components/custom-ui"
 
 export function useAgreePage() {
-
+  const cha = liuApi.getCharacteristic()
   const apData = reactive<ApData>({
     pageState: pageStates.LOADING,
     contentType: "note",
+    showNaviBar: cha.isWeChat,
   })
 
   const rr = useRouteAndLiuRouter()
@@ -35,10 +36,14 @@ export function useAgreePage() {
     // to fetch data
     toGetData(apData)
   }, { immediate: true })
-  
+
+  const onTapHome = () => {
+    rr.router.goHome()
+  }
 
   return {
     apData,
+    onTapHome,
     onTapOK: () => toTapOK(apData, rr),
     onTapCheckItOut: () => toTapCheckItOut(apData, rr),
   }
@@ -93,13 +98,13 @@ async function toTapOK(
   const cha = liuApi.getCharacteristic()
   if(!cha.isWeChat) {
     // go to index page
-    rr.router.push({ name: "index" })
+    rr.router.goHome()
     return
   }
 
   const res1 = await invokeWxJsSdk(1000)
   if(!res1) {
-    rr.router.push({ name: "index" })
+    rr.router.goHome()
     return
   }
 
