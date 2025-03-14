@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import cfg from "../config"; 
 import valTool from '../utils/basic/val-tool';
 import type { LiuAuthStatus } from '../types';
 import liuInfo from '~/utils/liu-info';
@@ -24,8 +23,11 @@ import {
 import type { LiuTimeout, SimpleFunc } from '~/utils/basic/type-tool';
 import { Logger } from '~/utils/Logger';
 import { SimpleEventBus } from '~/utils/event-bus/simple-event-bus'
+import liuEnv from '~/utils/liu-env';
 
-const LOGIN_DATA_KEY = `${cfg.appPrefix}login_data`
+const customEnv = liuEnv.getEnv()
+const appPrefix = customEnv.appPrefix ?? ""
+const LOGIN_DATA_KEY = `${appPrefix}login_data`
 const AUTH_CALLBACK_PATH = "/auth-complete"
 const SEC_15 = time.SECONED * 15
 

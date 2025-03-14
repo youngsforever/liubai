@@ -8,6 +8,7 @@ import liuUtil from './utils/liu-util';
 import { Logger } from './utils/Logger';
 import { LiuRecorder } from './managers/LiuRecorder';
 import { LiuStatusBar } from './managers/LiuStatusBar';
+import liuEnv from './utils/liu-env';
 
 function isSafeEnvironment() {
 	const theCrypto = liuUtil.crypto.getCrypto()
@@ -35,8 +36,8 @@ function init(context: vscode.ExtensionContext) {
 		return false
 	}
 
-	const mode = LIU_ENV.MODE
-	console.log("current mode: ", mode)
+	const customEnv = liuEnv.getEnv()
+	const mode = customEnv.mode
 	if(mode === "development") {
 		Logger.show()
 		Logger.info("we're in development mode, so show the output panel")

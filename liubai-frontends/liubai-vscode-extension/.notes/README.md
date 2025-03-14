@@ -10,6 +10,9 @@
 1. `Fn + F5`: 这时会在新的窗口打开 Extension Development Host
 2. `Cmd + Shift +P`: 打开命令面板，输入 `Debug` 选择 `Debug: Start Debugging`
 
+### 当 .env 环境变量有修改时
+
+请重新编辑: `pnpm compile`，否则直接 `Fn + F5` 容易报错。
 
 ### 在当前 IDE 中启动一个 Chromium 进行调试
 

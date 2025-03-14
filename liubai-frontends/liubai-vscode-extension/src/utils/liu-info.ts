@@ -3,6 +3,7 @@ import type { LiuIDEType } from "../types/types-atom"
 import * as vscode from 'vscode'
 import { getDeviceStrForWeb, getDeviceStrForNode } from "./tools/characteristic"
 import typeCheck from "./basic/type-check"
+import liuEnv from "./liu-env"
 
 let _info: LiuInfo
 
@@ -69,7 +70,8 @@ const init = (context: vscode.ExtensionContext) => {
 
   const isDesktop = _env.uiKind === vscode.UIKind.Desktop
   const isWeb = _env.uiKind === vscode.UIKind.Web
-  const evtVersion = LIU_ENV.EXT_VERSION
+  const customEnv = liuEnv.getEnv()
+  const extVersion = customEnv.extVersion
   const { deviceStr, deviceName } = _getDeviceData(isWeb)
   const extKind = context.extension.extensionKind
   const extensionKind = extKind === vscode.ExtensionKind.Workspace ? "workspace" : "ui"
@@ -86,7 +88,7 @@ const init = (context: vscode.ExtensionContext) => {
     extensionId,
     ideVersion: vscode.version,
     extensionKind,
-    extensionVersion: evtVersion ?? "",
+    extensionVersion: extVersion ?? "",
     machineId,
     sessionId,
     uriScheme: _env.uriScheme,

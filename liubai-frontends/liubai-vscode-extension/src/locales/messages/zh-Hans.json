@@ -20,6 +20,8 @@
   "common.cancel": "取消",
   "common.env_unsupported": "当前环境不支持运行本插件",
   "common.shortname": "留白",
+  "common.get_it": "知道了",
+  "common.view": "去查看",
   "tip.err_1": "出现未知的错误，请稍后再试\n（状态码: {code}）",
   "tip.err_2": "{errMsg}（状态码: {code}）",
   "tip.unknown_err": "【未知的异常】",
@@ -27,5 +29,6 @@
   "tip.contact_us": "联系客服",
   "record.title": "Liubai: 记一件事",
   "record.placeholder": "想记些什么？",
-  "record.recording": "记录中.."
+  "record.recording": "记录中..",
+  "record.recorded": "留白已收到！"
 }

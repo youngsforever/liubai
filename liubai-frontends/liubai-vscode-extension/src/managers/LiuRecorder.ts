@@ -11,6 +11,7 @@ import APIs from '~/requests/APIs';
 import liuReq from '~/requests/liu-req';
 import { Logger } from '~/utils/Logger';
 import { LiuStatusBar } from './LiuStatusBar';
+import { showErrMsg } from '~/utils/show-msg';
 
 const MIN_3 = time.MINUTE * 3
 
@@ -140,6 +141,26 @@ export class LiuRecorder {
 
     // 3.2 reset status bar
     statusBar.reset()
+
+    // 4.1 show error message
+    if(code !== "0000" || !data) {
+      showErrMsg("other", res3)
+      return
+    }
+
+    // 4.2 get new_id
+    const results = data.results
+    const theRes = results?.[0]
+    const new_id = theRes?.new_id
+    if(!new_id) {
+      Logger.warn("we cannot get new_id: ", data)
+      return
+    }
+
+    // 5. get success message
+
+
+
 
   }
 

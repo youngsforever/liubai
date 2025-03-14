@@ -1,11 +1,13 @@
 import * as vscode from 'vscode'
-import cfg from '~/config'
+import liuEnv from './liu-env'
+
+const customEnv = liuEnv.getEnv()
 
 export class Logger {
   private static outputChannel: vscode.LogOutputChannel
 
   static init(context: vscode.ExtensionContext) {
-    const appName = cfg.appName
+    const appName = customEnv.appName
     this.outputChannel = vscode.window.createOutputChannel(appName, { log: true })
   }
 

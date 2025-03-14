@@ -4,11 +4,13 @@ import * as vscode from 'vscode';
 import time from "./basic/time";
 import valTool from "./basic/val-tool";
 import type { ReturnPromise, SimpleFunc } from "./basic/type-tool";
+import liuEnv from "./liu-env";
 
 
 function _getCustomerServiceLink() {
-  const customerService = LIU_ENV.CUSTOMER_SERVICE
-  const devEmail = LIU_ENV.DEVELOPER_EMAIL
+  const customEnv = liuEnv.getEnv()
+  const customerService = customEnv.customerService
+  const devEmail = customEnv.developerEmail
   let link: string | undefined
   if(customerService) {
     link = customerService

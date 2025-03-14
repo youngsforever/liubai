@@ -1,5 +1,7 @@
+import liuEnv from "~/utils/liu-env"
 
-const d = LIU_ENV.API_DOMAIN ?? ""
+const customEnv = liuEnv.getEnv()
+const d = customEnv.apiDomain ?? ""
 
 export default {
   TIME: d + `hello-world`,
