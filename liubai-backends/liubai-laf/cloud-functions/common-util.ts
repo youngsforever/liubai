@@ -2282,7 +2282,7 @@ interface EncData {
   [key: string]: any
 }
 
-interface DecryptEncData_B {
+export interface DecryptEncData_B {
   pass: true
   title?: string
   liuDesc?: LiuContent[]

@@ -904,6 +904,7 @@ export interface UserSubscription {
 export interface UserQuota {
   aiConversationCount: number
   lastWxGzhChatStamp?: number
+  aiClusterCount?: number
 }
 
 export interface LiuSpaceAndMember {
