@@ -887,6 +887,7 @@ class SystemTwo {
       model, 
       temperature: 0.6,
       max_tokens: MAX_OUTPUT_TOKENS,
+      stream: true,
     })
 
     return res8
@@ -931,7 +932,7 @@ class SystemTwo {
       return false
     }
 
-    // 3. parse content
+    // 3.1 parse content
     let res3: LiuAi.Sys2Output | undefined
     const parser = new xml2js.Parser({ explicitArray: false })
     try {
@@ -948,7 +949,10 @@ class SystemTwo {
       return true
     }
 
+    // 3.2 calibrate output
+    this._calibrateOutput(res3)
     console.log("see result from SYS 2: ", res3)
+
     // 4. decide which path to go
     let res4 = false
     const { 
@@ -961,8 +965,8 @@ class SystemTwo {
       this.toReply(content4, reasoning_content1)
     }
     else if(direction === "2" && tool_calls) {
-      const msg4_2 = `### Tool calls\n\n${tool_calls}`
-      this._toReporter(msg4_2)
+      // const msg4_2 = `### Tool calls\n\n${tool_calls}`
+      // this._toReporter(msg4_2)
       res4 = await this.toUseTools(tool_calls)
     }
     else if(direction === "3" && reasoning_content1) {
@@ -973,8 +977,43 @@ class SystemTwo {
     else if(direction === "4") {
       this.toFeelAllGood()
     }
+    else {
+      const err_msg4 = `### Unexpected Output\n\n${content1}`
+      this._toReporter(err_msg4)
+    }
 
     return res4
+  }
+
+  private _calibrateOutput(
+    result?: LiuAi.Sys2Output
+  ) {
+    if(!result) return
+    const { direction, content } = result
+
+    const _isContentRepliedText = () => {
+      if(!content) return false
+      const content2 = content.trim()
+      if(content2.startsWith("<")) return false
+      if(content2.endsWith(">")) return false
+      if(content2.length < 3) return false
+      return true
+    }
+
+    // 1. no direction
+    if(!direction) {
+      const res1 = _isContentRepliedText()
+      if(res1) result.direction = "1"
+      return
+    }
+
+    // 2. direction is not legal
+    const LEGAL_DIRECTIONS = ["1", "2", "3", "4"]
+    if(!LEGAL_DIRECTIONS.includes(direction)) {
+      const res1 = _isContentRepliedText()
+      if(res1) result.direction = "1"
+      return
+    }
   }
 
 

@@ -180,9 +180,11 @@ export class BaseLLM {
         // handle delta
         const delta = aChoice.delta as OaiStreamChoiceDelta
         if(delta.reasoning_content) {
+          // console.log("delta.reasoning_content: ", delta.reasoning_content)
           reasoningContent += delta.reasoning_content
         }
         else if(delta.content) {
+          // console.log("delta.content: ", delta.content)
           answerContent += delta.content
         }
 
@@ -330,6 +332,7 @@ export class BaseLLM {
       choices: chatCompletion.choices,
       model: chatCompletion.model,
       requestId: chatCompletion.id,
+      systemFingerprint: chatCompletion.system_fingerprint,
     }
     logCol.add(aLog)
   }

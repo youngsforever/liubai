@@ -1322,6 +1322,7 @@ export interface Table_LogAi extends BaseTable {
   choices?: any
   model?: string
   requestId?: string
+  systemFingerprint?: string
 }
 
 /** User表 */
