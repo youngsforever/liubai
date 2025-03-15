@@ -807,6 +807,39 @@ export class AiShared {
     return msg
   }
 
+  static turnBaseUrlToProvider(
+    url?: string,
+  ): LiuAi.ComputingProvider | undefined {
+    if(!url) return
+
+    if(url.includes("dashscope.aliyuncs.com")) return "aliyun-bailian"
+    if(url.includes("api.baichuan-ai.com")) return "baichuan"
+    if(url.includes("api.deepseek.com")) return "deepseek"
+    if(url.includes("api.hunyuan.cloud.tencent.com")) return "tencent-hunyuan"
+    if(url.includes("api.minimax.chat")) return "minimax"
+    if(url.includes("api.moonshot.cn")) return "moonshot"
+    if(url.includes("api.stepfun.com")) return "stepfun"
+    if(url.includes("api.lingyiwanwu.com")) return "zero-one"
+    if(url.includes("open.bigmodel.cn")) return "zhipu"
+    if(url.includes("api.siliconflow.cn")) return "siliconflow"
+    if(url.includes("ai.gitee.com")) return "gitee-ai"
+    if(url.includes("api.qnaigc.com")) return "qiniu"
+    if(url.includes("api.lkeap.cloud.tencent.com")) return "tencent-lkeap"
+    if(url.includes("api.suanli.cn")) return "suanleme"
+    
+  }
+
+  static storageAiModel(
+    model?: string,
+  ) {
+    if(!model) return
+
+    if(model === "deepseek-chat") return "deepseek-v3"
+    if(model === "deepseek-reasoner") return "deepseek-r1"
+
+    return model
+  }
+
 
 }
 

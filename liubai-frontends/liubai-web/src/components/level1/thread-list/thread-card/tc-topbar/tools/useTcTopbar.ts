@@ -3,6 +3,7 @@ import type { TctProps } from "./types"
 import type { TooltipPlacement } from "~/components/common/liu-tooltip/tools/types"
 import cui from "~/components/custom-ui"
 import { i18n } from "~/locales"
+import { showModelName } from "~/utils/show/show-model-name"
 
 export function useTcTopbar(
   props: TctProps,
@@ -10,8 +11,19 @@ export function useTcTopbar(
   const td = computed(() => props.threadData)
 
   const aiCharacterUrl = computed(() => {
-    const t = td.value
-    const a = t.aiCharacter
+    const _td = td.value
+
+    // 1. judged by aiModel
+    if(_td.aiModel) {
+      const modelName = showModelName(_td.aiModel)
+      if(modelName === "DeepSeek R1") return "ds_r.png"
+      if(modelName === "DeepSeek V3") return "deepseek.svg"
+      if(modelName === "QwQ 32B") return "tongyi-qwen.svg"
+      if(modelName === "Kimi") return "kimi.png"
+    }
+
+    // 2. judged by aiCharacter
+    const a = _td.aiCharacter
     if(!a) return
     if(a === "baixiaoying") return "baichuan.svg"
     if(a === "deepseek") return "deepseek.svg"
@@ -36,19 +48,40 @@ export function useTcTopbar(
   })
 
   const cloudOffPlacement = computed<TooltipPlacement>(() => {
-    const t = td.value
-    if(t.stateShow) return `bottom`
-    if(t.aiCharacter) return `bottom`
+    const _td = td.value
+    if(_td.stateShow) return `bottom`
+    if(_td.aiCharacter) return `bottom`
     return `bottom-end`
   })
 
   const onTapAiCharacter = () => {
     const _td = td.value
     const a = _td.aiCharacter
-    if(!a) return
     const { t } = i18n.global
-    const name = t(`ai_character.${a}`)
-    const company = t(`ai_provider.${a}`)
+
+    let name = ""
+    let company = ""
+
+    // 1. judged by character
+    if(a) {
+      name = t(`ai_character.${a}`)
+      company = t(`ai_provider.${a}`)
+    }
+
+    // 2.1 company is judged by computingProvider
+    const computingProvider = _td.computingProvider
+    if(computingProvider) {
+      const company2 = t(`computing_provider.${computingProvider}`)
+      if(company2) company = company2
+    }
+
+    // 2.2 name is judged by aiModel
+    if(_td.aiModel) {
+      const modelName = showModelName(_td.aiModel)
+      if(modelName) name = modelName
+    }
+
+
     if(!name || !company) return
     const isTheSame = name === company
     let content = ""

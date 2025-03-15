@@ -26,6 +26,7 @@ import type {
   Cloud_ImageStore,
   Cloud_FileStore,
 } from "~/types/types-cloud"
+import type { LiuAi } from "~/types/types-ai"
 
 
 /********************* Request types **********************/
@@ -210,6 +211,8 @@ export interface LiuDownloadContent {
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
   ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 
   myFavorite?: LiuDownloadCollection
   myEmoji?: LiuDownloadCollection

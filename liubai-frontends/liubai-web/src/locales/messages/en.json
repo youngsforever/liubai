@@ -656,6 +656,22 @@
     "yuewen": "Stepfun",
     "zhipu": "Zhipu"
   },
+  "computing_provider": {
+    "aliyun-bailian": "Aliyun Bailian",
+    "baichuan": "Baichuan",
+    "deepseek": "DeepSeek",
+    "tencent-hunyuan": "Tencent Hunyuan",
+    "minimax": "MiniMax",
+    "moonshot": "Moonshot",
+    "stepfun": "Stepfun",
+    "zero-one": "01.ai",
+    "zhipu": "Zhipu",
+    "siliconflow": "SiliconCloud",
+    "gitee-ai": "Gitee AI",
+    "qiniu": "Qiniu",
+    "tencent-lkeap": "Tencent LKEAP",
+    "suanleme": "Suanleme"
+  },
   "bind": {
     "phone_title": "Phone Number Binding",
     "email_title": "Email Binding",

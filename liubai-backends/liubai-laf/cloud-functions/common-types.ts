@@ -629,12 +629,14 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 
 /*********************** About AI **********************/
-export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" | "minimax" | "moonshot" | "stepfun" | 
-  "zero-one" | "zhipu"
+export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" 
+  | "minimax" | "moonshot" | "stepfun" | "zero-one" | "zhipu"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
+  | "suanleme"
 
 // tencent-lkeap: 腾讯云，知识引擎原子能力（LLM Knowledge Engine Atomic Power）
+// suanleme: https://api.suanli.cn/
 
 
 // AiCharacter 不跟供应商绑定，它是角色，只不过现在各个供应商都有自己的 To C 角色罢了
@@ -1443,6 +1445,8 @@ export interface Table_Content extends BaseTable {
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
   ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 }
 
 /** 草稿表 */
@@ -2280,6 +2284,8 @@ export interface LiuDownloadContent {
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
   ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 
   myFavorite?: LiuDownloadCollection
   myEmoji?: LiuDownloadCollection
@@ -3604,6 +3610,8 @@ export namespace LiuAi {
     model: string
     maxInputTokenK: number
   }
+
+  export type ComputingProvider = AiProvider | AiSecondaryProvider
 
 }
 

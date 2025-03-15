@@ -25,6 +25,7 @@ import {
 } from '@/common-types'
 import { getBasicStampWhileAdding, getNowStamp } from './common-time'
 import { createThreadId } from '@/common-ids'
+import { AiShared } from '@/ai-shared'
 
 const db = cloud.database()
 const _ = db.command
@@ -206,6 +207,8 @@ async function agree_aichat(
     levelOne: 0,
     levelOneAndTwo: 0,
     aiCharacter: theChat.character,
+    computingProvider: AiShared.turnBaseUrlToProvider(theChat.baseUrl),
+    aiModel: AiShared.storageAiModel(theChat.model),
   }
 
   // 7. check out TODO

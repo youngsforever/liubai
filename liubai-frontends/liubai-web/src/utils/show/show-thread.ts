@@ -126,6 +126,8 @@ function packThread(
     aiCharacter: v.aiCharacter,
     aiReadable: v.aiReadable,
     ideType: v.ideType,
+    computingProvider: v.computingProvider,
+    aiModel: v.aiModel,
   }
   return obj
 }

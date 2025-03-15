@@ -32,6 +32,7 @@ import type {
   WorkspaceConfig,
 } from "./other/types-custom"
 import type { UserSubscription } from "./types-cloud"
+import type { LiuAi } from "./types-ai"
 
 export interface BaseLocalTable {
   _id: string
@@ -119,6 +120,8 @@ export interface ContentLocalTable extends BaseLocalTable {
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
   ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 }
 
 export interface DraftLocalTable extends BaseLocalTable {

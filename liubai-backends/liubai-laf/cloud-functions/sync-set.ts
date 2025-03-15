@@ -67,6 +67,7 @@ import {
 import cloud from '@lafjs/cloud'
 import * as vbot from "valibot"
 import { afterPostingThread } from "@/sync-after"
+import { AiShared } from "./ai-shared"
 
 const db = cloud.database()
 const _ = db.command
@@ -624,6 +625,8 @@ async function toPostThread(
     aiCharacter: aiChat?.character,
     aiReadable: thread.aiReadable,
     ideType: ssCtx.ideType,
+    computingProvider: AiShared.turnBaseUrlToProvider(aiChat?.baseUrl),
+    aiModel: AiShared.storageAiModel(aiChat?.model),
   }
 
   // 8. insert content

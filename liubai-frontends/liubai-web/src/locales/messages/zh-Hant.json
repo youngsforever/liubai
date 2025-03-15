@@ -656,6 +656,22 @@
     "yuewen": "階躍星辰",
     "zhipu": "智譜"
   },
+  "computing_provider": {
+    "aliyun-bailian": "阿里雲百煉",
+    "baichuan": "百川智能",
+    "deepseek": "深度求索",
+    "tencent-hunyuan": "騰訊混元",
+    "minimax": "MiniMax",
+    "moonshot": "月之暗面",
+    "stepfun": "階躍星辰",
+    "zero-one": "零一萬物",
+    "zhipu": "智譜華章",
+    "siliconflow": "矽基流動",
+    "gitee-ai": "模力方舟",
+    "qiniu": "七牛雲",
+    "tencent-lkeap": "騰訊雲知識能力引擎",
+    "suanleme": "算了麼"
+  },
   "bind": {
     "phone_title": "行動電話綁定",
     "email_title": "Email 綁定",
