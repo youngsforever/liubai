@@ -24,7 +24,7 @@ const getIdeType = (): LiuIDEType | undefined => {
   if(appName === "Gitpod Code" || appHost === "Gitpod") return "gitpod.io"
   if(appName === "StackBlitz") return "stackblitz.com"
   if(appName === "Project IDX") return "project-idx"
-  if(uriScheme === "cloud-studio") return "cloud-studio"
+  if(uriScheme === "cloud-studio") return "tencent-cloud-studio"
   if(remoteName?.endsWith(".cnb.cool")) return "cnb.cool"
 }
 

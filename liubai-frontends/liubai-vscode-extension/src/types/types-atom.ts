@@ -133,7 +133,7 @@ export const liuIDETypes = [
   "gitpod.io",
   "stackblitz.com",
   "project-idx",
-  "cloud-studio",         // it might be from ide.cloud.tencent.com or cloudstudio.net
+  "tencent-cloud-studio", // it might be from ide.cloud.tencent.com or cloudstudio.net
                           // which are both products of Tencent
   "cnb.cool",             // Cloud Native Build from Tencent
 ] as const

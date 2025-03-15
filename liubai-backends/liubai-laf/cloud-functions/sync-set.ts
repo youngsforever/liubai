@@ -67,7 +67,7 @@ import {
 import cloud from '@lafjs/cloud'
 import * as vbot from "valibot"
 import { afterPostingThread } from "@/sync-after"
-import { AiShared } from "./ai-shared"
+import { AiShared } from "@/ai-shared"
 
 const db = cloud.database()
 const _ = db.command
