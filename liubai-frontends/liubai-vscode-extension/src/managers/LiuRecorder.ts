@@ -124,6 +124,10 @@ export class LiuRecorder {
       }
     }
 
+    // 4. refresh auth
+    authManager.tryToRefreshAuth(authStatus, "HOUR")
+
+    // 5. start to record
     this._startRecording(codeBlock)
   }
 
@@ -134,6 +138,9 @@ export class LiuRecorder {
       this._waitingForLoginStamp = time.getTime()
       const res = await authManager.startToLogin()
       if(!res) return
+    }
+    else {
+      authManager.tryToRefreshAuth(authStatus, "HOUR")
     }
     
     this._startRecording()

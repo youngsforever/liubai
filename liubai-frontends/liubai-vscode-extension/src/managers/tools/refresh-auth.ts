@@ -7,7 +7,7 @@ import { getMyDataFromSpaceMemberList } from "./common-tools";
 import valTool from "~/utils/basic/val-tool";
 import * as vscode from 'vscode';
 import { SimpleEventBus } from "~/utils/event-bus/simple-event-bus";
-
+import type { RefreshDuration } from "~/types/types-atom";
 
 export class RefreshAuth {
 
@@ -21,11 +21,13 @@ export class RefreshAuth {
 
   public async refreshToken(
     authStatus: LiuAuthStatus,
+    duration: RefreshDuration,
   ) {
     // 1. check out if it is within a week
     const stamp1 = authStatus.updated_stamp
-    const isWithinWeek = time.isWithinMillis(stamp1, time.WEEK)
-    if (isWithinWeek) return true
+    const duration1 = duration === "HOUR" ? time.HOUR : time.WEEK
+    const isWithinDuration = time.isWithinMillis(stamp1, duration1)
+    if (isWithinDuration) return true
 
     // 2. fetch enter
     const url2 = APIs.USER_ENTER

@@ -139,3 +139,5 @@ export const liuIDETypes = [
 ] as const
 
 export type LiuIDEType = typeof liuIDETypes[number]
+
+export type RefreshDuration = "HOUR" | "WEEK"

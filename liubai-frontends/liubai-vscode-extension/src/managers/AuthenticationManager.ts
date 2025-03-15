@@ -25,6 +25,7 @@ import { Logger } from '~/utils/Logger';
 import { SimpleEventBus } from '~/utils/event-bus/simple-event-bus';
 import liuEnv from '~/utils/liu-env';
 import { RefreshAuth } from './tools/refresh-auth';
+import type { RefreshDuration } from '~/types/types-atom';
 
 const customEnv = liuEnv.getEnv()
 const appPrefix = customEnv.appPrefix ?? ""
@@ -76,12 +77,13 @@ export class AuthenticationManager {
     this.startToLogin()
   }
 
-  private async tryToRefreshAuth(
+  public async tryToRefreshAuth(
     oldAuthStatus: LiuAuthStatus,
+    duration: RefreshDuration = "WEEK",
   ) {
     // 1. to refresh
     const refreshAuth = new RefreshAuth(this._context, LOGIN_DATA_KEY)
-    const res1 = await refreshAuth.refreshToken(oldAuthStatus)
+    const res1 = await refreshAuth.refreshToken(oldAuthStatus, duration)
     if(res1) return
 
     // 2. to logout
