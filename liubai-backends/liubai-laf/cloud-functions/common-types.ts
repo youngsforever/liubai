@@ -3615,6 +3615,8 @@ export namespace LiuAi {
 
   export interface AiWorker {
     computingProvider: ComputingProvider
+    model: string
+    character?: AiCharacter
   }
 
 }

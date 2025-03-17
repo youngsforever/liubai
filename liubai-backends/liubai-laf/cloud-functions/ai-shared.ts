@@ -349,7 +349,7 @@ interface ThinkTagContent {
 
 export class AiShared {
 
-  static getApiEndpointFromComputingProvider(
+  static getEndpointFromProvider(
     p: LiuAi.ComputingProvider,
   ): LiuAi.ApiEndpoint | undefined {
     let apiKey: string | undefined
@@ -430,10 +430,10 @@ export class AiShared {
 
     let apiEndpoint: LiuAi.ApiEndpoint | undefined
     if(p2) {
-      apiEndpoint = AiShared.getApiEndpointFromComputingProvider(p2)
+      apiEndpoint = AiShared.getEndpointFromProvider(p2)
     }
     if(!apiEndpoint) {
-      apiEndpoint = AiShared.getApiEndpointFromComputingProvider(p)
+      apiEndpoint = AiShared.getEndpointFromProvider(p)
     }
 
     if(apiEndpoint) {
