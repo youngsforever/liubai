@@ -119,9 +119,32 @@ export const getCharacteristic = (): GetChaRes => {
     }
   }
 
-  if(ua.includes("harmonyos")) {
+  // arkweb is a fork of chromium kernel from its v114:
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-component-overview-V5
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-useragent-V5
+  if(ua.includes("openharmony")) {
     isHarmonyOS = true
   }
+  else if(ua.includes("harmonyos")) {
+    isHarmonyOS = true
+  }
+  else if(ua.includes("arkweb")) {
+    isHarmonyOS = true
+  }
+
+  // recognize phone, tablet, or 2in1 for HarmonyOS
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-useragent-V5#section680818241559
+  if(isHarmonyOS) {
+    if(ua.includes("phone;") || ua.includes("tablet;")) {
+      isMobile = true
+      isPC = false
+    }
+    else if(ua.includes("pc;")) {
+      isPC = true
+      isMobile = false
+    }
+  }
+
   if(ua.includes("huaweibrowser")) {
     isHuaweiBrowser = true
   }
@@ -153,6 +176,14 @@ export const getCharacteristic = (): GetChaRes => {
 
       const s_version_m = ua.match(reg_exp.safari_version)
       browserVersion = s_version_m ? s_version_m[1] : undefined
+    }
+  }
+
+  // recognize browser version for HarmonyOS
+  if(isHarmonyOS) {
+    const ark_version_m = ua.match(reg_exp.arkweb_version)
+    if(ark_version_m) {
+      browserVersion = ark_version_m[1]
     }
   }
 

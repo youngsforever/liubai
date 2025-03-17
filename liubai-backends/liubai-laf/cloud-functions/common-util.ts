@@ -134,6 +134,7 @@ export const reg_exp = {
   firefox_version: /firefox\/([\d\.]+)/,
   safari_version: /version\/([\d\.]+)/,
   ios_version: /iphone os ([\d_]+)/,
+  arkweb_version: /arkweb\/([\d\.]+)/,
 }
 
 // @see https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Service_Center_messages.html#7
@@ -1244,11 +1245,28 @@ export function getCharacteristic(
     }
   }
 
-  if(ua.includes("harmonyos")) {
+  if(ua.includes("openharmony")) {
+    cha.isHarmonyOS = true
+  }
+  else if(ua.includes("harmonyos")) {
+    cha.isHarmonyOS = true
+  }
+  else if(ua.includes("arkweb")) {
     cha.isHarmonyOS = true
   }
   if(ua.includes("huaweibrowser")) {
     cha.isHuaweiBrowser = true
+  }
+
+  if(cha.isHarmonyOS) {
+    if(ua.includes("phone;") || ua.includes("tablet;")) {
+      cha.isMobile = true
+      cha.isPC = false
+    }
+    else if(ua.includes("pc;")) {
+      cha.isPC = true
+      cha.isMobile = false
+    }
   }
 
   // 判别浏览器
@@ -1277,6 +1295,14 @@ export function getCharacteristic(
 
       const s_version_m = ua.match(reg_exp.safari_version)
       cha.browserVersion = s_version_m ? s_version_m[1] : undefined
+    }
+  }
+
+  // recognize browser version for HarmonyOS
+  if(cha.isHarmonyOS) {
+    const ark_version_m = ua.match(reg_exp.arkweb_version)
+    if(ark_version_m) {
+      cha.browserVersion = ark_version_m[1]
     }
   }
 

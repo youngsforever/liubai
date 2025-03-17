@@ -36,6 +36,8 @@ export default {
 
   safari_version: /version\/([\d\.]+)/,
 
+  arkweb_version: /arkweb\/([\d\.]+)/,
+
   ios_version: /iphone os ([\d_]+)/,
 
   line_version: /line\/([\d\.]+)/,
