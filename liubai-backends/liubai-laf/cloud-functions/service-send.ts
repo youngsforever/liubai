@@ -261,13 +261,16 @@ export class LiuTencentSMS {
     const len1 = list.length
     if(len1 < 1) return
     const lastItem = list[len1 - 1]
+    const reporter = new LiuReporter()
     if(lastItem.ReportStatus === "FAIL") {
       console.warn("figure out a problem with tencent sms")
       console.log(lastItem)
+      reporter.sendAny("a problem with tencent sms", lastItem)
     }
     else if(lastItem.Description !== "DELIVRD") {
       console.warn("figure out a kind of weird description from tencent sms")
       console.log(lastItem)
+      reporter.sendAny("a weird description from tencent sms", lastItem)
     }
   }
 
@@ -371,13 +374,13 @@ export class SmsController {
   ): Promise<ResultOfSMS> {
     // 1. send by qiniu
     let res: LiuRqReturn
-    // res = await LiuQiniuSMS.sendVerifyCode(smsCode, localNumber)
-    // if(res.code === "0000") {
-    //   return {
-    //     send_channel: "qiniu-sms",
-    //     result: res,
-    //   }
-    // }
+    res = await LiuQiniuSMS.sendVerifyCode(smsCode, localNumber)
+    if(res.code === "0000") {
+      return {
+        send_channel: "qiniu-sms",
+        result: res,
+      }
+    }
 
     // 2. check out params for tencent sms
     const _env = process.env
@@ -728,6 +731,37 @@ export class LiuReporter {
     title?: string,
   ) {
     const res = await this._sendByDingtalk(text, title)
+    return res
+  }
+
+  private _getTextFromAny(data: any) {
+    if(typeof data === "string") return data
+    if(!data) return
+
+    const msg1 = valTool.objToStr(data)
+    if(msg1 && msg1 !== "[object Object]") return msg1
+    if(!data.toString) return msg1
+
+    let msg2 = ""
+    try {
+      msg2 = data.toString()
+    }
+    catch(err) {}
+
+    return msg2
+  }
+
+  async sendAny(
+    title: string,
+    data: any,
+  ) {
+    let text = title
+    const newText = this._getTextFromAny(data)
+    if(newText) {
+      text = `## ${title}\n\n${newText}`
+    }
+
+    const res = await this.send(text, title)
     return res
   }
 

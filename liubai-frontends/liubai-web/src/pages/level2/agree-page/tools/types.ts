@@ -6,4 +6,5 @@ export interface ApData {
   chatId?: string
   contentId?: string
   contentType: SyncOperateAPI.ContentType
+  showNaviBar: boolean
 }
