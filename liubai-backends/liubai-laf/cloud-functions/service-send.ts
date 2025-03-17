@@ -718,6 +718,7 @@ export class WxGzhSender {
 export class LiuReporter {
   
   private _dingtalkUrl?: string
+  private _dingtalkKeyword = "Liubai"
 
   constructor() {
     const _env = process.env
@@ -739,8 +740,8 @@ export class LiuReporter {
     if(!data) return
 
     const msg1 = valTool.objToStr(data)
-    if(msg1 && msg1 !== "[object Object]") return msg1
-    if(!data.toString) return msg1
+    if(msg1 && msg1 !== "[object Object]" && msg1 !== "{}") return msg1
+    if(!data.toString) return
 
     let msg2 = ""
     try {
@@ -771,6 +772,17 @@ export class LiuReporter {
   ) {
     const url = this._dingtalkUrl
     if(!url) return
+
+    // check out keyword
+    let hasKeyword = false
+    const keyword = this._dingtalkKeyword
+    if(title) {
+      hasKeyword = title.includes(keyword)
+    }
+    if(!hasKeyword) {
+      hasKeyword = text.includes(keyword)
+      if(!hasKeyword) text += "\n\nfrom Liubai"
+    }
 
     const msgtype = Boolean(title) ? "markdown" : "text"
     const body: Record<string, any> = {
