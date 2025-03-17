@@ -157,9 +157,18 @@ const cluster_system_prompt = `
 </output>
 
 <input>
-  <message>明天晚上打电话给妈咪</message>
+  <message>你来发明一种不同于现有的【资本主义】的【资本主义】，然后用它来激发人们创造、享受生活以及增进人类文明</message>
   <date>2025-03-17</date>
   <time>13:05</time>
+</input>
+<output>
+  <direction>0</direction>
+</output>
+
+<input>
+  <message>明天晚上打电话给妈咪</message>
+  <date>2025-03-17</date>
+  <time>13:09</time>
 </input>
 <output>
   <direction>1</direction>
@@ -171,7 +180,7 @@ const cluster_system_prompt = `
 <input>
   <message>告诉我明天晚上要干嘛</message>
   <date>2025-03-17</date>
-  <time>13:07</time>
+  <time>13:15</time>
 </input>
 <output>
   <direction>0</direction>
@@ -283,8 +292,33 @@ class AiCluster {
     // 2. get ai worker
     const aiWorker = this.getAiWorker()
     if(!aiWorker) return false
-    
 
+    // 3. get prompts
+    const prompts = this.getPrompts(msg1, aiWorker)
+
+    // 3.1 add prefix for deepseek
+    const provider = aiWorker.computingProvider
+    if(provider === "deepseek") {
+      const prompt_31 = {
+        "role": "assistant",
+        "content": "<output>\n",
+        "prefix": true,
+      }
+      prompts.push(prompt_31 as OaiPrompt)
+    }
+
+    // 3.2 add partial for kimi
+    if(provider === "moonshot") {
+      const prompt_32 = {
+        "role": "assistant",
+        "content": "<output>\n",
+        "partial": true,
+      }
+      prompts.push(prompt_32 as OaiPrompt) 
+    }
+
+
+    
 
 
   }
