@@ -96,6 +96,7 @@
     "vite-plugin-pwa": "^0.21.1",
     "vite-plugin-qrcode": "^0.2.4",
     "vite-plugin-svg-icons": "^2.0.1",
+    "vite-plugin-vue-mcp": "^0.2.2",
     "vue-tsc": "^2.2.8",
     "workbox-precaching": "^7.3.0",
     "workbox-routing": "^7.3.0",
