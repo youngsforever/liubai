@@ -773,13 +773,11 @@ export const aiToolAddCalendarEarlyMinutes = [
   "0", "10", "15", "30", "60", "120", "1440"
 ] as const
 export type AiToolAddCalendarEarlyMinute = typeof aiToolAddCalendarEarlyMinutes[number]
-export const Sch_AiToolAddCalendarEarlyMinute = vbot.picklist(aiToolAddCalendarEarlyMinutes)
 
 export const aiToolAddCalendarLaterHours = [
   "0.5", "1", "2", "3", "12", "24"
 ] as const
 export type AiToolAddCalendarLaterHour = typeof aiToolAddCalendarLaterHours[number]
-export const Sch_AiToolAddCalendarLaterHour = vbot.picklist(aiToolAddCalendarLaterHours)
 
 export interface AiToolAddCalendarParam {
   title?: string
@@ -797,8 +795,8 @@ export const Sch_AiToolAddCalendarParam = vbot.object({
   date: Sch_Opt_Str,
   specificDate: vbot.optional(Sch_AiToolAddCalendarSpecificDate),
   time: Sch_Opt_Str,
-  earlyMinute: vbot.optional(Sch_AiToolAddCalendarEarlyMinute),
-  laterHour: vbot.optional(Sch_AiToolAddCalendarLaterHour),
+  earlyMinute: Sch_Opt_Str,
+  laterHour: Sch_Opt_Str,
 })
 
 // the param of get_schedule
@@ -908,6 +906,7 @@ export interface UserQuota {
   aiConversationCount: number
   lastWxGzhChatStamp?: number
   aiClusterCount?: number
+  lastAiClusterStamp?: number
 }
 
 export interface LiuSpaceAndMember {

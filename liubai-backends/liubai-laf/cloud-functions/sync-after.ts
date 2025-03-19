@@ -6,12 +6,15 @@ import {
   type LiuAi,
   type OaiPrompt,
   type OaiCreateParam,
+  type SyncOperateAPI,
   aiToolAddCalendarSpecificDates,
 } from '@/common-types'
 import { 
   AiToolUtil,
   checkIfUserSubscribed, 
   decryptEncData, 
+  encryptDataWithAES, 
+  getAESKey, 
   LiuDateUtil, 
   valTool, 
   type DecryptEncData_B,
@@ -136,8 +139,8 @@ const cluster_system_prompt = `
 - <date> 选填，表示确切日期。
 - <time> 选填，表示确切时间。
 - <specificDate> 选填，表示特定日期: 今天、明天、后天或周几，合法值有: ${aiToolAddCalendarSpecificDates.join(", ")}
-- <earlyMinute> 选填，表示提前多少分钟提醒。设置为 0 时表示准时提醒，设置 1440 表示提前一天提醒。
-- <laterHour> 选填，表示从现在起，往后推算多少小时后发生。设置为 0.5 表示三十分钟后，1 表示一小时后，24 表示一天后发生。
+- <earlyMinute> 选填，表示提前多少分钟提醒。设置为 0 时表示准时提醒，设置 1440 表示提前一天提醒。限制: 0 <= earlyMinute <= 1440
+- <laterHour> 选填，表示从现在起，往后推算多少小时后发生。设置为 0.5 表示三十分钟后，1 表示一小时后，24 表示一天后发生。限制: 0.25 <= laterHour <= 24
 
 ## 工作示例
 
@@ -311,7 +314,6 @@ class AiCluster {
     // 1. get user's input
     const msg1 = this.getInputMessage()
     if(!msg1) return false
-    const reporter = new LiuReporter()
 
     // 2. get ai worker
     const res2 = this.getAiWorker()
@@ -371,7 +373,7 @@ class AiCluster {
     // 7. turn into object
     const res7 = await this.turnIntoObject(content6)
     if(!res7) {
-      reporter.send(content5, "Liubai xml2js failed in ai cluster")
+      this._reporter(content5, "xml2js failed in ai cluster")
       return
     }
     console.log("res7: ", res7)
@@ -387,19 +389,104 @@ class AiCluster {
       this._user,
     )
     if(!res8.pass) {
-      const title8 = "Liubai turnJsonToWaitingData failed in ai cluster"
+      const title8 = "turnJsonToWaitingData failed in ai cluster"
       let msg8 = `## ${title8}:\n\n`
       msg8 += (res8.err.errMsg ?? "")
       msg8 += "\n\n"
       msg8 += (`## content6\n\n${content6}`)
-      reporter.send(msg8, title8)
+      this._reporter(msg8, title8)
       return
     }
 
-    // 9. see normalized json data
-    const res9 = res8.data
-    console.log("res9: ", res9)
+    // 9. to update thread
+    const res9 = await this.updateThread(res8.data, aiWorker)
+    if(!res9) return
 
+    // 10. to update quota for user
+    const res10 = await this.updateQuota()
+    return res10
+  }
+
+  private _reporter(
+    text: string,
+    title: string,
+  ) {
+    if(!title.includes("Liubai")) {
+      title = "Liubai " + title
+    }
+    const reporter = new LiuReporter()
+    reporter.send(text, title)
+  }
+
+  private async updateThread(
+    waitingData: SyncOperateAPI.WaitingData,
+    aiWorker: LiuAi.AiWorker,
+  ) {
+    // 1. check out liuDesc
+    const { liuDesc } = waitingData
+    if(!liuDesc || liuDesc.length < 1) {
+      const msg1 = valTool.objToStr(waitingData)
+      this._reporter(msg1, "liuDesc is empty in ai cluster")
+      return false
+    }
+
+    // 2. get the latest thread to ensure that ai can edit
+    const oldThread = this._thread
+    const threadId = oldThread._id
+    const cCol = db.collection("Content")
+    const res2 = await cCol.doc(threadId).get<Table_Content>()
+    const theThread = res2.data
+    if(!theThread) return false
+    if(theThread.oState !== "OK") return false
+    if(oldThread.editedStamp !== theThread.editedStamp) {
+      console.warn("the thread has already been edited, so do not update it!")
+      return false
+    }
+    
+    // 3. encrypt data
+    const aesKey = getAESKey()
+    if(!aesKey) {
+      this._reporter("aesKey is empty in ai cluster", "aesKey is empty")
+      return false
+    }
+    const enc_desc = encryptDataWithAES(liuDesc, aesKey)
+    // TODO: enc_search_text
+
+    // 4. construct new data
+    const now4 = getNowStamp()
+    const newData: Partial<Table_Content> = {
+      calendarStamp: waitingData.calendarStamp,
+      remindStamp: waitingData.remindStamp,
+      whenStamp: waitingData.whenStamp,
+      remindMe: waitingData.remindMe,
+      enc_desc,
+      aiCharacter: aiWorker.character,
+      computingProvider: aiWorker.computingProvider,
+      aiModel: AiShared.storageAiModel(aiWorker.model),
+      editedStamp: now4,
+      updatedStamp: now4,
+    }
+    const res4 = await cCol.doc(threadId).update(newData)
+    console.log("updateThread res4: ", res4)
+    return true
+  }
+
+  private async updateQuota() {
+    // 1. get user
+    const userId = this._user._id
+    const uCol = db.collection("User")
+    const res1 = await uCol.doc(userId).get<Table_User>()
+    const user = res1.data
+    if(!user) return
+
+    // 2. update quota
+    const now2 = getNowStamp()
+    const quota = user.quota ?? { aiConversationCount: 0 }
+    quota.aiClusterCount = (quota.aiClusterCount ?? 0) + 1
+    quota.lastAiClusterStamp = now2
+    const res2 = await uCol.doc(userId).update({ quota })
+    console.log("updateQuota res2: ", res2)
+    return true
   }
 
   private async turnIntoObject(content: string) {

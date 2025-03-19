@@ -3300,14 +3300,14 @@ export class AiToolUtil {
       else if(laterHour === 3) {
         remindMe.later = "3hr"
       }
-      else if(laterHour === 12) {
-        remindMe = {
-          type: "specific_time",
-          specific_stamp: now + (12 * HOUR),
-        }
+      else if(laterHour === 24) {
+        remindMe.later = "tomorrow_this_moment"
       }
       else {
-        remindMe.later = "tomorrow_this_moment"
+        remindMe = {
+          type: "specific_time",
+          specific_stamp: now + (laterHour * HOUR),
+        }
       }
     }
 
@@ -3339,6 +3339,13 @@ export class AiToolUtil {
     funcJson: Record<string, any>,
     user?: Table_User,
   ): DataPass<SyncOperateAPI.WaitingData> {
+
+    // 0. add calendar
+    if(funcName === "add_calendar") {
+      const res0 = this.turnJsonForAddCalendar(funcJson, user)
+      return res0
+    }
+
     const errRes = checker.getErrResult("no function name matches")
 
     // 1. add_note
@@ -3392,30 +3399,92 @@ export class AiToolUtil {
       return { pass: true, data: d2 }
     }
 
-    // 3. add_calendar
-    if(funcName === "add_calendar") {
-      // 3.1 normalize for bots which are not so smart
-      if(typeof funcJson.earlyMinute === "number") {
-        funcJson.earlyMinute = funcJson.earlyMinute.toString()
-      }
-      if(typeof funcJson.laterHour === "number") {
-        funcJson.laterHour = funcJson.laterHour.toString()
-      }
-
-      const res3 = vbot.safeParse(Sch_AiToolAddCalendarParam, funcJson)
-      if(!res3.success) {
-        console.warn("cannot parse add_calendar param: ")
-        console.log(funcJson)
-        console.log(res3.issues)
-        errRes.err.errMsg = checker.getErrMsgFromIssues(res3.issues)
-        return errRes
-      }
-      const d3 = this._turnCalendarJsonToWaitingData(funcJson, user)
-      return d3
-    }
-
     return errRes
   }
+
+
+  static turnJsonForAddCalendar(
+    funcJson: Record<string, any>,
+    user?: Table_User,
+  ): DataPass<SyncOperateAPI.WaitingData> {
+    const errRes = checker.getErrResult("no function name matches")
+
+    // 1. normalize for bots which are not so smart
+    if (typeof funcJson.earlyMinute === "number") {
+      funcJson.earlyMinute = funcJson.earlyMinute.toString()
+    }
+    if (typeof funcJson.laterHour === "number") {
+      funcJson.laterHour = funcJson.laterHour.toString()
+    }
+
+    // 2. validate in general
+    const res2 = vbot.safeParse(Sch_AiToolAddCalendarParam, funcJson)
+    if (!res2.success) {
+      console.warn("cannot parse add_calendar param: ")
+      console.log(funcJson)
+      console.log(res2.issues)
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res2.issues)
+      return errRes
+    }
+
+    // 3. check out earlyMinute
+    if (funcJson.earlyMinute) {
+      const res3 = ValueTransform.str2Num(funcJson.earlyMinute)
+      if (!res3.pass) {
+        console.warn("cannot parse earlyMinute: ", funcJson.earlyMinute)
+        console.log(funcJson)
+        errRes.err.errMsg = "fail to parse earlyMinute in add_calendar"
+        return errRes
+      }
+      const num3 = res3.data
+      if (num3 < 0) {
+        console.warn("earlyMinute must be greater than 0")
+        console.log(funcJson)
+        errRes.err.errMsg = "earlyMinute must be greater than 0"
+        return errRes
+      }
+      if (num3 > 1440) {
+        console.warn("earlyMinute must be less than 1440")
+        console.log(funcJson)
+        errRes.err.errMsg = "earlyMinute must be less than 1440"
+        return errRes
+      }
+      funcJson.earlyMinute = num3.toFixed(0)
+    }
+
+    // 4. check out laterHour
+    if(funcJson.laterHour) {
+      const res4 = ValueTransform.str2Num(funcJson.laterHour)
+      if(!res4.pass) {
+        console.warn("cannot parse laterHour: ", funcJson.laterHour)
+        console.log(funcJson)
+        errRes.err.errMsg = "fail to parse laterHour in add_calendar"
+        return errRes
+      }
+      const num4 = res4.data
+      if(num4 < 0.08) {
+        console.warn("laterHour must be greater than or equal to 0.25")
+        console.log(funcJson)
+        errRes.err.errMsg = "laterHour must be greater than or equal to 0.25"
+        return errRes
+      }
+      if(num4 > 24) {
+        console.warn("laterHour must be less than or equal to 24")
+        console.log(funcJson)
+        errRes.err.errMsg = "laterHour must be less than or equal to 24"
+        return errRes
+      }
+      if(funcJson.laterHour !== "0.5") {
+        funcJson.laterHour = num4.toFixed(2)
+      }
+    }
+
+    // 5. start to turn for adding calendar
+    const d5 = this._turnCalendarJsonToWaitingData(funcJson, user)
+    return d5
+  }
+
+
 
 }
 
