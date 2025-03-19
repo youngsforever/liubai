@@ -4,29 +4,63 @@ import {
   type Table_Content, 
   type Table_User,
   type LiuAi,
+  type OaiPrompt,
+  type OaiCreateParam,
   aiToolAddCalendarSpecificDates,
-  OaiPrompt,
 } from '@/common-types'
 import { 
+  AiToolUtil,
   checkIfUserSubscribed, 
   decryptEncData, 
   LiuDateUtil, 
   valTool, 
   type DecryptEncData_B,
 } from '@/common-util'
-import { AiShared } from '@/ai-shared'
-import { i18nFill } from './common-i18n'
-import { getNowStamp } from './common-time'
+import { 
+  AiShared, 
+  BaseLLM, 
+  LogHelper,
+} from '@/ai-shared'
+import { i18nFill } from '@/common-i18n'
+import { getNowStamp } from '@/common-time'
+import xml2js from "xml2js"
+import { LiuReporter } from '@/service-send'
 
 const db = cloud.database()
 const _ = db.command
 const AI_CLUSTER_FREE = 10
 const aiWorkers: LiuAi.AiWorker[] = [
+  // {
+  //   "computingProvider": "suanleme",
+  //   "model": "free:QwQ-32B",
+  //   "character": "tongyi-qwen",
+  // },
+  // {
+  //   "computingProvider": "moonshot",
+  //   "model": "kimi-latest",
+  //   "character": "kimi",
+  // },
   {
-    "computingProvider": "suanleme",
-    "model": "free:QwQ-32B"
-  }
+    "computingProvider": "deepseek",
+    "model": "deepseek-reasoner",
+    "character": "ds-reasoner",
+  },
+  // {
+  //   "computingProvider": "tencent-hunyuan",
+  //   "model": "hunyuan-turbos-latest",
+  //   "character": "hunyuan",
+  // },
+  // {
+  //   "computingProvider": "aliyun-bailian",
+  //   "model": "qwq-32b",
+  //   "character": "tongyi-qwen",
+  // }
 ]
+
+export async function main(ctx: FunctionContext) {
+  await afterPostingThread("GIVE_ME_AN_ID")
+  return "see console"
+}
 
 
 interface AfterPostingThreadOpt {
@@ -42,6 +76,7 @@ export async function afterPostingThread(
   const res1 = await cCol.doc(id).get<Table_Content>()
   const thread = res1.data
   if(!thread) return
+  if(thread.oState !== "OK") return
 
   // 1.2 decrypt data
   const res1_2 = decryptEncData(thread)
@@ -67,7 +102,7 @@ export async function afterPostingThread(
   // 4. go to cluster
   if(goToCluster) {
     const aiCluster = new AiCluster(thread, user, res1_2)
-    aiCluster.run()
+    await aiCluster.run()
   }
 
 
@@ -234,18 +269,6 @@ class AiCluster {
     return title + "\n" + text1
   }
 
-  private _getTimeStr(
-    stamp: number,
-  ) {
-    const user = this._user
-    const res1 = LiuDateUtil.getDateAndTime(
-      stamp,
-      user.timezone,
-    )
-    const timeStr = `${res1.date} ${res1.time}`
-    return timeStr
-  }
-
   private getPrompts(
     msg: string,
     worker: LiuAi.AiWorker,
@@ -285,16 +308,25 @@ class AiCluster {
   }
 
   async run() {
-    // 1. get user input
+    // 1. get user's input
     const msg1 = this.getInputMessage()
     if(!msg1) return false
+    const reporter = new LiuReporter()
 
     // 2. get ai worker
-    const aiWorker = this.getAiWorker()
-    if(!aiWorker) return false
+    const res2 = this.getAiWorker()
+    if(!res2) return false
+    const aiWorker = res2.worker
+    const endpoint = res2.apiEndpoint
 
     // 3. get prompts
     const prompts = this.getPrompts(msg1, aiWorker)
+    const param3: OaiCreateParam = {
+      messages: prompts,
+      model: aiWorker.model,
+      stop: ["</output>"],
+      stream: true,
+    }
 
     // 3.1 add prefix for deepseek
     const provider = aiWorker.computingProvider
@@ -305,6 +337,7 @@ class AiCluster {
         "prefix": true,
       }
       prompts.push(prompt_31 as OaiPrompt)
+      endpoint.baseURL += "/beta"
     }
 
     // 3.2 add partial for kimi
@@ -317,10 +350,92 @@ class AiCluster {
       prompts.push(prompt_32 as OaiPrompt) 
     }
 
+    // LogHelper.printLastItems(prompts)
 
+    // 4. fetch
+    const llm = new BaseLLM(endpoint.apiKey, endpoint.baseURL)
+    const res4 = await llm.chat(param3, { timeoutSec: 45 })
+    console.log("res4: ", res4)
+    if(!res4) return
+
+    // 5. get content and reasoning_content
+    const res5 = AiShared.getContentFromLLM(res4)
+    console.log("res5: ", res5)    
+    const content5 = res5.content
+    if(!content5) return
+
+    // 6. fix content
+    const content6 = this.fixContentFromLLM(content5)
+    console.log("content6: ", content6)
+
+    // 7. turn into object
+    const res7 = await this.turnIntoObject(content6)
+    if(!res7) {
+      reporter.send(content5, "Liubai xml2js failed in ai cluster")
+      return
+    }
+    console.log("res7: ", res7)
+
+    // 8. turn into waiting data if direction is 1
+    const direction8 = res7.direction
+    if(direction8 !== "1") return
+    delete res7.direction
+    const funcJson = res7
+    const res8 = AiToolUtil.turnJsonToWaitingData(
+      "add_calendar", 
+      funcJson,
+      this._user,
+    )
+    if(!res8.pass) {
+      const title8 = "Liubai turnJsonToWaitingData failed in ai cluster"
+      let msg8 = `## ${title8}:\n\n`
+      msg8 += (res8.err.errMsg ?? "")
+      msg8 += "\n\n"
+      msg8 += (`## content6\n\n${content6}`)
+      reporter.send(msg8, title8)
+      return
+    }
+
+    // 9. see normalized json data
+    const res9 = res8.data
+    console.log("res9: ", res9)
+
+  }
+
+  private async turnIntoObject(content: string) {
+    // 1. replace <output> and </output> with <xml> and </xml>
+    const outputStr1 = "<output>"
+    const outputStr2 = "</output>"
+    const len1 = outputStr1.length
+    const len2 = outputStr2.length
+    const tmpLength = content.length
+    if(tmpLength <= len1 + len2) return
     
+    content = "<xml>" + content.substring(len1)
+    content = content.substring(0, content.length - len2) + "</xml>"
+
+    // 2. turn into object using xml2js
+    let res2: Record<string, any> = {}
+    const parser = new xml2js.Parser({ explicitArray: false })
+    try {
+      const { xml } = await parser.parseStringPromise(content)
+      res2 = xml
+    }
+    catch(err) {
+      console.warn("AiCluster xml2js.Parser parse error: ", err)
+      return
+    }
+
+    return res2
+  }
 
 
+  private fixContentFromLLM(content: string) {
+    const res1 = content.startsWith("<output>")
+    if(!res1) content = "<output>\n" + content
+    const res2 = content.endsWith("</output>")
+    if(!res2) content += "\n</output>"
+    return content
   }
 
   private getAiWorker() {
@@ -336,7 +451,7 @@ class AiCluster {
       const cp = worker.computingProvider
       const apiEndpoint = AiShared.getEndpointFromProvider(cp)
       if(apiEndpoint) {
-        return worker
+        return { worker, apiEndpoint }
       }
       workers.splice(index, 1)
     }

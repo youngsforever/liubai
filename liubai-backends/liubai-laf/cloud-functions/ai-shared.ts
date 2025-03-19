@@ -179,6 +179,7 @@ export class BaseLLM {
 
         // handle delta
         const delta = aChoice.delta as OaiStreamChoiceDelta
+        // console.log("delta: ", delta)
         if(delta.reasoning_content) {
           // console.log("delta.reasoning_content: ", delta.reasoning_content)
           reasoningContent += delta.reasoning_content
@@ -580,24 +581,31 @@ export class AiShared {
       let err1 = content.startsWith("？")
       if(err1) content = content.substring(1)
     }
-
     
-    // 4. handle reasoning_content if needed
+    // 4. handle isReasoning
     if(typeof isReasoning === "undefined") {
-      isReasoning = Boolean(bot && AiShared.isReasoningBot(bot))
+      if(bot) {
+        isReasoning = Boolean(AiShared.isReasoningBot(bot))
+      }
+      else {
+        const str4 = content.trim()
+        isReasoning = str4.startsWith("<think>")
+      }
     }
+
+    // 5. extract reasoning content from content
     if(!reasoning_content && isReasoning) {
-      const res4 = AiShared.handleContentForReasoning(
+      const res5 = AiShared.handleContentForReasoning(
         res,
         bot as AiBot,
         content,
         reasoning_content,
       )
-      content = res4.content
-      reasoning_content = res4.reasoning_content
+      content = res5.content
+      reasoning_content = res5.reasoning_content
     }
 
-    // 5. finally trim
+    // 6. finally trim
     content = content.trim()
     reasoning_content = reasoning_content.trim()
 
