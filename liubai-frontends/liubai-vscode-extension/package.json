@@ -3,7 +3,7 @@
   "displayName": "%package.displayName%",
   "description": "%package.description%",
   "publisher": "ptsd",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "author": {
     "name": "yenche123",
     "email": "tsuiyenche@outlook.com",
@@ -13,7 +13,12 @@
   "engines": {
     "vscode": "^1.84.0"
   },
+  "bugs": {
+    "url": "https://github.com/yenche123/liubai/issues"
+  },
   "categories": [
+    "AI",
+    "Notebooks",
     "Other"
   ],
   "keywords": [
@@ -83,7 +88,7 @@
     "ui",
     "workspace"
   ],
-  "logo": "images/logo_256x256_v3.png",
+  "icon": "images/logo_256x256_v3.png",
   "scripts": {
     "vscode:prepublish": "pnpm run package",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
