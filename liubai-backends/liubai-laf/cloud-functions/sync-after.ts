@@ -21,7 +21,7 @@ import {
 } from '@/common-util'
 import { 
   AiShared, 
-  BaseLLM, 
+  BaseLLM,
   LogHelper,
 } from '@/ai-shared'
 import { i18nFill } from '@/common-i18n'
@@ -33,31 +33,51 @@ const db = cloud.database()
 const _ = db.command
 const AI_CLUSTER_FREE = 10
 const aiWorkers: LiuAi.AiWorker[] = [
-  // {
-  //   "computingProvider": "suanleme",
-  //   "model": "free:QwQ-32B",
-  //   "character": "tongyi-qwen",
-  // },
-  // {
-  //   "computingProvider": "moonshot",
-  //   "model": "kimi-latest",
-  //   "character": "kimi",
-  // },
   {
-    "computingProvider": "deepseek",
-    "model": "deepseek-reasoner",
+    "computingProvider": "suanleme",
+    "model": "free:QwQ-32B",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "tencent-hunyuan",
+    "model": "hunyuan-turbos-latest",
+    "character": "hunyuan",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwq-32b",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwq-plus",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwq-plus-latest",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-max-2025-01-25",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-max",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "deepseek-r1",
     "character": "ds-reasoner",
   },
-  // {
-  //   "computingProvider": "tencent-hunyuan",
-  //   "model": "hunyuan-turbos-latest",
-  //   "character": "hunyuan",
-  // },
-  // {
-  //   "computingProvider": "aliyun-bailian",
-  //   "model": "qwq-32b",
-  //   "character": "tongyi-qwen",
-  // }
+  {
+    "computingProvider": "zhipu",
+    "model": "glm-4-flash",
+    "character": "zhipu",
+  }
 ]
 
 export async function main(ctx: FunctionContext) {
@@ -101,11 +121,12 @@ export async function afterPostingThread(
   if(aiClusterCount >= AI_CLUSTER_FREE && !hasSubscribed) {
     goToCluster = false
   }
+  if(thread.calendarStamp) goToCluster = false
 
   // 4. go to cluster
   if(goToCluster) {
     const aiCluster = new AiCluster(thread, user, res1_2)
-    await aiCluster.run()
+    await aiCluster.run(2)
   }
 
 
@@ -243,6 +264,7 @@ class AiCluster {
   private _thread: Table_Content
   private _user: Table_User
   private _decryptedData: DecryptEncData_B
+  private _hasUpdatedThread = false
 
   constructor(
     thread: Table_Content,
@@ -274,7 +296,6 @@ class AiCluster {
 
   private getPrompts(
     msg: string,
-    worker: LiuAi.AiWorker,
   ) {
     // 1. get current date and time
     const user = this._user
@@ -310,19 +331,13 @@ class AiCluster {
     return prompts
   }
 
-  async run() {
-    // 1. get user's input
-    const msg1 = this.getInputMessage()
-    if(!msg1) return false
-
-    // 2. get ai worker
-    const res2 = this.getAiWorker()
-    if(!res2) return false
-    const aiWorker = res2.worker
-    const endpoint = res2.apiEndpoint
-
-    // 3. get prompts
-    const prompts = this.getPrompts(msg1, aiWorker)
+  private async doItByWorker(
+    msg1: string,
+    aiWorker: LiuAi.AiWorker,
+    endpoint: LiuAi.ApiEndpoint,
+  ) {
+    // 1. get prompts
+    const prompts = this.getPrompts(msg1)
     const param3: OaiCreateParam = {
       messages: prompts,
       model: aiWorker.model,
@@ -330,7 +345,7 @@ class AiCluster {
       stream: true,
     }
 
-    // 3.1 add prefix for deepseek
+    // 2. add prefix for deepseek
     const provider = aiWorker.computingProvider
     if(provider === "deepseek") {
       const prompt_31 = {
@@ -342,7 +357,7 @@ class AiCluster {
       endpoint.baseURL += "/beta"
     }
 
-    // 3.2 add partial for kimi
+    // 3. add partial for kimi
     if(provider === "moonshot") {
       const prompt_32 = {
         "role": "assistant",
@@ -357,30 +372,34 @@ class AiCluster {
     // 4. fetch
     const llm = new BaseLLM(endpoint.apiKey, endpoint.baseURL)
     const res4 = await llm.chat(param3, { timeoutSec: 45 })
-    console.log("res4: ", res4)
-    if(!res4) return
+    if(!res4) {
+      console.warn("no response in ai cluster!", aiWorker)
+      LogHelper.printLastItems(prompts)
+      return false
+    }
 
     // 5. get content and reasoning_content
     const res5 = AiShared.getContentFromLLM(res4)
-    console.log("res5: ", res5)    
     const content5 = res5.content
-    if(!content5) return
+    if(!content5) {
+      console.warn("we cannot get content from llm: ", res5)
+      return false
+    }
 
     // 6. fix content
     const content6 = this.fixContentFromLLM(content5)
-    console.log("content6: ", content6)
 
     // 7. turn into object
     const res7 = await this.turnIntoObject(content6)
     if(!res7) {
       this._reporter(content5, "xml2js failed in ai cluster")
-      return
+      return false
     }
-    console.log("res7: ", res7)
+    console.log("parsed object from LLM: ", res7)
 
-    // 8. turn into waiting data if direction is 1
+    // 8.1 turn into waiting data if direction is 1
     const direction8 = res7.direction
-    if(direction8 !== "1") return
+    if(direction8 !== "1") return false
     delete res7.direction
     const funcJson = res7
     const res8 = AiToolUtil.turnJsonToWaitingData(
@@ -395,16 +414,60 @@ class AiCluster {
       msg8 += "\n\n"
       msg8 += (`## content6\n\n${content6}`)
       this._reporter(msg8, title8)
-      return
+      return false
     }
+
+    // 8.2 check out waiting data
+    const waitingData = res8.data
+    if(!waitingData.calendarStamp) {
+      const title8_2 = "waiting data is weird"
+      const msg8_2 = valTool.objToStr(waitingData)
+      this._reporter(msg8_2, title8_2)
+      return false
+    }
+
+    // 8.3 if the thread has been updated by another worker, just skip
+    if(this._hasUpdatedThread) {
+      return false
+    }
+    this._hasUpdatedThread = true
 
     // 9. to update thread
     const res9 = await this.updateThread(res8.data, aiWorker)
-    if(!res9) return
+    if(!res9) return false
 
     // 10. to update quota for user
     const res10 = await this.updateQuota()
     return res10
+  }
+
+  async run(
+    workerNum = 1,
+  ) {
+    // 1. get user's input
+    const msg1 = this.getInputMessage()
+    if(!msg1) return false
+
+    // 2. call ai worker to run
+    let promises: Promise<boolean>[] = []
+    let filterModels: string[] = []
+    for(let i=0; i<workerNum; i++) {
+      const v = this.getAiWorker(filterModels)
+      if(!v) break
+      filterModels.push(v.worker.model)
+      const aiWorker = v.worker
+      const endpoint = v.apiEndpoint
+      const pro = this.doItByWorker(msg1, aiWorker, endpoint)
+      promises.push(pro)
+    }
+
+    // 3. handle promises
+    if(promises.length < 1) {
+      return false
+    }
+    const res3 = await Promise.all(promises)
+    const hasSuccess = res3.some(v3 => v3)
+    return hasSuccess
   }
 
   private _reporter(
@@ -467,7 +530,6 @@ class AiCluster {
       updatedStamp: now4,
     }
     const res4 = await cCol.doc(threadId).update(newData)
-    console.log("updateThread res4: ", res4)
     return true
   }
 
@@ -477,7 +539,7 @@ class AiCluster {
     const uCol = db.collection("User")
     const res1 = await uCol.doc(userId).get<Table_User>()
     const user = res1.data
-    if(!user) return
+    if(!user) return false
 
     // 2. update quota
     const now2 = getNowStamp()
@@ -485,7 +547,6 @@ class AiCluster {
     quota.aiClusterCount = (quota.aiClusterCount ?? 0) + 1
     quota.lastAiClusterStamp = now2
     const res2 = await uCol.doc(userId).update({ quota })
-    console.log("updateQuota res2: ", res2)
     return true
   }
 
@@ -525,7 +586,9 @@ class AiCluster {
     return content
   }
 
-  private getAiWorker() {
+  private getAiWorker(
+    filterModels: string[] = [],
+  ) {
     const workers = valTool.copyObject(aiWorkers)
 
     let runTimes = 0
@@ -537,7 +600,8 @@ class AiCluster {
       const worker = workers[index]
       const cp = worker.computingProvider
       const apiEndpoint = AiShared.getEndpointFromProvider(cp)
-      if(apiEndpoint) {
+      const filtered = filterModels.includes(worker.model)
+      if(apiEndpoint && !filtered) {
         return { worker, apiEndpoint }
       }
       workers.splice(index, 1)
