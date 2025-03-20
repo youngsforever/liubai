@@ -13,7 +13,7 @@ import type { UserSettingsAPI } from "~/requests/req-types";
 import { showErrMsg } from "~/pages/level1/tools/show-msg";
 
 
-export function useAuthoizePage() {
+export function useAuthorizePage() {
 
   const apData = reactive<ApData>({
     pageState: pageStates.LOADING,

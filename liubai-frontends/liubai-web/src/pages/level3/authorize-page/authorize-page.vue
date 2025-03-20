@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useAuthoizePage } from './tools/useAuthorizePage';
+import { useAuthorizePage } from './tools/useAuthorizePage';
 import AuthorizeView from './authorize-view/authorize-view.vue';
 
 const { t } = useI18n()
 const { 
   apData,
   onTapAgree,
-} = useAuthoizePage()
+} = useAuthorizePage()
 
 </script>
 <template>

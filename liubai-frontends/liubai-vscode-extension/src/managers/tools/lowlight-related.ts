@@ -34,6 +34,15 @@ export function languageIdToSupported(id: string) {
   if(id === "objective-c") {
     return "objectivec"
   }
+  if(id === "js") {
+    return "javascript"
+  }
+  if(id === "ts") {
+    return "typescript"
+  }
+  if(id === "py") {
+    return "python"
+  }
 
   // 2. normalize
   const list = showProgrammingLanguages()

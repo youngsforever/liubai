@@ -27,7 +27,7 @@ function isSafeEnvironment() {
 }
 
 function init(context: vscode.ExtensionContext) {
-	Logger.init(context)
+	Logger.init()
 	liuInfo.init(context)
 	i18n.init()
 	const res1 = isSafeEnvironment()
