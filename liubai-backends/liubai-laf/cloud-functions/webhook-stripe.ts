@@ -644,6 +644,7 @@ async function handle_session_completed(
   const quota = user.quota
   if(quota) {
     quota.aiConversationCount = 0
+    quota.aiClusterCount = 0
   }
 
   // 6. to update user

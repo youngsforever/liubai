@@ -40,6 +40,7 @@ import type {
   EmojiData,
   PartialSth,
   ContentInfoType,
+  VerifyTokenRes_B,
 } from "@/common-types"
 import { 
   Sch_Simple_SyncSetAtom,
@@ -65,6 +66,8 @@ import {
 } from "@/common-time"
 import cloud from '@lafjs/cloud'
 import * as vbot from "valibot"
+import { afterPostingThread } from "@/sync-after"
+import { AiShared } from "@/ai-shared"
 
 const db = cloud.database()
 const _ = db.command
@@ -83,22 +86,20 @@ export async function main(ctx: FunctionContext) {
 
   // 3. decrypt body
   const res3 = getDecryptedBody(body, vRes)
-  if(!res3.newBody || res3.rqReturn) {
+  const newBody = res3.newBody
+  if(!newBody || res3.rqReturn) {
     return res3.rqReturn ?? { code: "E5001" }
   }
 
-  // console.log("new body::")
-  // console.log(res3.newBody)
-
   // 4. check body
-  const res4 = checkBody(res3.newBody)
+  const res4 = checkBody(newBody)
   if(res4) return res4
 
   // 5. to init ctx
-  const ssCtx = initSyncSetCtx(user, workspaces)
+  const ssCtx = initSyncSetCtx(user, workspaces, vRes)
 
   // 6. to execute
-  const results = await toExecute(res3.newBody, ssCtx)
+  const results = await toExecute(newBody, ssCtx)
 
   // 7. construct response
   const res7: Res_SyncSet_Cloud = {
@@ -179,14 +180,18 @@ function checkBody(
   body: Record<string, any>,
 ): LiuRqReturn | null {
 
-  const { operateType, atoms } = body
-  if(operateType !== "general_sync") {
-    return { code: "E4000", errMsg: "operateType is not equal to general_sync" }
+  const { operateType: oT, atoms } = body
+  if(oT !== "general_sync" && oT !== "single_sync") {
+    return { 
+      code: "E4000", 
+      errMsg: "operateType is not equal to general_sync or single_sync",
+    }
   }
 
+  const arrMaxLength = oT === "single_sync" ? 1 : 10
   const Sch_Atoms = vbot.array(Sch_Simple_SyncSetAtom, [
     vbot.minLength(1),
-    vbot.maxLength(10),
+    vbot.maxLength(arrMaxLength),
   ])
   const res1 = vbot.safeParse(Sch_Atoms, atoms)
   if(!res1.success) {
@@ -273,6 +278,7 @@ async function toExecute(
   body: Record<string, any>,
   ssCtx: SyncSetCtx,
 ) {
+  const oT = body.operateType
   const results: SyncSetAtomRes[] = []
   const list = body.atoms as SyncSetAtom[]
 
@@ -391,7 +397,36 @@ async function toExecute(
 
   await updateAllData(ssCtx)
 
+  if(oT === "single_sync") {
+    singleSyncAfterUpdating(list, results)
+  }
+
   return results
+}
+
+
+function singleSyncAfterUpdating(
+  inputs: SyncSetAtom[],
+  outputs: SyncSetAtomRes[],
+) {
+
+  // 1. check out taskType
+  const origin = inputs[0]
+  const taskType = origin?.taskType
+  if(taskType !== "thread-post") {
+    console.warn("singleSyncAfterUpdating taskType is not thread-post")
+    return
+  }
+
+  // 2. get new_id
+  const res = outputs[0]
+  if(!res) return
+  const { new_id } = res
+  if(!new_id) return
+
+  // 3. trigger AI!
+  afterPostingThread(new_id)
+
 }
 
 
@@ -589,6 +624,9 @@ async function toPostThread(
     levelOneAndTwo: 0,
     aiCharacter: aiChat?.character,
     aiReadable: thread.aiReadable,
+    ideType: ssCtx.ideType,
+    computingProvider: AiShared.turnBaseUrlToProvider(aiChat?.baseUrl),
+    aiModel: AiShared.storageAiModel(aiChat?.model),
   }
 
   // 8. insert content
@@ -2362,7 +2400,9 @@ function _amIInTheSpace(
 function initSyncSetCtx(
   user: Table_User,
   space_ids: string[],
+  vRes: VerifyTokenRes_B,
 ) {
+  const ideType = vRes.tokenData.ideType
   const ssCtx: SyncSetCtx = {
     content: new Map<string, SyncSetCtxAtom<Table_Content>>(),
     draft: new Map<string, SyncSetCtxAtom<Table_Draft>>(),
@@ -2373,11 +2413,10 @@ function initSyncSetCtx(
     me: user,
     space_ids,
     lastUsedStamp: 0,
+    ideType,
   }
   return ssCtx
 }
-
-
 
 
 

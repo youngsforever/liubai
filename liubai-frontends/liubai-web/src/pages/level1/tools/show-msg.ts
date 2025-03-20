@@ -31,7 +31,7 @@ export function isEverythingOkay(
 export function showDisableTip(thirdParty: string) {
   cui.showModal({
     title_key: "tip.tip",
-    content_key: "login.in_beta",
+    content_key: "login.cannot_login_via",
     content_opt: { thirdParty },
     showCancel: false,
   })
@@ -117,8 +117,12 @@ export async function showErrMsg(
     content_key = "tip.err_2"
     content_opt = { errMsg, code }
   }
+  else if(code) {
+    content_key = "tip.err_1"
+    content_opt = { code }
+  }
   else {
-    console.warn("没有 errMsg 和 showMsg 的错误")
+    console.warn("code is empty!")
     console.log(code)
     console.log(" ")
     return false

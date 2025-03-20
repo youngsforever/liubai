@@ -203,7 +203,6 @@
     "logging": "正在登录..",
     "logging2": "登录中..",
     "cannot_login_via": "当前暂不支持「使用 {thirdParty} 登录」，请使用其他登录方式。",
-    "in_beta": "内测阶段，暂不开放「使用 {thirdParty} 登录」",
     "err_login": "登录异常",
     "err_1": "state 缺失，请稍后再试。",
     "err_2": "邮件被标注为垃圾邮件，请至垃圾或推广邮箱中查找。",
@@ -335,7 +334,8 @@
     "created_by_ai": "本卡片由 {name}（{company}）协助创建",
     "created_by_ai2": "本卡片由 {name} 协助创建",
     "no_ai": "拒绝 AI 的卡片",
-    "no_ai_desc": "当前卡片无法被 AI 助手们读取到。"
+    "no_ai_desc": "当前卡片无法被 AI 助手们读取到。",
+    "ide_desc": "{dateTime}，你在 {ide} 上创建"
   },
   "state_related": {
     "add_state": "添加状态",
@@ -657,6 +657,22 @@
     "yuewen": "阶跃星辰",
     "zhipu": "智谱华章"
   },
+  "computing_provider": {
+    "aliyun-bailian": "阿里云百炼",
+    "baichuan": "百川智能",
+    "deepseek": "深度求索",
+    "tencent-hunyuan": "腾讯混元",
+    "minimax": "MiniMax",
+    "moonshot": "月之暗面",
+    "stepfun": "阶跃星辰",
+    "zero-one": "零一万物",
+    "zhipu": "智谱华章",
+    "siliconflow": "硅基流动",
+    "gitee-ai": "模力方舟",
+    "qiniu": "七牛云",
+    "tencent-lkeap": "腾讯云知识能力引擎",
+    "suanleme": "算了么"
+  },
   "bind": {
     "phone_title": "手机号绑定",
     "email_title": "邮箱绑定",
@@ -671,7 +687,45 @@
     "err_5": "该地区手机号尚未开放",
     "compliance": "根据当地法律规定，当前操作必须完成手机号绑定。"
   },
+  "authorize": {
+    "title_1": "连接至 {app}",
+    "desc_1": "你即将授权 Liubai for {app} 获取和写入你的留白记事",
+    "authorize": "授权",
+    "opening_title": "正在打开 {app} ",
+    "opening_tip_1": "正在尝试打开 {app} ...",
+    "opening_tip_2": "若无反应，你可以在 {app} 上手动输入授权码 {code}"
+  },
   "ai_detail": {
     "thinking_process": "思考过程"
+  },
+  "ide_type": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "CNB",
+    "trae": "Trae"
+  },
+  "ide_full": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "云原生构建 (CNB)",
+    "trae": "Trae"
   }
 }

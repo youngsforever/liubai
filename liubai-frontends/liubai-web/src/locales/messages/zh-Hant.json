@@ -202,8 +202,7 @@
     "ready_to_login": "準備登入",
     "logging": "正在登入..",
     "logging2": "登入中..",
-    "cannot_login_via": "目前暫不支援「使用 {thirdParty} 登入」，請使用其他登入方式。",
-    "in_beta": "內測階段，暫不開放「使用 {thirdParty} 登入」",
+    "cannot_login_via": "目前不支援「使用 {thirdParty} 登入」，請改用其他登入方式。",
     "err_login": "登入異常",
     "err_1": "state 缺失，請稍後再試。",
     "err_2": "Email 被視為垃圾信件，請至垃圾或推廣信箱中尋找。",
@@ -232,7 +231,7 @@
     "agree_2": "《服務協議》",
     "agree_3": "以及",
     "agree_4": "《隱私政策》",
-    "turn_into_phone": "切換至簡訊驗證碼登入",
+    "turn_into_phone": "切換至簡訊驗證登入",
     "turn_into_email": "切换至電子郵件登入",
     "lets_chat": "去聊天",
     "tip_1": "若你之前使用過「微信一鍵登入」，請優先使用微信登入，避免重複註冊帳號。",
@@ -335,7 +334,8 @@
     "created_by_ai": "本卡片由 {name}（{company}）協助創建",
     "created_by_ai2": "本卡片由 {name} 協助創建",
     "no_ai": "拒絕 AI 的卡片",
-    "no_ai_desc": "當前卡片無法被 AI 助手們讀取到。"
+    "no_ai_desc": "當前卡片無法被 AI 助手們讀取到。",
+    "ide_desc": "{dateTime}，你在 {ide} 上創建"
   },
   "state_related": {
     "add_state": "新增狀態",
@@ -600,7 +600,7 @@
     "whatsapp_desc": "在 WhatsApp 上使用留白記事"
   },
   "qrcode": {
-    "title": "你的專屬 QR Code 已生成",
+    "title": "你的專屬行動條碼已生成",
     "long_press_1": "長按識別 QR Code，新增「留小白」的微信",
     "long_press_2": "長按識別 QR Code，關注「留白記事」",
     "long_press_3": "長按識別 QR Code，關注「留白記事」完成登入",
@@ -657,6 +657,22 @@
     "yuewen": "階躍星辰",
     "zhipu": "智譜"
   },
+  "computing_provider": {
+    "aliyun-bailian": "阿里雲百煉",
+    "baichuan": "百川智能",
+    "deepseek": "深度求索",
+    "tencent-hunyuan": "騰訊混元",
+    "minimax": "MiniMax",
+    "moonshot": "月之暗面",
+    "stepfun": "階躍星辰",
+    "zero-one": "零一萬物",
+    "zhipu": "智譜華章",
+    "siliconflow": "矽基流動",
+    "gitee-ai": "模力方舟",
+    "qiniu": "七牛雲",
+    "tencent-lkeap": "騰訊雲知識能力引擎",
+    "suanleme": "算了麼"
+  },
   "bind": {
     "phone_title": "行動電話綁定",
     "email_title": "Email 綁定",
@@ -671,7 +687,45 @@
     "err_5": "尚未開放該地區的行動電話進行綁定",
     "compliance": "根據當地法律規定，當前操作需要先完成行動電話綁定。"
   },
+  "authorize": {
+    "title_1": "連結至 {app}",
+    "desc_1": "你即將授權 Liubai for {app} 讀取和寫入你的留白記事",
+    "authorize": "授權",
+    "opening_title": "正在開啟 {app} ",
+    "opening_tip_1": "正在嘗試開啟 {app} ...",
+    "opening_tip_2": "若沒有響應，你可以在 {app} 上輸入認證碼 {code} 完成驗證"
+  },
   "ai_detail": {
     "thinking_process": "思考過程"
+  },
+  "ide_type": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "CNB",
+    "trae": "Trae"
+  },
+  "ide_full": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "雲原生建構 (CNB)",
+    "trae": "Trae"
   }
 }
