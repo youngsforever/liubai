@@ -23,11 +23,9 @@ import {
   type MongoFilter,
   type Table_User, 
   type LiuRqReturn,
-  type Res_UserSettings_Enter,
-  type Res_UserSettings_Latest,
-  type Res_UserSettings_Membership,
   type VerifyTokenRes_B,
   type Table_Token,
+  type UserSettingsAPI,
   Sch_LocalTheme,
   Sch_LocalLocale,
   type LiuErrReturn,
@@ -35,13 +33,14 @@ import {
   type DataPass,
   type Table_Credential,
   type Partial_Id,
+  type LiuAppType,
   type Table_BlockList,
 } from '@/common-types'
 import { getNowStamp, DAY, MINUTE, getBasicStampWhileAdding } from "@/common-time"
 import * as vbot from "valibot"
 import { getCurrentLocale } from '@/common-i18n'
 import { handle_avatar, addVerifyNum } from '@/user-login'
-import { createSmsCode } from '@/common-ids'
+import { createAuthCode, createSmsCode } from '@/common-ids'
 import { SmsController } from '@/service-send'
 
 const db = cloud.database()
@@ -58,7 +57,6 @@ export async function main(ctx: FunctionContext) {
     res = await handle_logout(ctx, body)
     return res
   }
-
 
   const stamp1 = getNowStamp()
   const entering = oT === "enter"
@@ -93,6 +91,12 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "unbind-email") {
     res = await handle_unbind(vRes, "email")
   }
+  else if(oT === "auth-get-info") {
+    res = await auth_get_info(vRes, body)
+  }
+  else if(oT === "auth-agree") {
+    res = await auth_agree(vRes, body)
+  }
   else if(oT === "unbind-wx_gzh") {
     res = await handle_unbind(vRes, "wx_gzh")
   }
@@ -103,6 +107,141 @@ export async function main(ctx: FunctionContext) {
 
   return res
 }
+
+
+async function auth_agree(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  // 1. get credential data
+  const res1 = await getSharedDataForAuth(body)
+  if(!res1.pass) return res1.err
+  const data1 = res1.data
+
+  // 2. create code
+  const code = createAuthCode()
+  const userId = vRes.userData._id
+
+  // 3. update credential
+  const w3: Partial<Table_Credential> = {
+    credential_2: code,
+    userId,
+    updatedStamp: getNowStamp(),
+  }
+  const cCol = db.collection("Credential")
+  const res3 = await cCol.doc(data1._id).update(w3)
+  
+  // 4. construct response
+  const data4: UserSettingsAPI.Res_AuthAgree = {
+    operateType: "auth-agree",
+    code,
+    redirectUri: data1.redirect_uri as string,
+  }
+  return { code: "0000", data: data4 }
+}
+
+
+async function auth_get_info(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+): Promise<LiuRqReturn<UserSettingsAPI.Res_AuthGetInfo>> {
+  // 1. get credential data
+  const res1 = await getSharedDataForAuth(body)
+  if(!res1.pass) return res1.err
+  const data1 = res1.data
+
+  // 2. construct response
+  const data6: UserSettingsAPI.Res_AuthGetInfo = {
+    operateType: "auth-get-info",
+    appType: data1.app_type as LiuAppType,
+    serial: data1._id,
+  }
+  return { code: "0000", data: data6 }
+}
+
+async function getSharedDataForAuth(
+  body: Record<string, any>,
+): Promise<DataPass<Table_Credential>> {
+  // 1. get param
+  const oT = body.operateType
+  const serial = body.serial
+  const credential = body.credential
+  if(!valTool.isStringWithVal(credential)) {
+    return {
+      pass: false,
+      err: { code: "E4000", errMsg: "credential is required" }
+    }
+  }
+
+  // 2. query
+  let data2: Table_Credential | null = null
+  const cCol = db.collection("Credential")
+
+  // 2.1 query with serial
+  if(oT === "auth-agree") {
+    if(!valTool.isStringWithVal(serial)) {
+      return { 
+        pass: false,
+        err: { code: "E4000", errMsg: "serial is required" }
+      }
+    }
+    const res2_1 = await cCol.doc(serial).get<Table_Credential>()
+    data2 = res2_1.data
+    if(data2?.credential !== credential) {
+      return {
+        pass: false,
+        err: { code: "E4003", errMsg: "credential does not match" }
+      }
+    }
+  }
+  else {
+    const w2: Partial<Table_Credential> = {
+      credential,
+      infoType: "auth-code",
+    }
+    const res2 = await cCol.where(w2).getOne<Table_Credential>()
+    data2 = res2.data
+  }
+
+  if(!data2) {
+    return {
+      pass: false,
+      err: { code: "E4004", errMsg: "credential not found" }
+    }
+  }
+
+  // 3. check out expiration
+  const now3 = getNowStamp()
+  const stamp3 = data2.expireStamp
+  if(stamp3 <= now3) {
+    return {
+      pass: false,
+      err: { code: "E4006", errMsg: "credential has expired" }
+    }
+  }
+
+  // 4. check out other params
+  const appType = data2.app_type
+  if(!appType) {
+    return {
+      pass: false,
+      err: { code: "E5001", errMsg: "appType is undefined" }
+    }
+  }
+  const redirect_uri = data2.redirect_uri
+  if(!redirect_uri) {
+    return {
+      pass: false,
+      err: { code: "E5001", errMsg: "redirect_uri is undefined" }
+    }
+  }
+
+  return {
+    pass: true,
+    data: data2,
+  }
+}
+
 
 async function handle_unbind(
   vRes: VerifyTokenRes_B,
@@ -561,7 +700,7 @@ async function handle_set(
 */
 async function handle_membership(
   vRes: VerifyTokenRes_B,
-): Promise<LiuRqReturn<Res_UserSettings_Membership>> {
+): Promise<LiuRqReturn<UserSettingsAPI.Res_Membership>> {
   // 1. get latest user data
   const res1 = await getLatestUser(vRes)
   if(!res1.pass) return res1.err
@@ -641,7 +780,7 @@ async function getStripeCustomerPortal(
 async function handle_enter(
   ctx: FunctionContext,
   vRes: VerifyTokenRes_B,
-): Promise<LiuRqReturn<Res_UserSettings_Enter>> {
+): Promise<LiuRqReturn<UserSettingsAPI.Res_Enter>> {
   // 0. get some params
   const user = vRes.userData
   const userAgent = ctx.headers?.['user-agent']
@@ -691,10 +830,10 @@ async function handle_latest(
   const res1 = await getUserSettings(user)
   const data = res1.data
   if(res1.code !== "0000" || !data) {
-    return res1 as LiuRqReturn<Res_UserSettings_Latest>
+    return res1 as LiuRqReturn<UserSettingsAPI.Res_Latest>
   }
-  const newData: Res_UserSettings_Latest = { ...data }
-  const newRes: LiuRqReturn<Res_UserSettings_Latest> = {
+  const newData: UserSettingsAPI.Res_Latest = { ...data }
+  const newRes: LiuRqReturn<UserSettingsAPI.Res_Latest> = {
     code: "0000",
     data: newData
   }
@@ -797,7 +936,7 @@ async function afterHandleWechatBind(
  */
 async function getUserSettings(
   user: Table_User,
-): Promise<LiuRqReturn<Res_UserSettings_Enter>> {
+): Promise<LiuRqReturn<UserSettingsAPI.Res_Enter>> {
   const [ui] = await getUserInfos([user])
   if(!ui) {
     return { code: "E4004", errMsg: "it cannot find an userinfo" }
@@ -820,7 +959,7 @@ async function getUserSettings(
     wx_gzh_nickname = undefined
   }
 
-  const data: Res_UserSettings_Enter = {
+  const data: UserSettingsAPI.Res_Enter = {
     email,
     open_id,
     github_id,

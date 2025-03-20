@@ -2,8 +2,7 @@
 
 // 用户登录、注册、进入
 import cloud from '@lafjs/cloud'
-import type { 
-  PartialSth,
+import type {
   LiuRqReturn, 
   SupportedTheme,
   Shared_LoginState, 
@@ -19,7 +18,6 @@ import type {
   LiuSpaceAndMember,
   SupportedClient,
   LiuResendEmailsParam,
-  Table_AllowList,
   UserLoginOperate,
   LiuErrReturn,
   UserWeChatGzh,
@@ -34,12 +32,12 @@ import type {
   LiuSESChannel,
   Partial_Id,
   Table_LoginState,
-  LiuTencentSMSParam,
   DataPass,
   PhoneData,
+  LiuIDEType,
   Table_BlockList,
 } from "@/common-types"
-import { clientMaximum } from "@/common-types"
+import { clientMaximum, UserLoginAPI } from "@/common-types"
 import { 
   decryptWithRSA, 
   getPublicKey, 
@@ -63,6 +61,7 @@ import {
   valTool,
   getWxGzhSnsUserInfo,
   normalizePhoneNumber,
+  checker,
 } from "@/common-util"
 import { getNowStamp, MINUTE, getBasicStampWhileAdding } from "@/common-time"
 import { 
@@ -91,6 +90,7 @@ import {
 import { OAuth2Client, type TokenPayload } from "google-auth-library"
 import { downloadAndUpload } from '@/file-utils'
 import { tencent_ses_tmpl_cfg } from "@/common-config"
+import * as vbot from "valibot"
 
 /************************ 一些常量 *************************/
 // GitHub 使用 code 去换 accessToken
@@ -111,6 +111,7 @@ const API_WECHAT_CREATE_QRCODE = "https://api.weixin.qq.com/cgi-bin/qrcode/creat
 const PREFIX_CLIENT_KEY = "client_key_"
 
 const MIN_5 = 5 * MINUTE
+const MIN_10 = 2 * MIN_5
 
 const TEST_EMAILS = [
   "delivered@resend.dev",
@@ -178,6 +179,12 @@ export async function main(ctx: FunctionContext) {
   }
   else if(oT === "scan_login") {
     res = await handle_scan_login(ctx, body)
+  }
+  else if(oT === "auth_request") {
+    res = await handle_auth_request(ctx, body)
+  }
+  else if(oT === "auth_submit") {
+    res = await handle_auth_submit(ctx, body)
   }
 
   return res
@@ -406,6 +413,18 @@ async function handle_scan_login(
 
   // 4. check if credential_2 is matched
   if(fir3.credential_2 !== cred_2) {
+    const now4 = getNowStamp()
+    const u4: Partial<Table_Credential> = {
+      updatedStamp: now4,
+    }
+    const oldVerifyNum = fir3.verifyNum ?? 0
+    if(oldVerifyNum >= 3) {
+      cCol.doc(fir3._id).remove()
+    }
+    else {
+      u4.verifyNum = oldVerifyNum + 1
+      cCol.doc(fir3._id).update(u4)
+    }
     return { code: "E4003", errMsg: "credential_2 is not matched" }
   }
   
@@ -427,17 +446,16 @@ async function handle_scan_login(
     const t7_2 = getNowStamp()
     // console.warn(`user-login tryToSignInWithWxGzhOpenId takes ${t7_2 - t7_1}ms`)
     
-    if(res7_1) {
+    if(res7_1 && res7_1.code === "0000") {
       const lang = res7_1.data?.language
       sendLoginMsgToWxGzhUser(ctx, wx_gzh_openid, "wx-gzh-scan", { body, lang })
       _removeCredential()
       return res7_1
     }
-    else {
-      console.warn("sign in with wx_gzh_openid failed")
-      console.log(wx_gzh_openid)
-      console.log(body)
-    }
+    
+    console.warn("sign in with wx_gzh_openid failed")
+    console.log(wx_gzh_openid)
+    console.log(body)
 
     return { code: "E4003", errMsg: "sign in with wx_gzh_openid failed" }
   }
@@ -445,7 +463,7 @@ async function handle_scan_login(
   return { code: "E4003", errMsg: "no way to log in" }
 }
 
-/****************************** Detect qr code *************************/
+/********************* Detect credential for qr code *********************/
 async function handle_scan_check(
   ctx: FunctionContext,
   body: Record<string, string>,
@@ -473,7 +491,10 @@ async function handle_scan_check(
   // 2. check if it is available
   const now2 = getNowStamp()
   const { expireStamp, verifyNum, infoType } = fir1
-  const info_types: Table_Credential_Type[] = ["wx-gzh-scan"]
+  const info_types: Table_Credential_Type[] = [
+    "wx-gzh-scan",
+    "auth-code",
+  ]
   if(!info_types.includes(infoType)) {
     return { code: "E4003", errMsg: "infoType is not supported" }
   }
@@ -583,6 +604,135 @@ async function handle_wx_gzh_scan(
   }
 }
 
+/***************** submit credential and code to login  ******************/
+async function handle_auth_submit(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+) {
+  // 1. check out params
+  const sch = UserLoginAPI.Sch_Param_AuthSubmit
+  const res1 = vbot.safeParse(sch, body)
+  if(!res1.success) {
+    const errMsg = checker.getErrMsgFromIssues(res1.issues)
+    return { code: "E4000", errMsg }
+  }
+
+  // 2. check out client_key
+  const { client_key, code: code1, errMsg: errMsg1 } = getClientKey(body.enc_client_key)
+  if(!client_key || code1) {
+    return { code: code1 ?? "E5001", errMsg: errMsg1 }
+  }
+
+  // 3. get cred
+  const cred = body.credential as string
+  const code = body.code as string
+  const cCol = db.collection("Credential")
+  const q3 = cCol.where({ credential: cred })
+  const res3 = await q3.orderBy("insertedStamp", "desc").get<Table_Credential>()
+  const list3 = res3.data
+  const fir3 = list3[0]
+  if(!fir3) {
+    return { code: "E4004", errMsg: "no credential" }
+  }
+
+  // 4. check out expireStamp
+  const now4 = getNowStamp()
+  if(now4 > fir3.expireStamp) {
+    return { code: "E4003", errMsg: "credential is expired" }
+  }
+
+  // 5. check out code
+  if(fir3.credential_2 !== code) {
+    const u5: Partial<Table_Credential> = {
+      updatedStamp: now4,
+    }
+    const oldVerifyNum = fir3.verifyNum ?? 0
+    if(oldVerifyNum >= 3) {
+      u5.expireStamp = now4
+    }
+    else {
+      u5.verifyNum = oldVerifyNum + 1
+    }
+    cCol.doc(fir3._id).update(u5)
+    return { code: "E4003", errMsg: "code is not matched" }
+  }
+
+  // 6. define remove credential function
+  const _removeCredential = () => {
+    cCol.where({ _id: fir3._id }).remove()
+  }
+
+  // 7. login with userId
+  const infoType = fir3.infoType
+  const userId = fir3.userId
+  const opt7 = { client_key }
+  if(infoType === "auth-code" && userId) {
+    const res7_2 = await tryToSignInWithUserId(
+      ctx, body, userId, opt7
+    )
+    if(res7_2.code === "0000") {
+      _removeCredential()
+    }
+    return res7_2
+  }
+
+  return { code: "E4003", errMsg: "no way to log in" }
+}
+
+/***************** request credential for ide-extension to login  ******************/
+async function handle_auth_request(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+): Promise<LiuRqReturn<UserLoginAPI.Res_AuthRequest>> {
+  // 0. check out env
+  const _env = process.env
+  const baseUrl = _env.LIU_DOMAIN
+  if(!baseUrl) {
+    return { code: "E5001", errMsg: "no LIU_DOMAIN" }
+  }
+
+  // 1. check out params
+  const sch = UserLoginAPI.Sch_Param_AuthRequest
+  const res1 = vbot.safeParse(sch, body)
+  if(!res1.success) {
+    const errMsg = checker.getErrMsgFromIssues(res1.issues)
+    return { code: "E4000", errMsg }
+  }
+
+  // 2. check out state
+  const state = body.state
+  const res2 = await LoginStater.check(state)
+  if(res2) return res2
+
+  // 3. generate credential
+  const cred = createSignInCredential()
+  const redirect_uri = body.redirect_uri as string
+  const b3 = getBasicStampWhileAdding()
+  const now3 = b3.insertedStamp
+  const app_type = body.x_liu_ide_type as LiuIDEType
+  const data3: Partial_Id<Table_Credential> = {
+    ...b3,
+    credential: cred,
+    infoType: "auth-code",
+    expireStamp: now3 + MIN_10,
+    verifyNum: 0,
+    redirect_uri,
+    app_type,
+  }
+
+  // 4. insert credential into db
+  const cCol = db.collection("Credential")
+  await cCol.add(data3)
+
+  return {
+    code: "0000",
+    data: {
+      operateType: "auth_request",
+      credential: cred,
+      baseUrl,
+    }
+  }
+}
 
 /******************************** 选定某个账号登录 *************************/
 async function handle_users_select(
@@ -655,30 +805,19 @@ async function handle_users_select(
   }
 
   // 10. to login
-  const res2 = await findUserById(userId)
-
-  // 拒绝登录、或异常
-  if(res2.type === 1) {
-    return res2.rqReturn
+  const opt10 = {
+    client_key, thirdData: c.thirdData
   }
-
-  // 去登录
-  if(res2.type === 2) {
-    const opt1 = {
-      client_key, thirdData: c.thirdData
-    }
-    const res3 = await sign_in(ctx, body, res2.userInfos, opt1)
-
-    // to delete credential
-    col.where({ _id: c._id }).remove()
-
-    return res3
+  const res10 = await tryToSignInWithUserId(
+    ctx,
+    body,
+    userId,
+    opt10,
+  )
+  if(res10.code === "0000") {
+    col.doc(c._id).remove()
   }
-
-  return { 
-    code: "E5001", 
-    errMsg: "it is impossible to sign up because userId is given",
-  }
+  return res10
 }
 
 /******************************** 用 google one-tap 登录 *************************/
@@ -919,7 +1058,7 @@ async function handle_email(
   // 5. 存入 email code 进 Table_Credential 中
   const basic1 = getBasicStampWhileAdding()
   const expireStamp = getNowStamp() + 16 * MINUTE
-  const obj1: PartialSth<Table_Credential, "_id"> = {
+  const obj1: Partial_Id<Table_Credential> = {
     ...basic1,
     credential: emailCode,
     infoType: "email-code",
@@ -1578,7 +1717,31 @@ function getDeviceI18nStr(
   return deviceStr
 }
 
+async function tryToSignInWithUserId(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+  userId: string,
+  opt: SignInOpt,
+): Promise<LiuRqReturn<Res_UserLoginNormal>> {
+  const res1 = await findUserById(userId)
+  const rType = res1.type
+  if(rType === 1) {
+    return res1.rqReturn
+  }
+  if(rType === 2) {
+    const uLength = res1.userInfos.length
+    if(uLength > 1) {
+      return { 
+        code: "E5001",
+        errMsg: "there is more than one user with userId",
+      }
+    }
 
+    const res2 = await sign_in(ctx, body, res1.userInfos, opt)
+    return res2
+  }
+  return { code: "E5001", errMsg: "there is no user with userId" }
+}
 
 async function tryToSignInWithWxGzhOpenId(
   ctx: FunctionContext,
@@ -1587,10 +1750,11 @@ async function tryToSignInWithWxGzhOpenId(
   opt: SignInOpt,
 ): Promise<LiuRqReturn<Res_UserLoginNormal> | undefined> {
   const res1 = await findUserByWxOpenId(wx_gzh_openid)
-  if(res1.type === 1) {
+  const rType = res1.type
+  if(rType === 1) {
     return res1.rqReturn
   }
-  if(res1.type === 2) {
+  if(rType === 2) {
     const res2 = await sign_in(ctx, body, res1.userInfos, opt)
 
     // handle avatar
@@ -1603,7 +1767,6 @@ async function tryToSignInWithWxGzhOpenId(
     return res2
   }
 }
-
 
 /** 登录后，检查 token 是否过多，过多的拿去销毁 */
 async function checkIfTooManyTokens(
@@ -1737,7 +1900,7 @@ async function sign_multi_in(
   const expireStamp = now + (30 * MINUTE)
   const basic1 = getBasicStampWhileAdding()
 
-  const obj1: PartialSth<Table_Credential, "_id"> = {
+  const obj1: Partial_Id<Table_Credential> = {
     credential: multi_credential,
     infoType: "users-select",
     expireStamp,
@@ -1947,7 +2110,7 @@ export async function init_user(
   const basic1 = getBasicStampWhileAdding()
   const open_id = createOpenId()
   const github_id = thirdData?.github?.id
-  const user: PartialSth<Table_User, "_id"> = {
+  const user: Partial_Id<Table_User> = {
     ...basic1,
     oState: "NORMAL",
     email,
@@ -1974,7 +2137,7 @@ export async function init_user(
 
   // 3. create a workspace
   const basic3 = getBasicStampWhileAdding()
-  const workspace: PartialSth<Table_Workspace, "_id"> = {
+  const workspace: Partial_Id<Table_Workspace> = {
     ...basic3,
     infoType: "ME",
     oState: "OK",
@@ -1995,7 +2158,7 @@ export async function init_user(
   if(thirdData?.wx_gzh?.subscribe) {
     member_noti.wx_gzh_toggle = true
   }
-  const member: PartialSth<Table_Member, "_id"> = {
+  const member: Partial_Id<Table_Member> = {
     spaceType: "ME",
     name,
     avatar,

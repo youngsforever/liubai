@@ -6,7 +6,7 @@ export const domainAllowed = [
   "ghost.io",
   "cubox.pro",
   "zhubai.love",
-  "quail.ink",
+  "quaily.com",
   "yuque.com",
   "juejin.cn",
   "eleduck.com",

@@ -36,8 +36,16 @@ export default {
 
   safari_version: /version\/([\d\.]+)/,
 
+  arkweb_version: /arkweb\/([\d\.]+)/,
+
   ios_version: /iphone os ([\d_]+)/,
 
   line_version: /line\/([\d\.]+)/,
+
+  quark_pc_version: /quarkpc\/([\d\.]+)/,
+
+  quark_mobile_version: /quark\/([\d\.]+)/,
+
+  dingtalk_version: /dingtalk\/([\d\.]+)/,
   
 }

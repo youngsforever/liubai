@@ -190,7 +190,7 @@ export const Sch_ThreadListViewType = vbot.picklist(threadListViewTypes)
 
 export const supportedClients = [
   "web",
-  "desktop",
+  "ide-extension",
 ] as const
 export type SupportedClient = typeof supportedClients[number]
 export const Sch_SupportedClient = vbot.picklist(supportedClients)
@@ -198,8 +198,30 @@ export const Sch_SupportedClient = vbot.picklist(supportedClients)
 // 各个客户端的最大 token 数
 export const clientMaximum: Record<SupportedClient, number> = {
   "web": 9,
-  "desktop": 3,
+  "ide-extension": 5,
 }
+
+export const liuIDETypes = [
+  "vscode",
+  "vscode-insiders",
+  "cursor",
+  "windsurf",
+  "vscodium",
+  "github.dev",
+  "vscode.dev",
+  "gitpod.io",
+  "stackblitz.com",
+  "project-idx",
+  "tencent-cloud-studio",
+  "cnb.cool",
+  "trae",
+] as const
+export type LiuIDEType = typeof liuIDETypes[number]
+export const Sch_LiuIDEType = vbot.picklist(liuIDETypes)
+
+export const liuAppTypes = [...liuIDETypes] as const
+export type LiuAppType = typeof liuAppTypes[number]
+export const Sch_LiuAppType = vbot.picklist(liuAppTypes)
 
 export const supportedLocales = [
   "en",
@@ -608,12 +630,14 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 
 /*********************** About AI **********************/
-export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" | "minimax" | "moonshot" | "stepfun" | 
-  "zero-one" | "zhipu"
+export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" 
+  | "minimax" | "moonshot" | "stepfun" | "zero-one" | "zhipu"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
+  | "suanleme"
 
 // tencent-lkeap: 腾讯云，知识引擎原子能力（LLM Knowledge Engine Atomic Power）
+// suanleme: https://api.suanli.cn/
 
 
 // AiCharacter 不跟供应商绑定，它是角色，只不过现在各个供应商都有自己的 To C 角色罢了
@@ -749,13 +773,11 @@ export const aiToolAddCalendarEarlyMinutes = [
   "0", "10", "15", "30", "60", "120", "1440"
 ] as const
 export type AiToolAddCalendarEarlyMinute = typeof aiToolAddCalendarEarlyMinutes[number]
-export const Sch_AiToolAddCalendarEarlyMinute = vbot.picklist(aiToolAddCalendarEarlyMinutes)
 
 export const aiToolAddCalendarLaterHours = [
   "0.5", "1", "2", "3", "12", "24"
 ] as const
 export type AiToolAddCalendarLaterHour = typeof aiToolAddCalendarLaterHours[number]
-export const Sch_AiToolAddCalendarLaterHour = vbot.picklist(aiToolAddCalendarLaterHours)
 
 export interface AiToolAddCalendarParam {
   title?: string
@@ -773,8 +795,8 @@ export const Sch_AiToolAddCalendarParam = vbot.object({
   date: Sch_Opt_Str,
   specificDate: vbot.optional(Sch_AiToolAddCalendarSpecificDate),
   time: Sch_Opt_Str,
-  earlyMinute: vbot.optional(Sch_AiToolAddCalendarEarlyMinute),
-  laterHour: vbot.optional(Sch_AiToolAddCalendarLaterHour),
+  earlyMinute: Sch_Opt_Str,
+  laterHour: Sch_Opt_Str,
 })
 
 // the param of get_schedule
@@ -832,6 +854,8 @@ export const Sch_X_Liu = vbot.object({
   x_liu_timezone: sch_string_length(),
   x_liu_client: Sch_SupportedClient,
   x_liu_device: Sch_Opt_Str,
+  x_liu_ide_type: vbot.optional(Sch_LiuIDEType),
+  x_liu_machine_id: Sch_Opt_Str,
 })
 
 export const Sch_IP = vbot.string([vbot.ip()])
@@ -881,6 +905,8 @@ export interface UserSubscription {
 export interface UserQuota {
   aiConversationCount: number
   lastWxGzhChatStamp?: number
+  aiClusterCount?: number
+  lastAiClusterStamp?: number
 }
 
 export interface LiuSpaceAndMember {
@@ -1215,6 +1241,8 @@ export interface SyncSetCtx {
 
   // to avoid duplicating updatedStamp or insertedStamp
   lastUsedStamp: number
+
+  ideType?: LiuIDEType
 }
 
 export type SyncSetTable = Table_Content | 
@@ -1279,6 +1307,7 @@ export interface Table_Token extends BaseTable {
   lastSet: number
   ip?: string
   ipGeo?: string
+  ideType?: LiuIDEType
 }
 
 export interface Table_LoginState extends BaseTable {
@@ -1295,6 +1324,7 @@ export interface Table_LogAi extends BaseTable {
   choices?: any
   model?: string
   requestId?: string
+  systemFingerprint?: string
 }
 
 /** User表 */
@@ -1414,6 +1444,9 @@ export interface Table_Content extends BaseTable {
   levelOneAndTwo?: number   // 一级 + 二级评论数
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 }
 
 /** 草稿表 */
@@ -1511,7 +1544,7 @@ export interface Table_Config extends BaseTable {
 /** 临时凭证表的类型 */
 export type Table_Credential_Type =  "sms-code" | "email-code" | "wx-gzh-scan"
   | "users-select" | "stripe-checkout-session" | "bind-wecom" | "bind-wechat" 
-  | "bind-phone"
+  | "bind-phone" | "auth-code"
 
 /** 临时凭证表 */
 export interface Table_Credential extends BaseTable {
@@ -1535,6 +1568,8 @@ export interface Table_Credential extends BaseTable {
   phoneNumber?: string
 
   sms_sent_result?: Record<string, any>
+  redirect_uri?: string        // required when infoType is "auth-code"
+  app_type?: LiuAppType        // required when infoType is "auth-code"
 }
 
 /** 订阅方案表 */
@@ -1849,6 +1884,8 @@ export type UserLoginOperate = "init" | "email" | "email_code"
   | "google_credential"
   | "users_select"
   | "enter"
+  | "auth_request"
+  | "auth_submit"
 
 export interface Res_UL_WxGzhScan {
   operateType: "wx_gzh_scan"
@@ -1889,32 +1926,48 @@ export interface Res_UserLoginNormal {
   multi_credential_id?: string
 }
 
-export interface Res_UserSettings_Enter {
-  email?: string
-  open_id?: string
-  github_id?: number
-  theme: LocalTheme
-  language: LocalLocale
-  spaceMemberList: LiuSpaceAndMember[]
-  subscription?: UserSubscription
-  phone_pixelated?: string     // like 187******56
+/****************** user-login api ***************/
+export namespace UserSettingsAPI {
+
+  export interface Res_Enter {
+    email?: string
+    open_id?: string
+    github_id?: number
+    theme: LocalTheme
+    language: LocalLocale
+    spaceMemberList: LiuSpaceAndMember[]
+    subscription?: UserSubscription
+    phone_pixelated?: string     // like 187******56
+    
+    /** wechat data */
+    wx_gzh_openid?: string
+    wx_gzh_nickname?: string
   
-  /** wechat data */
-  wx_gzh_openid?: string
-  wx_gzh_nickname?: string
+    /** wecom data for qynb, which is for company internal use */
+    ww_qynb_external_userid?: string
+  
+    new_serial?: string
+    new_token?: string
+  }
 
-  /** wecom data for qynb, which is for company internal use */
-  ww_qynb_external_userid?: string
+  export type Res_Latest = Omit<Res_Enter, "new_serial" | "new_token">
 
-  new_serial?: string
-  new_token?: string
-}
+  export interface Res_Membership {
+    subscription?: UserSubscription
+  }
 
-export type Res_UserSettings_Latest = 
-  Omit<Res_UserSettings_Enter, "new_serial" | "new_token">
+  export interface Res_AuthGetInfo {
+    operateType: "auth-get-info"
+    appType: LiuAppType
+    serial: string
+  }
 
-export interface Res_UserSettings_Membership {
-  subscription?: UserSubscription
+  export interface Res_AuthAgree {
+    operateType: "auth-agree"
+    code: string
+    redirectUri: string
+  }
+
 }
 
 export interface Res_SubPlan_Info {
@@ -2230,6 +2283,9 @@ export interface LiuDownloadContent {
   levelOneAndTwo?: number   // 一级 + 二级评论数
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 
   myFavorite?: LiuDownloadCollection
   myEmoji?: LiuDownloadCollection
@@ -2360,6 +2416,50 @@ export namespace ServicePolyAPI {
     nonceStr: string
     signature: string
   }
+}
+
+/****************** user-login api ***************/
+export namespace UserLoginAPI {
+  export interface Param_AuthRequest {
+    operateType: "auth_request"
+    redirect_uri: string
+    state: string
+    x_liu_client: "ide-extension"
+    x_liu_ide_type: LiuIDEType
+  }
+
+  export const Sch_Param_AuthRequest = vbot.object({
+    operateType: vbot.literal("auth_request"),
+    redirect_uri: Sch_Id,
+    state: Sch_Id,
+    x_liu_client: vbot.literal("ide-extension"),
+    x_liu_ide_type: Sch_LiuIDEType,
+  })
+
+  export interface Res_AuthRequest {
+    operateType: "auth_request"
+    credential: string
+    baseUrl: string
+  }
+
+  export interface Param_AuthSubmit {
+    operateType: "auth_submit"
+    credential: string
+    code: string
+    enc_client_key: string
+    x_liu_client: "ide-extension"
+    x_liu_ide_type: LiuIDEType
+  }
+
+  export const Sch_Param_AuthSubmit = vbot.object({
+    operateType: vbot.literal("auth_submit"),
+    credential: Sch_Id,
+    code: Sch_Id,
+    enc_client_key: Sch_Id,
+    x_liu_client: vbot.literal("ide-extension"),
+    x_liu_ide_type: Sch_LiuIDEType,
+  })
+
 }
 
 /******************** open-connect **********************/
@@ -3509,6 +3609,14 @@ export namespace LiuAi {
     secondaryProvider?: AiSecondaryProvider
     model: string
     maxInputTokenK: number
+  }
+
+  export type ComputingProvider = AiProvider | AiSecondaryProvider
+
+  export interface AiWorker {
+    computingProvider: ComputingProvider
+    model: string
+    character?: AiCharacter
   }
 
 }

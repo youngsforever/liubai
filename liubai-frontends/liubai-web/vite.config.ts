@@ -15,6 +15,7 @@ import { qrcode } from 'vite-plugin-qrcode';
 import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from 'vite-plugin-pwa'
 import { sentryVitePlugin } from "@sentry/vite-plugin"
+import { VueMcp } from 'vite-plugin-vue-mcp'
 
 const { version, author } = require("./package.json")
 const projectRoot = process.cwd()
@@ -74,6 +75,9 @@ const vitePlugins: UserConfig['plugins'] = [
     filename: "analysis.html", // 文件名称
     title: "Liubai Frontend Analysis",
   }) as unknown as PluginOption,
+
+  // vue mcp server
+  VueMcp(),
 ]
 
 // https://vitejs.dev/config/

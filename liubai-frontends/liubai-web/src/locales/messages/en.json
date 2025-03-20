@@ -203,7 +203,6 @@
     "logging": "Logging in..",
     "logging2": "Logging..",
     "cannot_login_via": "\"Continue with {thirdParty}\" has been temporarily disabled. Please use other methods.",
-    "in_beta": "Currently in beta testing, \"Continue with {thirdParty}\" is not available.",
     "err_login": "Login Error",
     "err_1": "State is missing. Please try again later.",
     "err_2": "The email has been marked as spam, so look for it in the spam/promotion mailboxes.",
@@ -335,7 +334,8 @@
     "created_by_ai": "The card was created by {name} ({company})",
     "created_by_ai2": "The card was created by {name}.",
     "no_ai": "The card rejecting AI",
-    "no_ai_desc": "This card cannot be read by AI assistants."
+    "no_ai_desc": "This card cannot be read by AI assistants.",
+    "ide_desc": "You created the card in {ide} at {dateTime}."
   },
   "state_related": {
     "add_state": "New State",
@@ -657,6 +657,22 @@
     "yuewen": "Stepfun",
     "zhipu": "Zhipu"
   },
+  "computing_provider": {
+    "aliyun-bailian": "Aliyun Bailian",
+    "baichuan": "Baichuan",
+    "deepseek": "DeepSeek",
+    "tencent-hunyuan": "Tencent Hunyuan",
+    "minimax": "MiniMax",
+    "moonshot": "Moonshot",
+    "stepfun": "Stepfun",
+    "zero-one": "01.ai",
+    "zhipu": "Zhipu",
+    "siliconflow": "SiliconCloud",
+    "gitee-ai": "Gitee AI",
+    "qiniu": "Qiniu",
+    "tencent-lkeap": "Tencent LKEAP",
+    "suanleme": "Suanleme"
+  },
   "bind": {
     "phone_title": "Phone Number Binding",
     "email_title": "Email Binding",
@@ -671,7 +687,45 @@
     "err_5": "The number in your region has not been opened yet",
     "compliance": "According to the local law, you have to bind your phone number before proceeding."
   },
+  "authorize": {
+    "title_1": "Connect to {app}",
+    "desc_1": "You are authorizing Liubai for {app} to read and write your Liubai",
+    "authorize": "Authorize",
+    "opening_title": "Opening {app} ",
+    "opening_tip_1": "It's redirecting to {app} ...",
+    "opening_tip_2": "Enter the code {code} in {app} if no response"
+  },
   "ai_detail": {
     "thinking_process": "Thinking Process"
+  },
+  "ide_type": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "CNB",
+    "trae": "Trae"
+  },
+  "ide_full": {
+    "vscode": "VS Code",
+    "vscode-insiders": "vscode-insiders",
+    "cursor": "Cursor",
+    "windsurf": "Windsurf",
+    "vscodium": "VSCodium",
+    "github-dev": "github.dev",
+    "vscode-dev": "vscode.dev",
+    "gitpod-io": "Gitpod",
+    "stackblitz-com": "StackBlitz",
+    "project-idx": "Project IDX",
+    "tencent-cloud-studio": "Cloud Studio",
+    "cnb-cool": "Cloud Native Build (CNB)",
+    "trae": "Trae"
   }
 }

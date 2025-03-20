@@ -171,7 +171,14 @@ function preCheck(
   }
 
   // 4. 定时系统
-  if(funcName.startsWith("clock-") || funcName === "ai-system-two") {
+  if(funcName.startsWith("clock-")) {
+    if(xLafTriggerToken) return "Y"
+    if(isDebugging) return "Y"
+    return "N"
+  }
+
+  // n. something special
+  if(funcName === "ai-system-two" || funcName === "sync-after") {
     if(xLafTriggerToken) return "Y"
     if(isDebugging) return "Y"
     return "N"

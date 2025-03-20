@@ -45,11 +45,11 @@ import {
   decryptEncData,
   getDocAddId,
   getLiuDoman,
-  getSummary,
   LiuDateUtil,
   liuFetch,
   liuReq,
   MarkdownParser,
+  RichTexter,
   valTool,
   ValueTransform,
 } from "@/common-util"
@@ -179,10 +179,13 @@ export class BaseLLM {
 
         // handle delta
         const delta = aChoice.delta as OaiStreamChoiceDelta
+        // console.log("delta: ", delta)
         if(delta.reasoning_content) {
+          // console.log("delta.reasoning_content: ", delta.reasoning_content)
           reasoningContent += delta.reasoning_content
         }
         else if(delta.content) {
+          // console.log("delta.content: ", delta.content)
           answerContent += delta.content
         }
 
@@ -331,6 +334,7 @@ export class BaseLLM {
       choices: chatCompletion.choices,
       model: chatCompletion.model,
       requestId: chatCompletion.id,
+      systemFingerprint: chatCompletion.system_fingerprint,
     }
     logCol.add(aLog)
   }
@@ -347,33 +351,33 @@ interface ThinkTagContent {
 
 export class AiShared {
 
-  static getApiEndpointFromBot(
-    bot: AiBot
+  static getEndpointFromProvider(
+    p: LiuAi.ComputingProvider,
   ): LiuAi.ApiEndpoint | undefined {
-    const _env = process.env
-    const p = bot.provider
-    const p2 = bot.secondaryProvider
-
     let apiKey: string | undefined
     let baseURL: string | undefined
-    let defaultHeaders = bot.metaData?.defaultHeaders
+    const _env = process.env
 
     // If secondaryProvider exists, use it first
-    if(p2 === "siliconflow") {
+    if(p === "siliconflow") {
       apiKey = _env.LIU_SILICONFLOW_API_KEY
       baseURL = _env.LIU_SILICONFLOW_BASE_URL
     }
-    else if(p2 === "gitee-ai") {
+    else if(p === "gitee-ai") {
       apiKey = _env.LIU_GITEE_AI_API_KEY
       baseURL = _env.LIU_GITEE_AI_BASE_URL
     }
-    else if(p2 === "qiniu") {
+    else if(p === "qiniu") {
       apiKey = _env.LIU_QINIU_LLM_API_KEY
       baseURL = _env.LIU_QINIU_LLM_BASE_URL
     }
-    else if(p2 === "tencent-lkeap") {
+    else if(p === "tencent-lkeap") {
       apiKey = _env.LIU_TENCENT_LKEAP_API_KEY
       baseURL = _env.LIU_TENCENT_LKEAP_BASE_URL
+    }
+    else if(p === "suanleme") {
+      apiKey = _env.LIU_SUANLEME_API_KEY
+      baseURL = _env.LIU_SUANLEME_BASE_URL
     }
     else if(p === "aliyun-bailian") {
       apiKey = _env.LIU_ALIYUN_BAILIAN_API_KEY
@@ -411,10 +415,34 @@ export class AiShared {
       apiKey = _env.LIU_ZHIPU_API_KEY
       baseURL = _env.LIU_ZHIPU_BASE_URL
     }
-    
+
     if(apiKey && baseURL) {
-      return { apiKey, baseURL, defaultHeaders }
+      return { apiKey, baseURL }
     }
+
+  }
+
+
+  static getApiEndpointFromBot(
+    bot: AiBot
+  ): LiuAi.ApiEndpoint | undefined {
+    const p = bot.provider
+    const p2 = bot.secondaryProvider
+    let defaultHeaders = bot.metaData?.defaultHeaders
+
+    let apiEndpoint: LiuAi.ApiEndpoint | undefined
+    if(p2) {
+      apiEndpoint = AiShared.getEndpointFromProvider(p2)
+    }
+    if(!apiEndpoint) {
+      apiEndpoint = AiShared.getEndpointFromProvider(p)
+    }
+
+    if(apiEndpoint) {
+      apiEndpoint.defaultHeaders = defaultHeaders
+    }
+
+    return apiEndpoint
   }
 
   static getCharacterName(character?: AiCharacter) {
@@ -554,24 +582,31 @@ export class AiShared {
       let err1 = content.startsWith("？")
       if(err1) content = content.substring(1)
     }
-
     
-    // 4. handle reasoning_content if needed
+    // 4. handle isReasoning
     if(typeof isReasoning === "undefined") {
-      isReasoning = Boolean(bot && AiShared.isReasoningBot(bot))
+      if(bot) {
+        isReasoning = Boolean(AiShared.isReasoningBot(bot))
+      }
+      else {
+        const str4 = content.trim()
+        isReasoning = str4.startsWith("<think>")
+      }
     }
+
+    // 5. extract reasoning content from content
     if(!reasoning_content && isReasoning) {
-      const res4 = AiShared.handleContentForReasoning(
+      const res5 = AiShared.handleContentForReasoning(
         res,
         bot as AiBot,
         content,
         reasoning_content,
       )
-      content = res4.content
-      reasoning_content = res4.reasoning_content
+      content = res5.content
+      reasoning_content = res5.reasoning_content
     }
 
-    // 5. finally trim
+    // 6. finally trim
     content = content.trim()
     reasoning_content = reasoning_content.trim()
 
@@ -803,6 +838,39 @@ export class AiShared {
     }
 
     return msg
+  }
+
+  static turnBaseUrlToProvider(
+    url?: string,
+  ): LiuAi.ComputingProvider | undefined {
+    if(!url) return
+
+    if(url.includes("dashscope.aliyuncs.com")) return "aliyun-bailian"
+    if(url.includes("api.baichuan-ai.com")) return "baichuan"
+    if(url.includes("api.deepseek.com")) return "deepseek"
+    if(url.includes("api.hunyuan.cloud.tencent.com")) return "tencent-hunyuan"
+    if(url.includes("api.minimax.chat")) return "minimax"
+    if(url.includes("api.moonshot.cn")) return "moonshot"
+    if(url.includes("api.stepfun.com")) return "stepfun"
+    if(url.includes("api.lingyiwanwu.com")) return "zero-one"
+    if(url.includes("open.bigmodel.cn")) return "zhipu"
+    if(url.includes("api.siliconflow.cn")) return "siliconflow"
+    if(url.includes("ai.gitee.com")) return "gitee-ai"
+    if(url.includes("api.qnaigc.com")) return "qiniu"
+    if(url.includes("api.lkeap.cloud.tencent.com")) return "tencent-lkeap"
+    if(url.includes("api.suanli.cn")) return "suanleme"
+    
+  }
+
+  static storageAiModel(
+    model?: string,
+  ) {
+    if(!model) return
+
+    if(model === "deepseek-chat") return "deepseek-v3"
+    if(model === "deepseek-reasoner") return "deepseek-r1"
+
+    return model
   }
 
 
@@ -2022,7 +2090,7 @@ export class TransformContent {
   static getCardData(v: Table_Content) {
     const data = decryptEncData(v)
     if(!data.pass) return
-    const summary = getSummary(data.liuDesc)
+    const summary = RichTexter.getSummary(data.liuDesc)
     const obj: LiuAi.CardData = {
       title: data.title ?? "",
       summary,

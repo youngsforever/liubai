@@ -256,3 +256,23 @@ export interface ComposingData {
   whenStamp?: number
   remindMe?: LiuRemindMe
 }
+
+export const liuIDETypes = [
+  "vscode",
+  "vscode-insiders",
+  "cursor",
+  "windsurf",
+  "vscodium",
+  "github.dev",
+  "vscode.dev",
+  "gitpod.io",
+  "stackblitz.com",
+  "project-idx",
+  "tencent-cloud-studio",
+  "cnb.cool",
+  "trae",
+] as const
+export type LiuIDEType = typeof liuIDETypes[number]
+
+export const liuAppTypes = [...liuIDETypes] as const
+export type LiuAppType = typeof liuAppTypes[number]

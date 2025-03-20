@@ -1,31 +1,31 @@
 // Function Name: ai-entrance
 
-import { 
-  type AiBot,
-  type AiCharacter,
-  type AiEntry,
-  type AiCommandByHuman,
-  type OaiPrompt,
-  type OaiContentPart,
-  type OaiTool,
-  type OaiToolCall,
-  type OaiChoice,
-  type OaiMessage,
-  type OaiCreateParam,
-  type OaiChatCompletion,
-  type Partial_Id, 
-  type Table_AiChat, 
-  type Table_AiRoom, 
-  type Table_User,
-  type Table_Order,
-  type Table_Subscription,
-  type AiAbility,
-  type T_I18N,
-  type AiImageSizeType,
+import type { 
+  AiBot,
+  AiCharacter,
+  AiEntry,
+  AiCommandByHuman,
+  OaiPrompt,
+  OaiContentPart,
+  OaiTool,
+  OaiToolCall,
+  OaiChoice,
+  OaiMessage,
+  OaiCreateParam,
+  OaiChatCompletion,
+  Partial_Id, 
+  Table_AiChat, 
+  Table_AiRoom, 
+  Table_User,
+  Table_Order,
+  Table_Subscription,
+  AiAbility,
+  T_I18N,
+  AiImageSizeType,
   LiuAi,
-  type AiBotMetaData,
+  AiBotMetaData,
   Ns_SiliconFlow,
-  type DataPass,
+  DataPass,
 } from "@/common-types"
 import { 
   checkIfUserSubscribed, 
@@ -3672,6 +3672,7 @@ class AiHelper {
     if(secondaryProvider === "gitee-ai") return "Gitee AI"
     if(secondaryProvider === "qiniu") return "七牛云"
     if(secondaryProvider === "tencent-lkeap") return "腾讯云"
+    if(secondaryProvider === "suanleme") return "算了么"
     if(provider === "aliyun-bailian") return "阿里云"
     if(provider === "baichuan") return "北京百川智能"
     if(provider === "deepseek") return "杭州深度求索"

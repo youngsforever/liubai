@@ -20,6 +20,7 @@ analysis.html
 !.vscode/settings.json
 !.vscode/README.md
 !.vscode/i18n-ally-reviews.yml
+.cursor/*
 .idea
 .DS_Store
 *.suo

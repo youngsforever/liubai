@@ -82,8 +82,17 @@ function canAdd(url: string) {
 function isInAllowedList(url: string) {
   const u = new URL(url)
   const h = u.hostname
+  const p = u.pathname
 
   const data = domainAllowed.find(v => valTool.isInDomain(h, v))
+
+  // special for quaily.com
+  if(data === "quaily.com") {
+    // https://quaily.com/zh cannot be opened in iframe
+    if(p.length < 5) return false
+  }
+
+
   return Boolean(data)
 }
 

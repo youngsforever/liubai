@@ -10,7 +10,7 @@ let isWeChat = false;
 let isAlipay = false;
 let isDingTalk = false;
 let isFeishu = false;
-const isQuark = false;
+let isQuark = false;
 const isUCBrowser = false;
 let isLine = false;
 let isIOS = false;
@@ -52,6 +52,10 @@ export const getCharacteristic = (): GetChaRes => {
   else if(ua.includes("dingtalk")) {
     isDingTalk = true
     isInWebView = true
+    const dingtalk_version_m = ua.match(reg_exp.dingtalk_version)
+    if(dingtalk_version_m) {
+      appVersion = dingtalk_version_m[0]
+    }
   }
   else if(ua.includes("alipayclient")) {
     isAlipay = true
@@ -61,9 +65,13 @@ export const getCharacteristic = (): GetChaRes => {
     isFeishu = true
     isInWebView = true
   }
-  else if(ua.match(reg_exp.line_version)) {
-    isLine = true
-    isInWebView = true
+  else if(ua.includes("line")) {
+    const line_version_m = ua.match(reg_exp.line_version)
+    if(line_version_m) {
+      isLine = true
+      isInWebView = true
+      appVersion = line_version_m[0]
+    }
   }
 
   // 判断是否为移动装置
@@ -111,9 +119,32 @@ export const getCharacteristic = (): GetChaRes => {
     }
   }
 
-  if(ua.includes("harmonyos")) {
+  // arkweb is a fork of chromium kernel from its v114:
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-component-overview-V5
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-useragent-V5
+  if(ua.includes("openharmony")) {
     isHarmonyOS = true
   }
+  else if(ua.includes("harmonyos")) {
+    isHarmonyOS = true
+  }
+  else if(ua.includes("arkweb")) {
+    isHarmonyOS = true
+  }
+
+  // recognize phone, tablet, or 2in1 for HarmonyOS
+  // https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/web-useragent-V5#section680818241559
+  if(isHarmonyOS) {
+    if(ua.includes("phone;") || ua.includes("tablet;")) {
+      isMobile = true
+      isPC = false
+    }
+    else if(ua.includes("pc;")) {
+      isPC = true
+      isMobile = false
+    }
+  }
+
   if(ua.includes("huaweibrowser")) {
     isHuaweiBrowser = true
   }
@@ -145,6 +176,28 @@ export const getCharacteristic = (): GetChaRes => {
 
       const s_version_m = ua.match(reg_exp.safari_version)
       browserVersion = s_version_m ? s_version_m[1] : undefined
+    }
+  }
+
+  // recognize browser version for HarmonyOS
+  if(isHarmonyOS) {
+    const ark_version_m = ua.match(reg_exp.arkweb_version)
+    if(ark_version_m) {
+      browserVersion = ark_version_m[1]
+    }
+  }
+
+  // more third-party browser (like Quark and UCBrowser) detection
+  if(ua.includes("quark")) {
+    const quark_pc_m = ua.match(reg_exp.quark_pc_version)
+    if(quark_pc_m) {
+      isQuark = true
+      appVersion = quark_pc_m[1]
+    }
+    const quark_mobile_m = ua.match(reg_exp.quark_mobile_version)
+    if(quark_mobile_m) {
+      isQuark = true
+      appVersion = quark_mobile_m[1]
     }
   }
 

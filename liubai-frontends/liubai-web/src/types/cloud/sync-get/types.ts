@@ -7,6 +7,7 @@ import type {
   CollectionInfoType,
   ContentInfoType,
   LiuContent,
+  LiuIDEType,
   LiuRemindMe,
 } from "../../types-atom"
 import type { ThreadListViewType } from "~/types/types-view"
@@ -25,6 +26,7 @@ import type {
   Cloud_ImageStore,
   Cloud_FileStore,
 } from "~/types/types-cloud"
+import type { LiuAi } from "~/types/types-ai"
 
 
 /********************* Request types **********************/
@@ -208,6 +210,9 @@ export interface LiuDownloadContent {
   levelOneAndTwo?: number   // 一级 + 二级评论数
   aiCharacter?: AiCharacter
   aiReadable?: BaseIsOn
+  ideType?: LiuIDEType
+  computingProvider?: LiuAi.ComputingProvider
+  aiModel?: string
 
   myFavorite?: LiuDownloadCollection
   myEmoji?: LiuDownloadCollection

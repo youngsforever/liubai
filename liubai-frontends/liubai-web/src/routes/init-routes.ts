@@ -34,6 +34,7 @@ const WechatBind = () => import("../pages/level1/wechat-bind/wechat-bind.vue")
 const AccountsPage = () => import("../pages/level3/setting-page/accounts-page/accounts-page.vue")
 const ComposePage = () => import("../pages/level2/compose-page/compose-page.vue")
 const SettingMore = () => import("../pages/level3/setting-page/setting-more/setting-more.vue")
+const AuthorizePage = () => import("../pages/level3/authorize-page/authorize-page.vue")
 const CotPage = () => import("../pages/level4/cot-page/cot-page.vue")
 
 export const routes: Array<RouteRecordRaw> = [
@@ -156,6 +157,15 @@ export const routes: Array<RouteRecordRaw> = [
     name: "edit",
     meta: {
       checkWorkspace: false,
+    }
+  },
+  {
+    path: "/authorize",
+    component: AuthorizePage,
+    name: "authorize",
+    meta: {
+      checkWorkspace: false,
+      hasViceView: false,
     }
   },
   {

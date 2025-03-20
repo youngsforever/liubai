@@ -1,0 +1,8 @@
+{
+  "package.displayName": "留白记事",
+  "package.description": "在 VS Code / Windsurf / Cursor 等 vscode-based IDE 中使用留白记事",
+  "liubai.record.title": "记一件事",
+  "liubai.record_with_code.title": "备注 (Liubai)",
+  "liubai.record_with_code2.title": "备注代码",
+  "liubai.login_or_logout.title": "登录 / 退出"
+}

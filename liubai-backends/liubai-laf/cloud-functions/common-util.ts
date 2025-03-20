@@ -61,6 +61,7 @@ import type {
   Wx_Res_GzhSnsUserInfo,
   PhoneData,
   Table_BlockList,
+  LiuIDEType,
 } from '@/common-types'
 import { 
   sch_opt_arr,
@@ -71,6 +72,7 @@ import {
   Sch_AiToolAddNoteParam,
   Sch_AiToolAddTodoParam,
   Sch_AiToolAddCalendarParam,
+  liuIDETypes,
 } from "@/common-types"
 import { 
   createToken, 
@@ -132,6 +134,7 @@ export const reg_exp = {
   firefox_version: /firefox\/([\d\.]+)/,
   safari_version: /version\/([\d\.]+)/,
   ios_version: /iphone os ([\d_]+)/,
+  arkweb_version: /arkweb\/([\d\.]+)/,
 }
 
 // @see https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Service_Center_messages.html#7
@@ -576,7 +579,7 @@ export class LiuDateUtil {
     const d = new Date(newStamp)
     const currentStamp = localizeStamp(getNowStamp(), timezone)
     const d2 = new Date(currentStamp)
-    const { t } = useI18n(dateLang, { locale})
+    const { t } = useI18n(dateLang, { locale })
     
     const yyyy = valTool.format0(d.getFullYear())
     let mm = String(d.getMonth() + 1)
@@ -894,71 +897,73 @@ function getUserName(
 
 /*************************** 动态、评论 富文本编辑器相关 ****************************/
 
-/**
- * 将 TipTapJSONContent 格式的数组，转换成纯文本
- * @param list 当前要转换成文本的 TipTapJSONContent[]
- * @param plainText 已转换完毕的文本
- * @param moreText 是否开启更多文字的模式，比如遇到链接，把链接也加载进来。默认为 false，表示关闭
- */
-export function listToText(
-  list: LiuContent[],
-  plainText: string = "",
-  parentType?: string,
-): string {
+export class RichTexter {
 
-  for(let i=0; i<list.length; i++) {
-    const v = list[i]
-    const { type, content, text } = v
-    if(text) {
-      plainText += text
-      continue
-    }
+  /**
+   * 将 TipTapJSONContent 格式的数组，转换成纯文本
+   * @param list 当前要转换成文本的 TipTapJSONContent[]
+   * @param plainText 已转换完毕的文本
+   * @param moreText 是否开启更多文字的模式，比如遇到链接，把链接也加载进来。默认为 false，表示关闭
+   */
+  static turnDescToText(
+    list: LiuContent[],
+    plainText: string = "",
+    parentType?: string,
+  ) {
 
-    if(type === "listItem") {
-      if(parentType === "orderedList") {
-        plainText += `${i + 1}. `
+    for(let i=0; i<list.length; i++) {
+      const v = list[i]
+      const { type, content, text } = v
+      if(text) {
+        plainText += text
+        continue
       }
-      else if(parentType === "bulletList") {
-        plainText += " · "
+  
+      if(type === "listItem") {
+        if(parentType === "orderedList") {
+          plainText += `${i + 1}. `
+        }
+        else if(parentType === "bulletList") {
+          plainText += " · "
+        }
       }
+  
+      if(content) {
+        plainText = this.turnDescToText(content, plainText, type)
+        if(type === "codeBlock") plainText += "\n"
+      }
+  
+      let addes: LiuNodeType[] = [
+        "heading",
+        "paragraph",
+        "taskList",
+        "blockquote", 
+        "codeBlock",
+        "horizontalRule",
+        "listItem",
+      ]
+      if(type && addes.includes(type as LiuNodeType)) {
+        plainText += "\n"
+      }
+  
     }
-
-    if(content) {
-      plainText = listToText(content, plainText, type)
-      if(type === "codeBlock") plainText += "\n"
-    }
-
-    let addes: LiuNodeType[] = [
-      "heading",
-      "paragraph",
-      "taskList",
-      "blockquote", 
-      "codeBlock",
-      "horizontalRule",
-      "listItem",
-    ]
-    if(type && addes.includes(type as LiuNodeType)) {
-      plainText += "\n"
-    }
-
+  
+    return plainText
   }
 
-  return plainText
-}
-
-export function getSummary(
-  content: LiuContent[] | undefined,
-) {
-  let text = ""
-  if(content && content.length > 0) {
-    text = listToText(content)
-    text = text.replace(/\n/g, " ")
-    text = text.trim()
-    if(text.length > 140) text = text.substring(0, 140)
-    if(text) return text
+  static getSummary(
+    content: LiuContent[] | undefined,
+  ) {
+    let text = ""
+    if(content && content.length > 0) {
+      text = this.turnDescToText(content)
+      text = text.replace(/\n/g, " ")
+      text = text.trim()
+      if(text.length > 140) text = text.substring(0, 140)
+      if(text) return text
+    }
+    return text
   }
-
-  return text
 }
 
 export function sortListWithIds<T extends SyncGetTable>(
@@ -1240,11 +1245,28 @@ export function getCharacteristic(
     }
   }
 
-  if(ua.includes("harmonyos")) {
+  if(ua.includes("openharmony")) {
+    cha.isHarmonyOS = true
+  }
+  else if(ua.includes("harmonyos")) {
+    cha.isHarmonyOS = true
+  }
+  else if(ua.includes("arkweb")) {
     cha.isHarmonyOS = true
   }
   if(ua.includes("huaweibrowser")) {
     cha.isHuaweiBrowser = true
+  }
+
+  if(cha.isHarmonyOS) {
+    if(ua.includes("phone;") || ua.includes("tablet;")) {
+      cha.isMobile = true
+      cha.isPC = false
+    }
+    else if(ua.includes("pc;")) {
+      cha.isPC = true
+      cha.isMobile = false
+    }
   }
 
   // 判别浏览器
@@ -1273,6 +1295,14 @@ export function getCharacteristic(
 
       const s_version_m = ua.match(reg_exp.safari_version)
       cha.browserVersion = s_version_m ? s_version_m[1] : undefined
+    }
+  }
+
+  // recognize browser version for HarmonyOS
+  if(cha.isHarmonyOS) {
+    const ark_version_m = ua.match(reg_exp.arkweb_version)
+    if(ark_version_m) {
+      cha.browserVersion = ark_version_m[1]
     }
   }
 
@@ -1652,6 +1682,13 @@ export async function insertToken(
     lastSet: now,
     ip,
   }
+  if(platform === "ide-extension") {
+    const ideType = body["x_liu_ide_type"] as LiuIDEType
+    if(ideType && liuIDETypes.includes(ideType)) {
+      obj1.ideType = ideType
+    }
+  }  
+
   const res1 = await db.collection("Token").add(obj1)
   const serial_id = getDocAddId(res1)
   if(!serial_id) return
@@ -2273,7 +2310,7 @@ interface EncData {
   [key: string]: any
 }
 
-interface DecryptEncData_B {
+export interface DecryptEncData_B {
   pass: true
   title?: string
   liuDesc?: LiuContent[]
@@ -3263,14 +3300,14 @@ export class AiToolUtil {
       else if(laterHour === 3) {
         remindMe.later = "3hr"
       }
-      else if(laterHour === 12) {
-        remindMe = {
-          type: "specific_time",
-          specific_stamp: now + (12 * HOUR),
-        }
+      else if(laterHour === 24) {
+        remindMe.later = "tomorrow_this_moment"
       }
       else {
-        remindMe.later = "tomorrow_this_moment"
+        remindMe = {
+          type: "specific_time",
+          specific_stamp: now + (laterHour * HOUR),
+        }
       }
     }
 
@@ -3302,6 +3339,13 @@ export class AiToolUtil {
     funcJson: Record<string, any>,
     user?: Table_User,
   ): DataPass<SyncOperateAPI.WaitingData> {
+
+    // 0. add calendar
+    if(funcName === "add_calendar") {
+      const res0 = this.turnJsonForAddCalendar(funcJson, user)
+      return res0
+    }
+
     const errRes = checker.getErrResult("no function name matches")
 
     // 1. add_note
@@ -3355,30 +3399,92 @@ export class AiToolUtil {
       return { pass: true, data: d2 }
     }
 
-    // 3. add_calendar
-    if(funcName === "add_calendar") {
-      // 3.1 normalize for bots which are not so smart
-      if(typeof funcJson.earlyMinute === "number") {
-        funcJson.earlyMinute = funcJson.earlyMinute.toString()
-      }
-      if(typeof funcJson.laterHour === "number") {
-        funcJson.laterHour = funcJson.laterHour.toString()
-      }
-
-      const res3 = vbot.safeParse(Sch_AiToolAddCalendarParam, funcJson)
-      if(!res3.success) {
-        console.warn("cannot parse add_calendar param: ")
-        console.log(funcJson)
-        console.log(res3.issues)
-        errRes.err.errMsg = checker.getErrMsgFromIssues(res3.issues)
-        return errRes
-      }
-      const d3 = this._turnCalendarJsonToWaitingData(funcJson, user)
-      return d3
-    }
-
     return errRes
   }
+
+
+  static turnJsonForAddCalendar(
+    funcJson: Record<string, any>,
+    user?: Table_User,
+  ): DataPass<SyncOperateAPI.WaitingData> {
+    const errRes = checker.getErrResult("no function name matches")
+
+    // 1. normalize for bots which are not so smart
+    if (typeof funcJson.earlyMinute === "number") {
+      funcJson.earlyMinute = funcJson.earlyMinute.toString()
+    }
+    if (typeof funcJson.laterHour === "number") {
+      funcJson.laterHour = funcJson.laterHour.toString()
+    }
+
+    // 2. validate in general
+    const res2 = vbot.safeParse(Sch_AiToolAddCalendarParam, funcJson)
+    if (!res2.success) {
+      console.warn("cannot parse add_calendar param: ")
+      console.log(funcJson)
+      console.log(res2.issues)
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res2.issues)
+      return errRes
+    }
+
+    // 3. check out earlyMinute
+    if (funcJson.earlyMinute) {
+      const res3 = ValueTransform.str2Num(funcJson.earlyMinute)
+      if (!res3.pass) {
+        console.warn("cannot parse earlyMinute: ", funcJson.earlyMinute)
+        console.log(funcJson)
+        errRes.err.errMsg = "fail to parse earlyMinute in add_calendar"
+        return errRes
+      }
+      const num3 = res3.data
+      if (num3 < 0) {
+        console.warn("earlyMinute must be greater than 0")
+        console.log(funcJson)
+        errRes.err.errMsg = "earlyMinute must be greater than 0"
+        return errRes
+      }
+      if (num3 > 1440) {
+        console.warn("earlyMinute must be less than 1440")
+        console.log(funcJson)
+        errRes.err.errMsg = "earlyMinute must be less than 1440"
+        return errRes
+      }
+      funcJson.earlyMinute = num3.toFixed(0)
+    }
+
+    // 4. check out laterHour
+    if(funcJson.laterHour) {
+      const res4 = ValueTransform.str2Num(funcJson.laterHour)
+      if(!res4.pass) {
+        console.warn("cannot parse laterHour: ", funcJson.laterHour)
+        console.log(funcJson)
+        errRes.err.errMsg = "fail to parse laterHour in add_calendar"
+        return errRes
+      }
+      const num4 = res4.data
+      if(num4 < 0.08) {
+        console.warn("laterHour must be greater than or equal to 0.25")
+        console.log(funcJson)
+        errRes.err.errMsg = "laterHour must be greater than or equal to 0.25"
+        return errRes
+      }
+      if(num4 > 24) {
+        console.warn("laterHour must be less than or equal to 24")
+        console.log(funcJson)
+        errRes.err.errMsg = "laterHour must be less than or equal to 24"
+        return errRes
+      }
+      if(funcJson.laterHour !== "0.5") {
+        funcJson.laterHour = num4.toFixed(2)
+      }
+    }
+
+    // 5. start to turn for adding calendar
+    const d5 = this._turnCalendarJsonToWaitingData(funcJson, user)
+    return d5
+  }
+
+
 
 }
 
