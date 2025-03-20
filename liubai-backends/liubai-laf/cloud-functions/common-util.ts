@@ -3088,6 +3088,7 @@ export async function upgrade_user_subscription(
   const quota = theUser.quota
   if(quota) {
     quota.aiConversationCount = 0
+    quota.aiClusterCount = 0
   }
   
   // 4. generate a new subscription in user

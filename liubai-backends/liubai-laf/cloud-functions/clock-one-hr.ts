@@ -19,6 +19,7 @@ import type {
   Res_Wxpay_Download_Cert,
   LiuWxpayCert,
   Table_User,
+  UserQuota,
 } from '@/common-types'
 import { 
   checkIfUserSubscribed, 
@@ -107,9 +108,6 @@ export async function updateUserQuota() {
     subscription: {
       isOn: "Y",
     },
-    quota: {
-      aiConversationCount: _.gt(0),
-    },
   }
   const uCol = db.collection("User")
 
@@ -174,7 +172,11 @@ export async function updateUserQuota() {
     // 5. update quota
     if(updatedIds.length > 0) {
       const q5 = uCol.where({ _id: _.in(updatedIds) })
-      const res5 = await q5.update({ quota: { aiConversationCount: 0 } })
+      const u5: Partial<UserQuota> = {
+        aiConversationCount: 0,
+        aiClusterCount: 0,
+      }
+      const res5 = await q5.update({ quota: u5 })
       console.log("updateUserQuota res5: ")
       console.log(res5)
     }

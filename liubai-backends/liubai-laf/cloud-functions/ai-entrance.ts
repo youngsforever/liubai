@@ -449,22 +449,33 @@ class AiDirective {
     // 3. get quota
     msg += (t("status_2") + "\n")
     const quota = user.quota
-    const usedTimes = quota?.aiConversationCount ?? 0
+    const usedTimes_1 = quota?.aiConversationCount ?? 0
+    const usedTimes_2 = quota?.aiClusterCount ?? 0
     const isSubscribed = checkIfUserSubscribed(user)
     const maxTimes = isSubscribed ? MAX_TIMES_MEMBERSHIP : MAX_TIMES_FREE
-    msg += (t("status_3", { usedTimes }) + "\n")
-    if(isSubscribed) {
-      msg += t("status_5", { maxTimes })
-    }
-    else {
-      msg += t("status_4", { maxTimes })
+    const msg3_1 = t("status_conversation", {
+      usedTimes: usedTimes_1,
+      maxTimes,
+    })
+    const msg3_2 = t("status_cluster", {
+      usedTimes: usedTimes_2,
+      maxTimes,
+    })
+    msg += `${msg3_1}\n`
+    msg += msg3_2
+
+    // 4. add subscription link
+    if(!isSubscribed) {
+      const msg4 = t("buy_premium")
+      msg += `\n\n${msg4}`
     }
 
-    // 4. text user
+    // 5. text user
     TellUser.text(entry, msg)
   }
 
   private static isViewingStatus(text: string) {
+    if(text === "ai" || text === "AI") return true
     const prefix = [
       "群聊状态", "查看群聊状态", "群聊有谁", "群聊还有谁", "群里还有谁",
       "群聊狀態", "檢視群聊狀態", "群組裡有誰", "群組還有誰", "群組中還有誰",
