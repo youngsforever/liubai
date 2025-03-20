@@ -130,9 +130,7 @@ async function auth_agree(
   }
   const cCol = db.collection("Credential")
   const res3 = await cCol.doc(data1._id).update(w3)
-  console.log("res3 in auth_agree: ")
-  console.log(res3)
-
+  
   // 4. construct response
   const data4: UserSettingsAPI.Res_AuthAgree = {
     operateType: "auth-agree",
