@@ -23,15 +23,18 @@ features:
       light: /liu-assets/devices_light_theme.svg
     title: "多设备"
     details: "你可以在 iPhone、安卓、鸿蒙、Mac 或 Windows 等设备间无缝同步数据。"
+    link: /guide/install/index
   - icon: 
       dark: /liu-assets/wifi_off_dark_theme.svg
       light: /liu-assets/wifi_off_light_theme.svg
     title: "本地优先"
     details: "即使在离线环境下，比如飞机上、动车上或任何弱网空间，你依然可以无压地使用。"
+    link: /article/2024/supercharge-yourself.html#offline
   - icon: 
       dark: /liu-assets/person_celebrate_dark_theme.svg
       light: /liu-assets/person_celebrate_light_theme.svg
     title: "AI 加持"
-    details: "在微信里，任意使用 7 家大模型（包含 DeepSeek R1），协助打理你的生活。"
+    details: "在微信里，任意使用 9 家大模型（包含 DeepSeek R1），协助打理你的生活。"
+    link: /guide/three-assistants
 ---
 
