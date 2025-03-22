@@ -1,8 +1,10 @@
 # 在 Windsurf 上安装
 
-[Windsurf](https://www.xiaohongshu.com/explore/67384b60000000003c01c6d2?xsec_token=ABPBJ1IiiOXbcipHtKX6j6NFfXNFGKL1ukBYpZjY6XTbg=) 是一款由 Codeium 公司推出的 AI 编辑器，支持你在写作时使用侧边栏与 AI 交互，辅助你或自动帮你完成创作！
+[Windsurf](https://www.xiaohongshu.com/explore/67384b60000000003c01c6d2?xsec_token=ABPBJ1IiiOXbcipHtKX6j6NFfXNFGKL1ukBYpZjY6XTbg=) 是一款由 Codeium 公司推出的 AI 编辑器，它让你在电脑面前创作时（无论是编辑文本或写代码），使用侧边栏与 AI 交互，辅助你或自动帮你完成创作！
 
-留白记事现已完成 Windsurf 上的适配：让你在工作时无需离开编辑器，即可完成笔记/待办/日程的创建！
+留白记事现已完成 Windsurf 上的适配：
+
+让你在工作时无需离开编辑器，轻松捕捉灵光乍现💡的每一份想法，或者快速新建待办或日程！
 
 ## 安装 {#install}
 

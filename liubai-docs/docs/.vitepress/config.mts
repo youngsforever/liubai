@@ -63,7 +63,10 @@ export default defineConfig({
               collapsed: true,
               items: [
                 { text: "如何使用插件", link: "/guide/ide/how-to-use-vscode-ext" },
+                { text: "Cursor", link: "/guide/ide/cursor" },
                 { text: "Windsurf", link: "/guide/ide/windsurf" },
+                { text: "VS Code", link: "/guide/ide/vscode" },
+                { text: "Trae", link: "/guide/ide/trae" },
               ]
             }
           ]

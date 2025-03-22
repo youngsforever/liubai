@@ -2,12 +2,20 @@
 
 选择你常用的 IDE 进行安装：
 
-- Cursor
-- [Windsurf](./windsurf)
-- Visual Studio Code
-- VSCodium (从 VS Code 中移除微软标识和遥测的分叉版本)
-- Trae
-- github.dev
-- vscode.dev
-- gitpod.io
+<a href="./cursor">
+  <img src="./assets-ide/banner-cursor.jpg" alt="cursor" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+</a>
+
+<a href="./windsurf">
+  <img src="./assets-ide/banner-windsurf.jpg" alt="windsurf" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+</a>
+
+<a href="./vscode">
+  <img src="./assets-ide/banner-vscode.jpg" alt="vscode" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+</a>
+
+<a href="./trae">
+  <img src="./assets-ide/banner-trae.jpg" alt="trae" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+</a>
+
 
