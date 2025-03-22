@@ -1,6 +1,7 @@
 // Function Name: sync-after
 import cloud from '@lafjs/cloud'
 import { 
+  aiToolAddCalendarSpecificDates,
   type Table_Content, 
   type Table_User,
   type LiuAi,
@@ -8,16 +9,19 @@ import {
   type OaiCreateParam,
   type SyncOperateAPI,
   type Table_Workspace,
-  aiToolAddCalendarSpecificDates,
+  type WorkspaceWps,
+  type RunningStatus,
 } from '@/common-types'
 import { 
   AiToolUtil,
   checkIfUserSubscribed, 
+  decryptCloudData, 
   decryptEncData, 
   encryptDataWithAES, 
   getAESKey, 
   LiuDateUtil, 
   liuReq, 
+  RichTexter, 
   valTool, 
   type DecryptEncData_B,
 } from '@/common-util'
@@ -115,7 +119,7 @@ export async function afterPostingThread(
   if(!user) return
   if(user.oState !== "NORMAL") return
 
-  // 3. decide whether to go to cluster
+  // 3.1 decide whether to go to cluster
   let goToCluster = true
   if(opt?.disableAiCluster) goToCluster = false
   const quota = user.quota
@@ -126,44 +130,32 @@ export async function afterPostingThread(
   }
   if(thread.calendarStamp) goToCluster = false
 
-  // 4. go to cluster
+  // 3.2 go to cluster
   if(goToCluster) {
     const aiCluster = new AiCluster(thread, user, res1_2)
-    await aiCluster.run(2)
+    aiCluster.run(2)
   }
 
+  // 4.1 backup
+  const backup = new BackupToOthers(thread, user, res1_2)
+  backup.run()
 
 }
 
 
-export async function testWPS() {
-  const webhook_url = "WEBHOOK_URL_FROM_WPS"
-  const webhook_password = "WEBHOOK_PASSWORD_FROM_LIUBAI"
-  const basic_auth = `liubai:${webhook_password}`
-  const b64_basic_auth = Buffer.from(basic_auth).toString("base64")
-  const payload = {
-    id: "my_card_id",
-    desc: "来自六百的第一次测试",
-    title: "",
-    source: "",
-    fields: ["存一些其他信息"]
-  }
-  console.log("payload: ", payload)
-  const headers = {
-    "Origin": "www.wps.cn",
-    "Authorization": `Basic ${b64_basic_auth}`
-  }
-  const res1 = await liuReq(webhook_url, payload, { headers })
-  return res1
+interface BackupStructure {
+  id: string
+  desc: string
+  title: string
+  source: string
 }
-
-
 
 export class BackupToOthers {
 
   private _thread: Table_Content
   private _user: Table_User
   private _decryptedData: DecryptEncData_B
+  private _basicData: BackupStructure
 
   constructor(
     thread: Table_Content,
@@ -173,6 +165,7 @@ export class BackupToOthers {
     this._thread = thread
     this._user = user
     this._decryptedData = decryptedData
+    this._basicData = this._getBasicData()
   }
 
   public async run() {
@@ -182,11 +175,126 @@ export class BackupToOthers {
     const res1 = await wCol.doc(spaceId).get<Table_Workspace>()
     const space = res1.data
     if(!space) return false
-    if(space.oState !== "OK") return false    
+    if(space.oState !== "OK") return false
 
+    // 2. start to push to outside services
+
+    // 2.1 wps
+    if(space.wps) {
+      this.pushToWPS(space.wps)
+    }
+
+    // 2.2 dingtalk
+
+
+    // 2.3 feishu
+    
   }
 
+  private async pushToWPS(
+    cfg: WorkspaceWps,
+  ): Promise<RunningStatus> {
+    if(cfg.enable !== "Y") return "no_need"
+    const {
+      enc_webhook_url,
+      enc_webhook_password,
+    } = cfg
+    if(!enc_webhook_url || !enc_webhook_password) return "no_need"
 
+    // 1. Let's decrypt
+    // 1.1 decrypt enc_webhook_url
+    const d_url = decryptCloudData<string>(enc_webhook_url)
+    if(!d_url.pass) {
+      console.warn("enc_webhook_url decrypt failed in pushToWPS: ", d_url.err)
+      this._callReporter("decrypt failed in pushToWPS", d_url.err)
+      return "fail"
+    }
+    const webhook_url = d_url.data
+    if(!webhook_url) {
+      console.warn("no webhook_url in pushToWPS")
+      this._callReporter("no webhook_url in pushToWPS", enc_webhook_url)
+      return "fail"
+    }
+
+    // 1.2 decrypt enc_webhook_password
+    const d_password = decryptCloudData<string>(enc_webhook_password)
+    if(!d_password.pass) {
+      console.warn("enc_webhook_password decrypt failed in pushToWPS: ", d_password.err)
+      this._callReporter("decrypt failed in pushToWPS", d_password.err)
+      return "fail"
+    }
+    const webhook_password = d_password.data
+    if(!webhook_password) {
+      console.warn("no webhook_password in pushToWPS")
+      this._callReporter("no webhook_password in pushToWPS", enc_webhook_password)
+      return "fail"
+    }
+
+    // 2. generate basic auth
+    const basic_auth = `liubai:${webhook_password}`
+    const b64_basic_auth = Buffer.from(basic_auth).toString("base64")
+
+    // 3. fetch
+    const payload = valTool.copyObject(this._basicData)
+    const headers = {
+      "Origin": "www.wps.cn",
+      "Authorization": `Basic ${b64_basic_auth}`
+    }
+    console.log("ready to push to wps: ", payload)
+    const res3 = await liuReq(webhook_url, payload, { headers })
+    const code3 = res3?.code
+    const data3 = res3?.data
+    if(code3 !== "0000" || !data3) {
+      console.warn("fail to fetch wps: ", res3)
+      this._callReporter("fail to fetch wps 1", res3)
+      return "fail"
+    }
+    if(data3.code !== 0) {
+      console.warn("fail to fetch wps: ", data3)
+      this._callReporter("fail to fetch wps 2", data3)
+      return "fail"
+    }
+
+    return "success"
+  }
+
+  private _callReporter(
+    title: string,
+    data: any,
+  ) {
+    let footer = ""
+    const userId = this._user._id
+    const threadId = this._thread._id
+    footer += `**User id:** ${userId}\n\n`
+    footer += `**Thread id:** ${threadId}\n\n`
+
+    const reporter = new LiuReporter()
+    reporter.sendAny(title, data, footer)
+  }
+  
+
+  private _getBasicData() {
+    const {
+      liuDesc,
+      title,
+    } = this._decryptedData
+    let desc = ""
+    if(liuDesc) {
+      desc = RichTexter.turnDescToText(liuDesc)
+    }
+    const {
+      _id: id,
+      ideType,
+      aiCharacter,
+    } = this._thread
+    const basicData: BackupStructure = {
+      id,
+      desc,
+      title: title ?? "",
+      source: ideType ?? aiCharacter ?? "",
+    }
+    return basicData
+  }
 
 }
 

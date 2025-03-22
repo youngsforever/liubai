@@ -161,6 +161,9 @@ export type OrderStatus = typeof orderStatuses[number]
 // channel of payment
 export type PayChannel = "stripe" | "wxpay" | "alipay"
 
+// running status
+export type RunningStatus = "no_need" | "fail" | "success"
+
 // type of order
 export const orderTypes = ["subscription", "product"] as const
 export type OrderType = typeof orderTypes[number]
@@ -1377,6 +1380,9 @@ export interface Table_Workspace extends BaseTable {
   avatar?: Cloud_ImageStore
   editedStamp?: number       // 同步时，用来比大小的
   config?: WorkspaceConfig
+
+  // third party config
+  wps?: WorkspaceWps
 }
 
 /** Member 表 */
