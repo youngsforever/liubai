@@ -369,6 +369,12 @@ export interface WorkspaceConfig {
   lastOperateTag?: number
 }
 
+export interface WorkspaceWps {
+  enable?: "Y" | "N"
+  enc_webhook_url?: CryptoCipherAndIV
+  enc_webhook_password?: CryptoCipherAndIV
+}
+
 /** The config of Member */
 export interface MemberConfig {
   searchKeywords?: string[]

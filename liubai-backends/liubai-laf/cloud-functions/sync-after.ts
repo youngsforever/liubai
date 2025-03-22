@@ -7,6 +7,7 @@ import {
   type OaiPrompt,
   type OaiCreateParam,
   type SyncOperateAPI,
+  type Table_Workspace,
   aiToolAddCalendarSpecificDates,
 } from '@/common-types'
 import { 
@@ -16,6 +17,7 @@ import {
   encryptDataWithAES, 
   getAESKey, 
   LiuDateUtil, 
+  liuReq, 
   valTool, 
   type DecryptEncData_B,
 } from '@/common-util'
@@ -111,6 +113,7 @@ export async function afterPostingThread(
   const res2 = await uCol.doc(userId).get<Table_User>()
   const user = res2.data
   if(!user) return
+  if(user.oState !== "NORMAL") return
 
   // 3. decide whether to go to cluster
   let goToCluster = true
@@ -131,6 +134,65 @@ export async function afterPostingThread(
 
 
 }
+
+
+export async function testWPS() {
+  const webhook_url = "WEBHOOK_URL_FROM_WPS"
+  const webhook_password = "WEBHOOK_PASSWORD_FROM_LIUBAI"
+  const basic_auth = `liubai:${webhook_password}`
+  const b64_basic_auth = Buffer.from(basic_auth).toString("base64")
+  const payload = {
+    id: "my_card_id",
+    desc: "来自六百的第一次测试",
+    title: "",
+    source: "",
+    fields: ["存一些其他信息"]
+  }
+  console.log("payload: ", payload)
+  const headers = {
+    "Origin": "www.wps.cn",
+    "Authorization": `Basic ${b64_basic_auth}`
+  }
+  const res1 = await liuReq(webhook_url, payload, { headers })
+  return res1
+}
+
+
+
+export class BackupToOthers {
+
+  private _thread: Table_Content
+  private _user: Table_User
+  private _decryptedData: DecryptEncData_B
+
+  constructor(
+    thread: Table_Content,
+    user: Table_User,
+    decryptedData: DecryptEncData_B,
+  ) {
+    this._thread = thread
+    this._user = user
+    this._decryptedData = decryptedData
+  }
+
+  public async run() {
+    // 1. get workspace
+    const spaceId = this._thread.spaceId
+    const wCol = db.collection("Workspace")
+    const res1 = await wCol.doc(spaceId).get<Table_Workspace>()
+    const space = res1.data
+    if(!space) return false
+    if(space.oState !== "OK") return false    
+
+  }
+
+
+
+}
+
+
+
+/*************** About Cluster *************/
 
 const cluster_system_prompt = `
 你是当今世界上最强大的分类器。你非常擅长将抽象的内容转化成结构化的数据。
