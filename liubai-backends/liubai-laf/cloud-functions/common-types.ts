@@ -2523,6 +2523,17 @@ export interface Res_OC_GetWeChat {
   wx_gzh_subscribed?: boolean
 }
 
+export interface Res_OC_GetWps {
+  operateType: "get-wps"
+  enable?: BaseIsOn
+  plz_enc_webhook_url?: string
+  plz_enc_webhook_password?: string
+}
+
+export interface Res_OC_SetWps {
+  operateType: "set-wps"
+  plz_enc_webhook_password?: string
+}
 
 
 /******************** 一些云函数间内部的入参和出参类型 **********/

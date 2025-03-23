@@ -22,10 +22,15 @@ import {
   type Res_OC_CheckWeChat,
   type Param_OC_SetWechat,
   Sch_Param_OC_SetWechat,
+  type Table_Workspace,
+  type DataPass,
+  type Res_OC_GetWps,
 } from "@/common-types"
 import { 
   checkAndGetWxGzhAccessToken,
   checker,
+  decryptCloudData,
+  getEncryptedData,
   getWwQynbAccessToken, 
   liuReq, 
   verifyToken,
@@ -66,8 +71,85 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "check-wechat") {
     res = await handle_check_wechat(vRes, body)
   }
+  else if(oT === "get-wps") {
+    res = await handle_get_wps(vRes, body)
+  }
+  else if(oT === "set-wps") {
+
+  }
 
   return res
+}
+
+
+async function handle_get_wps(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  // 1. checking out memberId
+  const userId = vRes.userData._id
+  const memberId = body.memberId
+  if(!memberId || typeof memberId !== "string") {
+    return { code: "E4000", errMsg: "memberId is required" }
+  }
+  const res1 = await checkMember(memberId, userId)
+  if(!res1.pass) return res1.err
+  const member = res1.data
+
+  // 2. get workspace
+  const wCol = db.collection("Workspace")
+  const res2 = await wCol.doc(member.spaceId).get<Table_Workspace>()
+  const space = res2.data
+  if(!space || space.oState === "DELETED") {
+    return { code: "E4004", errMsg: "workspace not found" }
+  }
+
+  // 3. handle return data
+  const returnData: Res_OC_GetWps = {
+    operateType: "get-wps",
+  }
+  const wpsCfg = space.wps
+  if(!wpsCfg) {
+    return {
+      code: "0000",
+      data: returnData,
+    }
+  }
+
+  // 3.1 decrypt enc_webhook_url
+  if(wpsCfg.enc_webhook_url) {
+    const d1 = decryptCloudData<string>(wpsCfg.enc_webhook_url)
+    if(!d1.pass) {
+      console.warn("enc_webhook_url decrypt failed in handle_get_wps: ", d1.err)
+      return { code: "E4009", errMsg: "enc_webhook_url decrypt failed" }
+    }
+    returnData.plz_enc_webhook_url = d1.data
+  }
+
+  // 3.2 decrypt enc_webhook_password
+  if(wpsCfg.enc_webhook_password) {
+    const d2 = decryptCloudData<string>(wpsCfg.enc_webhook_password)
+    if(!d2.pass) {
+      console.warn("enc_webhook_password decrypt failed in handle_get_wps: ", d2.err)
+      return { code: "E4009", errMsg: "enc_webhook_password decrypt failed" }
+    }
+    returnData.plz_enc_webhook_password = d2.data
+  }
+
+  // 3.3 handle enable
+  returnData.enable = wpsCfg.enable
+
+  // 4. encrypt data
+  const res4 = getEncryptedData(returnData, vRes)
+  if(res4.rqReturn) return res4.rqReturn
+  if(!res4.data) {
+    return { code: "E5001", errMsg: "getEncryptedData failed" }
+  }
+
+  return {
+    code: "0000",
+    data: res4.data,
+  }
 }
 
 
@@ -141,8 +223,8 @@ async function handle_bind_wechat(
   // 1. checking out memberId
   const memberId = body.memberId
   if(memberId && typeof memberId === "string") {
-    const res2 = await checkIfMemberIdIsMine(memberId, userId)
-    if(res2) return res2
+    const res2 = await checkMember(memberId, userId)
+    if(!res2.pass) return res2.err
   }
 
   // 2. checking out credential
@@ -373,8 +455,8 @@ async function handle_bind_wecom(
   // 2. checking out memberId
   const memberId = body.memberId
   if(memberId && typeof memberId === "string") {
-    const res2 = await checkIfMemberIdIsMine(memberId, userId)
-    if(res2) return res2
+    const res2 = await checkMember(memberId, userId)
+    if(!res2.pass) return res2.err
   }
 
   // 3. checking out credential
@@ -561,17 +643,27 @@ async function handle_check_wecom(
 }
 
 
-async function checkIfMemberIdIsMine(
+async function checkMember(
   memberId: string,
   userId: string,
-): Promise<LiuErrReturn | undefined> {
+): Promise<DataPass<Table_Member>> {
   const mCol = db.collection("Member")
   const res2 = await mCol.doc(memberId).get<Table_Member>()
   const d2 = res2.data
   if(!d2) {
-    return { code: "E4004", errMsg: "there is no memeber" }
+    return {
+      pass: false,
+      err: { code: "E4004", errMsg: "there is no memeber" }
+    }
   }
   if(d2.user !== userId) {
-    return { code: "E4003", errMsg: "the member is not yours!" }
+    return {
+      pass: false,
+      err: { code: "E4003", errMsg: "the member is not yours!" },
+    }
+  }
+  return {
+    pass: true,
+    data: d2,
   }
 }
