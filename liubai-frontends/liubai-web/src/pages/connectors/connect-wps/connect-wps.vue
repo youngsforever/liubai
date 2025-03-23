@@ -36,6 +36,55 @@ const {
         <span class="liu-selection">{{ t('connect.wps_backup_desc') }}</span>
       </div>
 
+      <!-- show if toggle is true -->
+      <div class="cw-panel">
+
+        <!-- webhook url -->
+        <div class="liu-no-user-select cw-question">
+          <span>{{ t('connect.wps_webhook_url') }}</span>
+        </div>
+        <input type="text" 
+          v-model="cwData.webhook_url" 
+          class="ph-no-capture cw-answer" 
+          placeholder="https://www.kdocs.cn/chatflow/......"
+        />
+
+        <!-- password -->
+        <div class="liu-no-user-select cw-question">
+          <span>{{ t('connect.wps_webhook_password') }}</span>
+        </div>
+        <div class="liu-hover cw-answer">
+          <div class="cw-answer-text">
+            <span>{{ cwData.webhook_password }}</span>
+          </div>
+          <div class="cw-icon-btn">
+            <svg-icon name="copy"
+              class="cw-icon-btn-icon"
+              color="var(--main-code)"
+            ></svg-icon>
+          </div>
+        </div>
+
+        <!-- buttons -->
+        <div class="cw-btns">
+          <custom-btn 
+            size="mini" 
+            type="transparent"
+          >
+            <span>{{ t('connect.check_config') }}</span>
+          </custom-btn>
+          <custom-btn 
+            size="mini" 
+            class="cw-save-btn"
+            :disabled="!cwData.canSave"
+          >
+            <span>{{ t('common.save') }}</span>
+          </custom-btn>
+        </div>
+
+      </div>
+      
+
     </div>
 
   </PageDefault>

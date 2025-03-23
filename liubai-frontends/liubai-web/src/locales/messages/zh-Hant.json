@@ -69,7 +69,8 @@
     "back_home": "回首頁",
     "scan_with_wx": "請用微信掃描",
     "more": "更多",
-    "learn_more": "了解更多"
+    "learn_more": "了解更多",
+    "save": "保存"
   },
   "editor": {
     "when": "什麼時候",
@@ -587,7 +588,9 @@
     "wps": "WPS",
     "wps_desc": "將你的卡片傳送到 WPS 上",
     "wps_backup": "備份到 WPS 上",
-    "wps_backup_desc": "開通後，你在留白記事的卡片能備份到 WPS 上",
+    "wps_backup_desc": "開通後，你的留白記事能備份到 WPS 上",
+    "wps_webhook_url": "回調地址",
+    "wps_webhook_password": "密碼",
     "dingtalk": "釘釘",
     "dingtalk_desc": "在工作時，偷偷使用留白記事",
     "feishu": "飛書",
@@ -601,7 +604,8 @@
     "teams": "Teams",
     "teams_desc": "在 Microsoft Teams 上使用留白記事",
     "whatsapp": "WhatsApp",
-    "whatsapp_desc": "在 WhatsApp 上使用留白記事"
+    "whatsapp_desc": "在 WhatsApp 上使用留白記事",
+    "check_config": "檢視配置方法"
   },
   "qrcode": {
     "title": "你的專屬行動條碼已生成",

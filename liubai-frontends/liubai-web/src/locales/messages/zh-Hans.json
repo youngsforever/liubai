@@ -69,7 +69,8 @@
     "back_home": "回首页",
     "scan_with_wx": "请用微信扫一扫",
     "more": "更多",
-    "learn_more": "了解更多"
+    "learn_more": "了解更多",
+    "save": "保存"
   },
   "editor": {
     "when": "什么时候",
@@ -587,7 +588,9 @@
     "wps": "WPS",
     "wps_desc": "将你的卡片传送到金山文档上",
     "wps_backup": "备份到 WPS",
-    "wps_backup_desc": "开通后，你在留白记事的卡片能备份到金山文档上",
+    "wps_backup_desc": "开通后，你的留白记事能备份到金山文档上",
+    "wps_webhook_url": "回调地址",
+    "wps_webhook_password": "密码",
     "dingtalk": "钉钉",
     "dingtalk_desc": "在工作时，偷偷使用留白记事",
     "feishu": "飞书",
@@ -601,7 +604,8 @@
     "teams": "Teams",
     "teams_desc": "在 Microsoft Teams 上使用留白记事",
     "whatsapp": "WhatsApp",
-    "whatsapp_desc": "在 WhatsApp 上使用留白记事"
+    "whatsapp_desc": "在 WhatsApp 上使用留白记事",
+    "check_config": "查看配置方法"
   },
   "qrcode": {
     "title": "你的专属二维码已生成",

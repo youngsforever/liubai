@@ -69,7 +69,8 @@
     "back_home": "Back to Home",
     "scan_with_wx": "Please scan with WeChat",
     "more": "More",
-    "learn_more": "Learn more"
+    "learn_more": "Learn more",
+    "save": "Save"
   },
   "editor": {
     "when": "When",
@@ -588,6 +589,8 @@
     "wps_desc": "Send your cards to WPS Docs",
     "wps_backup": "Backup to WPS",
     "wps_backup_desc": "After turning on, your cards on Liubai can be backed up to WPS Docs",
+    "wps_webhook_url": "Callback Url",
+    "wps_webhook_password": "Password",
     "dingtalk": "DingTalk",
     "dingtalk_desc": "Using Liubai quietly on DingTalk",
     "feishu": "Feishu",
@@ -601,7 +604,8 @@
     "teams": "Teams",
     "teams_desc": "Liubai for Microsoft Teams",
     "whatsapp": "WhatsApp",
-    "whatsapp_desc": "Using Liubai on WhatsApp"
+    "whatsapp_desc": "Using Liubai on WhatsApp",
+    "check_config": "View Method"
   },
   "qrcode": {
     "title": "Your exclusive QR code",

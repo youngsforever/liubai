@@ -5,4 +5,5 @@ export interface CwData {
   webhook_toggle: boolean
   webhook_url?: string
   webhook_password?: string
+  canSave: boolean
 }
