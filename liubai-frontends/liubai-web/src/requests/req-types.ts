@@ -15,6 +15,7 @@ import type {
   SubscriptionAlipay,
   Wxpay_Jsapi_Params,
 } from "~/types/types-cloud"
+import type { BaseIsOn } from "~/types/types-basic"
 
 
 /********************** Hello World *******************/
@@ -264,4 +265,16 @@ export interface Res_OC_GetWeChat {
   wx_gzh_openid?: string
   wx_gzh_toggle?: boolean
   wx_gzh_subscribed?: boolean
+}
+
+export interface Res_OC_GetWps {
+  operateType: "get-wps"
+  enable?: BaseIsOn
+  webhook_url?: string
+  webhook_password?: string
+}
+
+export interface Res_OC_SetWps {
+  operateType: "set-wps"
+  webhook_password?: string
 }

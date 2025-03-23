@@ -373,7 +373,7 @@ export interface WorkspaceConfig {
 }
 
 export interface WorkspaceWps {
-  enable?: "Y" | "N"
+  enable?: BaseIsOn
   enc_webhook_url?: CryptoCipherAndIV
   enc_webhook_password?: CryptoCipherAndIV
 }
@@ -3448,7 +3448,7 @@ export interface Res_Alipay_Refund {
   buyer_user_id?: string
   buyer_open_id?: string
   send_back_fee?: string
-  fund_change?: "Y" | "N"
+  fund_change?: BaseIsOn
   refund_hyb_amount?: string     // 本次请求退惠营宝金额。单位：元。
 }
 
