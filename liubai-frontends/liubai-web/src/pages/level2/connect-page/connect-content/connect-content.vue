@@ -17,6 +17,12 @@ const {
     desc-key="connect.wechat_desc" icon-url="/images/third-party/wechat.png"
   ></ConnectItem>
 
+  <!-- WPS -->
+  <ConnectItem v-if="_env.C_WPS" 
+    :prefix="prefix" connector-id="wps" title-key="connect.wps"
+    desc-key="connect.wps_desc" icon-url="/images/third-party/wps.svg"
+  ></ConnectItem>
+
   <!-- TODO: dingtalk -->
   <ConnectItem v-if="_env.C_DINGTALK" 
     :prefix="prefix" connector-id="dingtalk" title-key="connect.dingtalk"
