@@ -1,0 +1,8 @@
+import type { PageState } from "~/types/types-atom"
+
+export interface CwData {
+  pageState: PageState
+  webhook_toggle: boolean
+  webhook_url?: string
+  webhook_password?: string
+}
