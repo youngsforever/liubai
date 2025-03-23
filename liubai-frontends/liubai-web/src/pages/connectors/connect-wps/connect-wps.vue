@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import '../shared/connect-layout.scss';
 import PageDefault from "~/pages/shared/page-default/page-default.vue";
 import { useI18n } from "vue-i18n";
 import { useConnectWps } from "./tools/useConnectWps"
@@ -43,6 +42,6 @@ const {
 
 </template>
 <style scoped lang="scss">
-@import "../shared/connect-layout.scss";
+@use "../shared/connect-layout.scss";
 
 </style>

@@ -68,6 +68,6 @@ const {
 
 </template>
 <style scoped lang="scss">
-@import "../shared/connect-layout.scss";
+@use "../shared/connect-layout.scss";
 
 </style>
