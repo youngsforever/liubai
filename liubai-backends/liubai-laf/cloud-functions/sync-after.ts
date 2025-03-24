@@ -11,7 +11,7 @@ import {
   type Table_Workspace,
   type WorkspaceWps,
   type RunningStatus,
-  WorkspaceDingTalk,
+  type WorkspaceDingTalk,
 } from '@/common-types'
 import { 
   AiToolUtil,
@@ -149,6 +149,7 @@ interface BackupStructure {
   desc: string
   title: string
   source: string
+  _from: "liubai"
 }
 
 export class BackupToOthers {
@@ -220,8 +221,21 @@ export class BackupToOthers {
     const res2 = await liuReq(webhook_url, payload)
     console.log("push to dingtalk: ", res2)
 
+    // 3. handle result
+    const code3 = res2?.code
+    const data3 = res2?.data
+    if(code3 !== "0000" || !data3) {
+      console.warn("fail to fetch dingtalk: ", res2)
+      this._callReporter("fail to fetch dingtalk 1", res2)
+      return "fail"
+    }
+    if(!data3.success) {
+      console.warn("fail to fetch dingtalk: ", data3)
+      this._callReporter("fail to fetch dingtalk 2", data3)
+      return "fail"
+    }
 
-
+    return "success"
   }
 
   private async pushToWPS(
@@ -344,6 +358,7 @@ export class BackupToOthers {
       desc,
       title: title ?? "",
       source: ideType ?? aiCharacter ?? "",
+      _from: "liubai",
     }
     return basicData
   }
