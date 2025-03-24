@@ -184,6 +184,10 @@ export function createPaymentNonce() {
   return createRandom(32, "UppercaseAndNumber")
 }
 
+export function createThirdPartyPassword() {
+  return "tp0" + createRandom(10)
+}
+
 export function createThreadId() {
   return "t0" + createRandom()
 }

@@ -25,17 +25,21 @@ import {
   type Table_Workspace,
   type DataPass,
   type Res_OC_GetWps,
+  type Res_OC_SetWps,
 } from "@/common-types"
 import { 
   checkAndGetWxGzhAccessToken,
   checker,
   decryptCloudData,
+  encryptDataWithAES,
+  getAESKey,
+  getDecryptedBody,
   getEncryptedData,
   getWwQynbAccessToken, 
   liuReq, 
   verifyToken,
 } from "@/common-util"
-import { createBindCredential } from "@/common-ids"
+import { createBindCredential, createThirdPartyPassword } from "@/common-ids"
 import * as vbot from "valibot"
 
 const db = cloud.database()
@@ -75,36 +79,109 @@ export async function main(ctx: FunctionContext) {
     res = await handle_get_wps(vRes, body)
   }
   else if(oT === "set-wps") {
-
+    res = await handle_set_wps(vRes, body)
   }
 
   return res
 }
 
 
+async function handle_set_wps(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  // 0. decrypt body
+  const res0 = getDecryptedBody(body, vRes)
+  const newBody = res0.newBody
+  if(!newBody || res0.rqReturn) {
+    return res0.rqReturn ?? { code: "E5001" }
+  }
+
+  // 1. check out data
+  const enable = newBody.enable
+  if(enable !== "Y" && enable !== "N") {
+    return { code: "E4000", errMsg: "enable is required" }
+  }
+  const aesKey = getAESKey()
+  if(!aesKey) return { code: "E5001", errMsg: "getAESKey failed in open-connect" }
+
+  // 1.1 checking whether webhook_url is from wps
+  const webhook_url = newBody.webhook_url
+  console.log("see webhook_url: ", webhook_url)
+  if(typeof webhook_url === "string" && webhook_url) {
+    const isWpsUrl = WpsHandler.isWpsWebhookUrl(webhook_url)
+    if(!isWpsUrl) {
+      return { code: "E4000", errMsg: "webhook_url is not from wps" }
+    }
+  }
+
+  // 2. get workspace
+  const res2 = await getSharedData1(vRes, newBody)
+  if(!res2.pass) return res2.err
+  const space = res2.data
+
+  // 3. handle wps config
+  const wpsCfg = space.wps ?? {}
+  let updated = false
+
+  // 3.1 for enable
+  if(wpsCfg.enable !== enable) {
+    wpsCfg.enable = enable
+    updated = true
+  }
+
+  // 3.2 for webhook_url
+  let old_url = ""
+  if(wpsCfg.enc_webhook_url) {
+    const d3_2 = decryptCloudData<string>(wpsCfg.enc_webhook_url)
+    if(!d3_2.pass) return d3_2.err
+    old_url = d3_2.data ?? ""
+  }
+  if(typeof webhook_url === "string") {
+    if(webhook_url !== old_url) {
+      wpsCfg.enc_webhook_url = encryptDataWithAES(webhook_url, aesKey)
+      updated = true
+    }
+  }
+
+  // 3.3 for webhook_password
+  const returnData: Res_OC_SetWps = { operateType: "set-wps" }
+  let webhook_password = ""
+  if(enable === "Y") {
+    if(wpsCfg.enc_webhook_password) {
+      const d3_3 = decryptCloudData<string>(wpsCfg.enc_webhook_password)
+      if(!d3_3.pass) return d3_3.err
+      webhook_password = d3_3.data ?? ""
+    }
+    if(!webhook_password) {
+      webhook_password = createThirdPartyPassword()
+      wpsCfg.enc_webhook_password = encryptDataWithAES(webhook_password, aesKey)
+      updated = true
+    }
+    returnData.plz_enc_webhook_password = webhook_password
+  }
+
+  // 4. get to update
+  if(updated) {
+    const wCol = db.collection("Workspace")
+    await wCol.doc(space._id).update({ wps: wpsCfg })
+  }
+
+  // 5. encrypt data
+  const res5 = getSharedData2(vRes, returnData)
+  return res5
+}
+
 async function handle_get_wps(
   vRes: VerifyTokenRes_B,
   body: Record<string, any>,
 ) {
   // 1. checking out memberId
-  const userId = vRes.userData._id
-  const memberId = body.memberId
-  if(!memberId || typeof memberId !== "string") {
-    return { code: "E4000", errMsg: "memberId is required" }
-  }
-  const res1 = await checkMember(memberId, userId)
+  const res1 = await getSharedData1(vRes, body)
   if(!res1.pass) return res1.err
-  const member = res1.data
+  const space = res1.data
 
-  // 2. get workspace
-  const wCol = db.collection("Workspace")
-  const res2 = await wCol.doc(member.spaceId).get<Table_Workspace>()
-  const space = res2.data
-  if(!space || space.oState === "DELETED") {
-    return { code: "E4004", errMsg: "workspace not found" }
-  }
-
-  // 3. handle return data
+  // 2. handle return data
   const returnData: Res_OC_GetWps = {
     operateType: "get-wps",
   }
@@ -140,16 +217,34 @@ async function handle_get_wps(
   returnData.enable = wpsCfg.enable
 
   // 4. encrypt data
-  const res4 = getEncryptedData(returnData, vRes)
-  if(res4.rqReturn) return res4.rqReturn
-  if(!res4.data) {
-    return { code: "E5001", errMsg: "getEncryptedData failed" }
+  const res4 = getSharedData2(vRes, returnData)
+  return res4
+}
+
+class WpsHandler {
+
+  static domains = ["kdocs.cn", "wps.cn"]
+
+  static isWpsWebhookUrl(webhook_url: string) {
+    try {
+      const url1 = new URL(webhook_url)
+      const origin = url1.origin
+      const domain = this.domains.find(d => {
+        const d1 = "." + d
+        const res1 = origin.endsWith(d1)
+        if(res1) return true
+        const d2 = "/" + d
+        const res2 = origin.endsWith(d2)
+        return res2
+      })
+      return Boolean(domain)
+    }
+    catch(err) {
+      console.warn("isWpsWebhookUrl error: ", err)
+    }
+    return false
   }
 
-  return {
-    code: "0000",
-    data: res4.data,
-  }
 }
 
 
@@ -640,6 +735,55 @@ async function handle_check_wecom(
   }
 
   return res
+}
+
+function getSharedData2(
+  vRes: VerifyTokenRes_B,
+  returnData: Record<string, any>,
+) {
+  const res1 = getEncryptedData(returnData, vRes)
+  if(res1.rqReturn) return res1.rqReturn
+  if(!res1.data) {
+    return { code: "E5001", errMsg: "getEncryptedData failed" }
+  }
+  return {
+    code: "0000",
+    data: res1.data,
+  }
+}
+
+async function getSharedData1(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+): Promise<DataPass<Table_Workspace>> {
+  // 1. checking out memberId
+  const userId = vRes.userData._id
+  const memberId = body.memberId
+  if(!memberId || typeof memberId !== "string") {
+    return {
+      pass: false,
+      err: { code: "E4000", errMsg: "memberId is required" },
+    }
+  }
+  const res1 = await checkMember(memberId, userId)
+  if(!res1.pass) return res1
+  const member = res1.data
+
+  // 2. get workspace
+  const wCol = db.collection("Workspace")
+  const res2 = await wCol.doc(member.spaceId).get<Table_Workspace>()
+  const space = res2.data
+  if(!space || space.oState === "DELETED") {
+    return {
+      pass: false,
+      err: { code: "E4004", errMsg: "workspace not found" }
+    }
+  }
+
+  return {
+    pass: true,
+    data: space,
+  }
 }
 
 

@@ -6,6 +6,7 @@ import { useConnectWps } from "./tools/useConnectWps"
 const { t } = useI18n()
 const { 
   cwData,
+  onWebhookChanged,
 } = useConnectWps()
 
 </script>
@@ -27,6 +28,7 @@ const {
         <div class="liu-no-user-select cwb-footer">
           <liu-switch 
             :checked="cwData.webhook_toggle"
+            @change="onWebhookChanged($event.checked)"
           ></liu-switch>
         </div>
 
@@ -37,7 +39,7 @@ const {
       </div>
 
       <!-- show if toggle is true -->
-      <div class="cw-panel">
+      <div class="cw-panel" v-if="cwData.webhook_toggle">
 
         <!-- webhook url -->
         <div class="liu-no-user-select cw-question">

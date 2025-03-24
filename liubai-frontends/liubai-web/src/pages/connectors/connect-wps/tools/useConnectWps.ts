@@ -5,12 +5,15 @@ import {
   type RouteAndLiuRouter, 
   useRouteAndLiuRouter,
 } from "~/routes/liu-router"
-import type { Res_OC_GetWps } from "~/requests/req-types"
+import type { Res_OC_GetWps, Res_OC_SetWps } from "~/requests/req-types"
 import { pageStates } from "~/utils/atom"
 import { useAwakeNum } from "~/hooks/useCommon"
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore"
 import APIs from "~/requests/APIs"
 import liuReq from "~/requests/liu-req"
+import { useThrottleFn } from "~/hooks/useVueUse"
+import { showErrMsg } from "~/pages/level1/tools/show-msg"
+import cui from "~/components/custom-ui"
 
 export function useConnectWps() {
   const hasBE = liuEnv.hasBackend()
@@ -28,9 +31,58 @@ export function useConnectWps() {
     if(!hasBE) return
     checkoutData(cwData, rr)
   }, { immediate: true })
+
+  const onWebhookChanged = useThrottleFn((newV: boolean) => {
+    toChangeWebhook(cwData, newV)
+  }, 400)
   
   return {
     cwData,
+    onWebhookChanged,
+  }
+}
+
+async function toChangeWebhook(
+  cwData: CwData,
+  newVal: boolean,
+) {
+  cwData.webhook_toggle = newVal
+
+  // 1. get member id
+  const wStore = useWorkspaceStore()
+  const memberId = wStore.memberId
+  if(!memberId) return
+
+  // 2. construct query
+  const data2 = {
+    operateType: "set-wps",
+    memberId,
+    enable: newVal ? "Y" : "N",
+  }
+  const url2 = APIs.OPEN_CONNECT
+  const res2 = await liuReq.request<Res_OC_SetWps>(url2, data2)
+
+  console.log("res2: ", res2)
+  
+  // 3. handle result
+  const data3 = res2.data
+  const code3 = res2.code
+  if(code3 !== "0000") {
+    cwData.webhook_toggle = !newVal
+    showErrMsg("other", res2)
+    return
+  }
+  const webhook_password = data3?.webhook_password
+  console.log("webhook_password: ", webhook_password)
+  if(webhook_password) {
+    cwData.webhook_password = webhook_password
+  }
+
+  if(newVal && cwData.webhook_url) {
+    cui.showSnackBar({ text_key: "common.opened" })
+  }
+  else if(!newVal) {
+    cui.showSnackBar({ text_key: "common.closed" })
   }
 }
 

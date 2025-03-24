@@ -70,7 +70,10 @@
     "scan_with_wx": "Please scan with WeChat",
     "more": "More",
     "learn_more": "Learn more",
-    "save": "Save"
+    "save": "Save",
+    "opened": "Turned on",
+    "saved": "Saved",
+    "closed": "Turned off"
   },
   "editor": {
     "when": "When",

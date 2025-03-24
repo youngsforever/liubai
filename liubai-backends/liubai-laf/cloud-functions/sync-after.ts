@@ -211,9 +211,7 @@ export class BackupToOthers {
     }
     const webhook_url = d_url.data
     if(!webhook_url) {
-      console.warn("no webhook_url in pushToWPS")
-      this._callReporter("no webhook_url in pushToWPS", enc_webhook_url)
-      return "fail"
+      return "no_need"
     }
 
     // 1.2 decrypt enc_webhook_password

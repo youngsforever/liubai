@@ -70,7 +70,10 @@
     "scan_with_wx": "請用微信掃描",
     "more": "更多",
     "learn_more": "了解更多",
-    "save": "保存"
+    "save": "保存",
+    "opened": "已開啟",
+    "saved": "已保存",
+    "closed": "已關閉"
   },
   "editor": {
     "when": "什麼時候",
