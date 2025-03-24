@@ -378,6 +378,11 @@ export interface WorkspaceWps {
   enc_webhook_password?: CryptoCipherAndIV
 }
 
+export interface WorkspaceDingTalk {
+  enable?: BaseIsOn
+  enc_webhook_url?: CryptoCipherAndIV
+}
+
 /** The config of Member */
 export interface MemberConfig {
   searchKeywords?: string[]
@@ -1383,6 +1388,7 @@ export interface Table_Workspace extends BaseTable {
 
   // third party config
   wps?: WorkspaceWps
+  dingtalk?: WorkspaceDingTalk
 }
 
 /** Member 表 */

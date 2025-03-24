@@ -11,6 +11,7 @@ import {
   type Table_Workspace,
   type WorkspaceWps,
   type RunningStatus,
+  WorkspaceDingTalk,
 } from '@/common-types'
 import { 
   AiToolUtil,
@@ -185,10 +186,42 @@ export class BackupToOthers {
     }
 
     // 2.2 dingtalk
+    if(space.dingtalk) {
+      this.pushToDingTalk(space.dingtalk)
+    }
 
 
     // 2.3 feishu
     
+  }
+
+  private async pushToDingTalk(
+    cfg: WorkspaceDingTalk,
+  ) {
+    if(cfg.enable !== "Y") return "no_need"
+    const { enc_webhook_url } = cfg
+    if(!enc_webhook_url) return "no_need"
+
+    // 1. Let's decrypt
+    // 1.1 decrypt enc_webhook_url
+    const d_url = decryptCloudData<string>(enc_webhook_url)
+    if(!d_url.pass) {
+      console.warn("enc_webhook_url decrypt failed in pushToWPS: ", d_url.err)
+      this._callReporter("decrypt failed in pushToWPS", d_url.err)
+      return "fail"
+    }
+    const webhook_url = d_url.data
+    if(!webhook_url) {
+      return "no_need"
+    }
+
+    // 2. fetch
+    const payload = valTool.copyObject(this._basicData)
+    const res2 = await liuReq(webhook_url, payload)
+    console.log("push to dingtalk: ", res2)
+
+
+
   }
 
   private async pushToWPS(

@@ -19,6 +19,9 @@ import { useThrottleFn } from "~/hooks/useVueUse"
 import { showErrMsg } from "~/pages/level1/tools/show-msg"
 import cui from "~/components/custom-ui"
 import liuApi from "~/utils/liu-api"
+import time from "~/utils/basic/time"
+
+let lastSetStamp = 0
 
 export function useConnectWps() {
   const hasBE = liuEnv.hasBackend()
@@ -113,6 +116,7 @@ async function toSave(
     enable: "Y",
     plz_enc_webhook_url: webhook_url
   }
+  lastSetStamp = time.getTime()
   cwData.isSaving = true
   const res3 = await liuReq.request<Res_OC_SetWps>(url3, q3)
   cwData.isSaving = false
@@ -149,6 +153,7 @@ async function toChangeWebhook(
     memberId,
     enable: newVal ? "Y" : "N",
   }
+  lastSetStamp = time.getTime()
   const url2 = APIs.OPEN_CONNECT
   const res2 = await liuReq.request<Res_OC_SetWps>(url2, data2)
   
@@ -214,6 +219,7 @@ async function checkoutData(
 
   // 5. handle some required data
   if(code3 !== "0000" || !data3) return
+  if(time.isWithinMillis(lastSetStamp, 1000)) return
   cwData.webhook_toggle = Boolean(data3.enable === "Y")
   cwData.webhook_password = data3.webhook_password
 
