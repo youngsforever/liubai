@@ -594,6 +594,7 @@
     "wps_backup_desc": "开通后，你的留白记事能备份到金山文档上",
     "wps_webhook_url": "回调地址",
     "wps_webhook_password": "密码",
+    "wps_webhook_err": "这似乎不是 wps 的回调地址。请输入 https://www.kdocs.cn/... 开头的链接。",
     "dingtalk": "钉钉",
     "dingtalk_desc": "在工作时，偷偷使用留白记事",
     "feishu": "飞书",

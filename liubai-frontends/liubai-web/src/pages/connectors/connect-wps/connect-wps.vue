@@ -9,6 +9,7 @@ const {
   onWebhookChanged,
   onWebhookUrlInput,
   onTapCopyWebhookPassword,
+  onTapSave,
 } = useConnectWps()
 
 </script>
@@ -65,7 +66,7 @@ const {
           <div class="cw-icon-btn">
             <svg-icon name="copy"
               class="cw-icon-btn-icon"
-              color="var(--main-code)"
+              color="var(--main-normal)"
             ></svg-icon>
           </div>
         </div>
@@ -82,6 +83,8 @@ const {
             size="mini" 
             class="cw-save-btn"
             :disabled="!cwData.canSave"
+            :is-loading="cwData.isSaving"
+            @click="onTapSave"
           >
             <span>{{ t('common.save') }}</span>
           </custom-btn>

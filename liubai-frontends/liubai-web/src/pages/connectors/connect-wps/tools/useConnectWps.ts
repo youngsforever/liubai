@@ -1,5 +1,6 @@
 import { reactive, watch } from "vue"
 import type { CwData } from "./types"
+import { WpsHandler } from "./wps-handler"
 import liuEnv from "~/utils/liu-env"
 import { 
   type RouteAndLiuRouter, 
@@ -27,12 +28,14 @@ export function useConnectWps() {
     pageState: hasBE ? pageStates.LOADING : pageStates.NEED_BACKEND,
     webhook_toggle: false,
     canSave: false,
+    isSaving: false,
     original_webhook_url: "",
   })
 
-  const { awakeNum } = useAwakeNum()
+  const { awakeNum, syncNum } = useAwakeNum()
   watch(awakeNum, (newV) => {
     if(newV < 1) return
+    if(syncNum.value < 1) return
     if(!hasBE) return
     checkoutData(cwData, rr)
   }, { immediate: true })
@@ -64,7 +67,63 @@ export function useConnectWps() {
     onWebhookChanged,
     onWebhookUrlInput,
     onTapCopyWebhookPassword,
+    onTapSave: () => toSave(cwData),
   }
+}
+
+async function toSave(
+  cwData: CwData,
+) {
+  if(!cwData.canSave) return
+  if(cwData.isSaving) return
+
+  // 1. get member id
+  const wStore = useWorkspaceStore()
+  const memberId = wStore.memberId
+  if(!memberId) return
+
+  // 2. check out webhook
+  const tmp_url = cwData.webhook_url ?? ""
+  const webhook_url = tmp_url.trim()
+  if(webhook_url) {
+    const res1 = WpsHandler.isWpsWebhookUrl(webhook_url)
+    if(!res1) {
+      cwData.canSave = false
+      cui.showModal({
+        title: "🤔",
+        content_key: "connect.wps_webhook_err",
+        isTitleEqualToEmoji: true,
+        showCancel: false,
+      })
+      return
+    }
+  }
+
+  // 3. construct query
+  const url3 = APIs.OPEN_CONNECT
+  const q3 = {
+    operateType: "set-wps",
+    memberId,
+    enable: "Y",
+    plz_enc_webhook_url: webhook_url
+  }
+  cwData.isSaving = true
+  const res3 = await liuReq.request<Res_OC_SetWps>(url3, q3)
+  cwData.isSaving = false
+  
+  // 4. handle result
+  const code4 = res3.code
+  const data4 = res3.data
+  if(code4 !== "0000") {
+    showErrMsg("other", res3)
+    return
+  }
+  if(data4?.webhook_password) {
+    cwData.webhook_password = data4.webhook_password
+  }
+  cwData.original_webhook_url = webhook_url
+  cwData.canSave = false
+  cui.showSnackBar({ text_key: "common.saved" })
 }
 
 async function toChangeWebhook(
@@ -150,7 +209,11 @@ async function checkoutData(
   // 5. handle some required data
   if(code3 !== "0000" || !data3) return
   cwData.webhook_toggle = Boolean(data3.enable === "Y")
-  cwData.webhook_url = data3.webhook_url
   cwData.webhook_password = data3.webhook_password
-  cwData.original_webhook_url = data3.webhook_url ?? ""
+
+  const new_url = data3.webhook_url ?? ""
+  if(new_url !== cwData.original_webhook_url) {
+    cwData.webhook_url = data3.webhook_url
+    cwData.original_webhook_url = data3.webhook_url ?? ""
+  }
 }

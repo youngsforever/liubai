@@ -594,6 +594,7 @@
     "wps_backup_desc": "After turning on, your cards on Liubai can be backed up to WPS Docs",
     "wps_webhook_url": "Callback Url",
     "wps_webhook_password": "Password",
+    "wps_webhook_err": "It might not be a url from WPS. Input a link like https://www.kdocs.cn/xxxxxx please.",
     "dingtalk": "DingTalk",
     "dingtalk_desc": "Using Liubai quietly on DingTalk",
     "feishu": "Feishu",

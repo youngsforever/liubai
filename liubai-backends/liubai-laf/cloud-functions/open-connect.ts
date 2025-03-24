@@ -107,7 +107,6 @@ async function handle_set_wps(
 
   // 1.1 checking whether webhook_url is from wps
   const webhook_url = newBody.webhook_url
-  console.log("see webhook_url: ", webhook_url)
   if(typeof webhook_url === "string" && webhook_url) {
     const isWpsUrl = WpsHandler.isWpsWebhookUrl(webhook_url)
     if(!isWpsUrl) {
