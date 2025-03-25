@@ -26,7 +26,7 @@
 
 <img src="./assets-vika/vika-2.png" alt="重命名" width="650" />
 
-### 3. api token & datasheetId
+### 3. 只要两个参数
 
 在多维表格最右侧，有个 `API`，点击它；如果找不到，展开 `高级功能` 应该就能看到它。
 
