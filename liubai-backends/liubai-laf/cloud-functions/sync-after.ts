@@ -85,6 +85,10 @@ const aiWorkers: LiuAi.AiWorker[] = [
     "computingProvider": "zhipu",
     "model": "glm-4-flash",
     "character": "zhipu",
+  },{
+    "computingProvider": "stepfun",
+    "model": "step-2-mini",
+    "character": "yuewen",
   }
 ]
 
