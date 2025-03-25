@@ -223,6 +223,6 @@ async function checkoutData(
   const new_url = data3.webhook_url ?? ""
   if(new_url !== cwData.original_webhook_url) {
     cwData.webhook_url = data3.webhook_url
-    cwData.original_webhook_url = data3.webhook_url ?? ""
+    cwData.original_webhook_url = new_url
   }
 }

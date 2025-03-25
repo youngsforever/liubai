@@ -1,12 +1,11 @@
 import { reactive, watch } from "vue"
 import type { CwData } from "./types"
-import { WebhookHandler } from "../../shared/webhook-handler"
 import liuEnv from "~/utils/liu-env"
 import { 
   type RouteAndLiuRouter, 
   useRouteAndLiuRouter,
 } from "~/routes/liu-router"
-import type { Res_OC_GetDingTalk } from "~/requests/req-types"
+import type { Res_OC_GetVika } from "~/requests/req-types"
 import { pageStates } from "~/utils/atom"
 import { useAwakeNum } from "~/hooks/useCommon"
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore"
@@ -16,19 +15,22 @@ import { useThrottleFn } from "~/hooks/useVueUse"
 import { showErrMsg } from "~/pages/level1/tools/show-msg"
 import cui from "~/components/custom-ui"
 import time from "~/utils/basic/time"
+import type { LiuTimeout } from "~/utils/basic/type-tool"
+import valTool from "~/utils/basic/val-tool"
 
-let lastSetStamp = 0
+let lastUserInputStamp = 0
 
-export function useConnectDingTalk() {
+export function useConnectVika() {
   const hasBE = liuEnv.hasBackend()
   const rr = useRouteAndLiuRouter()
 
   const cwData = reactive<CwData>({
     pageState: hasBE ? pageStates.LOADING : pageStates.NEED_BACKEND,
-    webhook_toggle: false,
+    backup_toggle: false,
     canSave: false,
     isSaving: false,
-    original_webhook_url: "",
+    original_api_token: "",
+    original_datasheet_id: "",
   })
 
   const { awakeNum, syncNum } = useAwakeNum()
@@ -39,28 +41,36 @@ export function useConnectDingTalk() {
     checkoutData(cwData, rr)
   }, { immediate: true })
 
-  const onWebhookChanged = useThrottleFn((newV: boolean) => {
-    toChangeWebhook(cwData, newV)
+  const onBackupChanged = useThrottleFn((newV: boolean) => {
+    toChangeBackup(cwData, newV)
   }, 400)
 
-  const onWebhookUrlInput = (e: Event) => {
-    //@ts-ignore
-    const val = e.target.value ?? ""
-    const newUrl = val.trim()
-    const oldUrl = cwData.original_webhook_url ?? ""
-    const isSame = Boolean(newUrl === oldUrl)
-    cwData.canSave = !isSame
+  let lastInputTimeout: LiuTimeout
+  const onBackupInput = (e: Event) => {
+    if(lastInputTimeout) {
+      clearTimeout(lastInputTimeout)
+    }
+    lastUserInputStamp = time.getTime()
+    lastInputTimeout = setTimeout(() => {
+      lastInputTimeout = undefined
+      const oldV1 = cwData.original_api_token
+      const oldV2 = cwData.original_datasheet_id
+      const newV1 = cwData.api_token ?? ""
+      const newV2 = cwData.datasheet_id ?? ""
+      const isDifferent = Boolean(oldV1 !== newV1 || oldV2 !== newV2)
+      cwData.canSave = isDifferent
+    }, 100)
   }
 
   const onTapConfigMethod = () => {
-    const link = "https://docs.liubai.cc/guide/connect/dingtalk"
+    const link = "https://docs.liubai.cc/guide/connect/vika"
     window.open(link, "_blank")
   }
   
   return {
     cwData,
-    onWebhookChanged,
-    onWebhookUrlInput,
+    onBackupChanged,
+    onBackupInput,
     onTapSave: () => toSave(cwData),
     onTapConfigMethod,
   }
@@ -77,16 +87,33 @@ async function toSave(
   const memberId = wStore.memberId
   if(!memberId) return
 
-  // 2. check out webhook
-  const tmp_url = cwData.webhook_url ?? ""
-  const webhook_url = tmp_url.trim()
-  if(webhook_url) {
-    const res1 = WebhookHandler.isDingTalkWebhookUrl(webhook_url)
+  // 2.1 check out api_token
+  const tmp_token = cwData.api_token ?? ""
+  const api_token = tmp_token.trim()
+  if(api_token) {
+    const res1 = api_token.length >= 10
     if(!res1) {
       cwData.canSave = false
       cui.showModal({
         title: "🤔",
-        content_key: "connect.dingtalk_webhook_err",
+        content_key: "connect.vika_apitoken_err",
+        isTitleEqualToEmoji: true,
+        showCancel: false,
+      })
+      return
+    }
+  }
+
+  // 2.2 check out datasheet id
+  const tmp_datasheet_id = cwData.datasheet_id ?? ""
+  const datasheet_id = tmp_datasheet_id.trim()
+  if(datasheet_id) {
+    const res1 = datasheet_id.length >= 10 && datasheet_id.startsWith("dst")
+    if(!res1) {
+      cwData.canSave = false
+      cui.showModal({
+        title: "🤔",
+        content_key: "connect.vika_datasheet_err",
         isTitleEqualToEmoji: true,
         showCancel: false,
       })
@@ -97,12 +124,13 @@ async function toSave(
   // 3. construct query
   const url3 = APIs.OPEN_CONNECT
   const q3 = {
-    operateType: "set-dingtalk",
+    operateType: "set-vika",
     memberId,
     enable: "Y",
-    plz_enc_webhook_url: webhook_url
+    plz_enc_vika_api_token: api_token,
+    plz_enc_vika_datasheet_id: datasheet_id,
   }
-  lastSetStamp = time.getTime()
+  lastUserInputStamp = time.getTime()
   cwData.isSaving = true
   const res3 = await liuReq.request(url3, q3)
   cwData.isSaving = false
@@ -113,16 +141,17 @@ async function toSave(
     showErrMsg("other", res3)
     return
   }
-  cwData.original_webhook_url = webhook_url
+  cwData.original_api_token = api_token
+  cwData.original_datasheet_id = datasheet_id
   cwData.canSave = false
   cui.showSnackBar({ text_key: "common.saved" })
 }
 
-async function toChangeWebhook(
+async function toChangeBackup(
   cwData: CwData,
   newVal: boolean,
 ) {
-  cwData.webhook_toggle = newVal
+  cwData.backup_toggle = newVal
 
   // 1. get member id
   const wStore = useWorkspaceStore()
@@ -131,23 +160,23 @@ async function toChangeWebhook(
 
   // 2. construct query
   const data2 = {
-    operateType: "set-dingtalk",
+    operateType: "set-vika",
     memberId,
     enable: newVal ? "Y" : "N",
   }
-  lastSetStamp = time.getTime()
+  lastUserInputStamp = time.getTime()
   const url2 = APIs.OPEN_CONNECT
   const res2 = await liuReq.request(url2, data2)
   
   // 3. handle result
   const code3 = res2.code
   if(code3 !== "0000") {
-    cwData.webhook_toggle = !newVal
+    cwData.backup_toggle = !newVal
     showErrMsg("other", res2)
     return
   }
 
-  if(newVal && cwData.webhook_url) {
+  if(newVal && cwData.api_token && cwData.datasheet_id) {
     cui.showSnackBar({ text_key: "common.opened" })
   }
   else if(!newVal) {
@@ -168,10 +197,10 @@ async function checkoutData(
   // 2. fetch data
   const url2 = APIs.OPEN_CONNECT
   const w2 = {
-    operateType: "get-dingtalk",
+    operateType: "get-vika",
     memberId,
   }
-  const res2 = await liuReq.request<Res_OC_GetDingTalk>(url2, w2)
+  const res2 = await liuReq.request<Res_OC_GetVika>(url2, w2)
 
   // 3. handle data
   const code3 = res2.code
@@ -193,12 +222,18 @@ async function checkoutData(
 
   // 5. handle some required data
   if(code3 !== "0000" || !data3) return
-  if(time.isWithinMillis(lastSetStamp, 1000)) return
-  cwData.webhook_toggle = Boolean(data3.enable === "Y")
+  if(time.isWithinMillis(lastUserInputStamp, 1000)) return
+  cwData.backup_toggle = Boolean(data3.enable === "Y")
 
-  const new_url = data3.webhook_url ?? ""
-  if(new_url !== cwData.original_webhook_url) {
-    cwData.webhook_url = data3.webhook_url
-    cwData.original_webhook_url = new_url
+  const new_api_token = data3.api_token ?? ""
+  if(new_api_token !== cwData.original_api_token) {
+    cwData.api_token = data3.api_token
+    cwData.original_api_token = new_api_token
+  }
+
+  const new_datasheet_id = data3.datasheet_id ?? ""
+  if(new_datasheet_id !== cwData.original_datasheet_id) {
+    cwData.datasheet_id = data3.datasheet_id
+    cwData.original_datasheet_id = new_datasheet_id
   }
 }

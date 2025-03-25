@@ -27,7 +27,7 @@ import {
   type Res_OC_GetWps,
   type Res_OC_SetWps,
   type Res_OC_GetDingTalk,
-  Res_OC_GetVika,
+  type Res_OC_GetVika,
 } from "@/common-types"
 import { 
   checkAndGetWxGzhAccessToken,
@@ -123,14 +123,14 @@ async function handle_set_vika(
     vika_api_token,
     vika_datasheet_id,
   } = newBody
-  if(typeof vika_api_token === "string") {
+  if(typeof vika_api_token === "string" && vika_api_token) {
     if(vika_api_token.length < 5) {
       return { code: "E4000", errMsg: "vika_api_token is not from vika" }
     }
   }
 
   // 1.2 check out vika_datasheet_id
-  if(typeof vika_datasheet_id === "string") {
+  if(typeof vika_datasheet_id === "string" && vika_datasheet_id) {
     const len_1_2 = vika_datasheet_id.length
     const isDST = vika_datasheet_id.startsWith("dst")
     if(len_1_2 < 5 || !isDST) {

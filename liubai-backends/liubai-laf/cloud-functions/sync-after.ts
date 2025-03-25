@@ -12,7 +12,7 @@ import {
   type WorkspaceWps,
   type RunningStatus,
   type WorkspaceDingTalk,
-  WorkspaceVika,
+  type WorkspaceVika,
 } from '@/common-types'
 import { 
   AiToolUtil,

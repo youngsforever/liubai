@@ -29,6 +29,12 @@ const {
     desc-key="connect.dingtalk_desc" icon-url="/images/third-party/dingtalk.svg"
   ></ConnectItem>
 
+  <!-- vika -->
+  <ConnectItem v-if="_env.C_VIKA" 
+    :prefix="prefix" connector-id="vika" title-key="connect.vika"
+    desc-key="connect.vika_desc" icon-url="/images/third-party/vika.svg"
+  ></ConnectItem>
+
   <!-- TODO: feishu -->
   <ConnectItem v-if="_env.C_FEISHU" 
     :prefix="prefix" connector-id="feishu" title-key="connect.feishu"
