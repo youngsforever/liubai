@@ -63,6 +63,7 @@ export default defineConfig({
           text: "连接",
           items: [
             { text: "WPS", link: "/guide/connect/wps" },
+            { text: "钉钉", link: "/guide/connect/dingtalk" },
           ]
         },
         {
