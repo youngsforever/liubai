@@ -12,6 +12,7 @@ import {
   type WorkspaceWps,
   type RunningStatus,
   type WorkspaceDingTalk,
+  WorkspaceVika,
 } from '@/common-types'
 import { 
   AiToolUtil,
@@ -191,9 +192,83 @@ export class BackupToOthers {
       this.pushToDingTalk(space.dingtalk)
     }
 
-
-    // 2.3 feishu
+    // 2.3 vika
+    if(space.vika) {
+      this.pushToVika(space.vika)
+    }
     
+  }
+
+  private async pushToVika(
+    cfg: WorkspaceVika,
+  ) {
+    if(cfg.enable !== "Y") return "no_need"
+    const { enc_api_token, enc_datasheet_id } = cfg
+    if(!enc_api_token || !enc_datasheet_id) return "no_need"
+
+    // 1. Let's decrypt
+    // 1.1 decrypt enc_api_token
+    const d_token = decryptCloudData<string>(enc_api_token)
+    if(!d_token.pass) {
+      console.warn("enc_api_token decrypt failed in pushToVika: ", d_token.err)
+      this._callReporter("decrypt failed in pushToVika", d_token.err)
+      return "fail"
+    }
+    const api_token = d_token.data
+    if(!api_token) {
+      return "no_need"
+    }
+
+    // 1.2 decrypt enc_datasheet_id
+    const d_datasheet_id = decryptCloudData<string>(enc_datasheet_id)
+    if(!d_datasheet_id.pass) {
+      console.warn("enc_datasheet_id decrypt failed in pushToVika: ", d_datasheet_id.err)
+      this._callReporter("decrypt failed in pushToVika", d_datasheet_id.err)
+      return "fail"
+    }
+    const datasheet_id = d_datasheet_id.data
+    if(!datasheet_id) {
+      return "no_need"
+    }
+
+    // 2. fetch
+    const payload = valTool.copyObject(this._basicData)
+    const body2 = {
+      records: [
+        {
+          "fields": {
+            "卡片唯一值": payload.id,
+            "内文": payload.desc,
+            "可选的标题": payload.title,
+            "接收时间": getNowStamp(),
+            "来源": payload.source,
+          }
+        }
+      ]
+    }
+    const link2 = `https://api.vika.cn/fusion/v1/datasheets/${datasheet_id}/records`
+    const headers = {
+      "Authorization": `Bearer ${api_token}`,
+      "Content-Type": "application/json",
+    }
+    const res2 = await liuReq(link2, body2, { headers })
+    console.log("push to vika: ", res2)
+
+    // 3. handle result
+    const code3 = res2?.code
+    const data3 = res2?.data
+    if(code3 !== "0000" || !data3) {
+      console.warn("fail to fetch vika: ", res2)
+      this._callReporter("fail to fetch vika 1", res2)
+      return "fail"
+    }
+    if(!data3.success) {
+      console.warn("fail to fetch vika: ", data3)
+      this._callReporter("fail to fetch vika 2", data3)
+      return "fail"
+    }
+
+    return "success"
   }
 
   private async pushToDingTalk(
@@ -285,7 +360,6 @@ export class BackupToOthers {
       "Origin": "www.wps.cn",
       "Authorization": `Basic ${b64_basic_auth}`
     }
-    console.log("ready to push to wps: ", payload)
     const res3 = await liuReq(webhook_url, payload, { headers })
     const code3 = res3?.code
     const data3 = res3?.data

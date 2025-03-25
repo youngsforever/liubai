@@ -383,6 +383,12 @@ export interface WorkspaceDingTalk {
   enc_webhook_url?: CryptoCipherAndIV
 }
 
+export interface WorkspaceVika {
+  enable?: BaseIsOn
+  enc_api_token?: CryptoCipherAndIV
+  enc_datasheet_id?: CryptoCipherAndIV
+}
+
 /** The config of Member */
 export interface MemberConfig {
   searchKeywords?: string[]
@@ -1389,6 +1395,7 @@ export interface Table_Workspace extends BaseTable {
   // third party config
   wps?: WorkspaceWps
   dingtalk?: WorkspaceDingTalk
+  vika?: WorkspaceVika
 }
 
 /** Member 表 */
@@ -2545,6 +2552,13 @@ export interface Res_OC_GetDingTalk {
   operateType: "get-dingtalk"
   enable?: BaseIsOn
   plz_enc_webhook_url?: string
+}
+
+export interface Res_OC_GetVika {
+  operateType: "get-vika"
+  enable?: BaseIsOn
+  plz_enc_api_token?: string
+  plz_enc_datasheet_id?: string
 }
 
 

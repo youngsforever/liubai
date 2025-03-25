@@ -27,6 +27,7 @@ import {
   type Res_OC_GetWps,
   type Res_OC_SetWps,
   type Res_OC_GetDingTalk,
+  Res_OC_GetVika,
 } from "@/common-types"
 import { 
   checkAndGetWxGzhAccessToken,
@@ -88,8 +89,161 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "set-dingtalk") {
     res = await handle_set_dingtalk(vRes, body)
   }
+  else if(oT === "get-vika") {
+    res = await handle_get_vika(vRes, body)
+  }
+  else if(oT === "set-vika") {
+    res = await handle_set_vika(vRes, body)
+  }
 
   return res
+}
+
+async function handle_set_vika(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  // 0. decrypt body
+  const res0 = getDecryptedBody(body, vRes)
+  const newBody = res0.newBody
+  if(!newBody || res0.rqReturn) {
+    return res0.rqReturn ?? { code: "E5001" }
+  }
+
+  // 1. check out data
+  const enable = newBody.enable
+  if(enable !== "Y" && enable !== "N") {
+    return { code: "E4000", errMsg: "enable is required" }
+  }
+  const aesKey = getAESKey()
+  if(!aesKey) return { code: "E5001", errMsg: "getAESKey failed in set-dingtalk" }
+
+  // 1.1 check out vika_api_token
+  const { 
+    vika_api_token,
+    vika_datasheet_id,
+  } = newBody
+  if(typeof vika_api_token === "string") {
+    if(vika_api_token.length < 5) {
+      return { code: "E4000", errMsg: "vika_api_token is not from vika" }
+    }
+  }
+
+  // 1.2 check out vika_datasheet_id
+  if(typeof vika_datasheet_id === "string") {
+    const len_1_2 = vika_datasheet_id.length
+    const isDST = vika_datasheet_id.startsWith("dst")
+    if(len_1_2 < 5 || !isDST) {
+      return { code: "E4000", errMsg: "vika_datasheet_id is not valid" }
+    }
+  }
+
+  // 2. get workspace
+  const res2 = await getSharedData1(vRes, newBody)
+  if(!res2.pass) return res2.err
+  const space = res2.data
+
+  // 3. handle dingtalk config
+  const cfg = space.vika ?? {}
+  let updated = false
+
+  // 3.1 for enable
+  if(cfg.enable !== enable) {
+    cfg.enable = enable
+    updated = true
+  }
+
+  // 3.2 for vika_api_token
+  let old_token = ""
+  if(cfg.enc_api_token) {
+    const d3_2 = decryptCloudData<string>(cfg.enc_api_token)
+    if(!d3_2.pass) return d3_2.err
+    old_token = d3_2.data ?? ""
+  }
+  if(typeof vika_api_token === "string") {
+    if(vika_api_token !== old_token) {
+      cfg.enc_api_token = encryptDataWithAES(vika_api_token, aesKey)
+      updated = true
+    }
+  }
+
+  // 3.3 for datasheet_id
+  let old_datasheet = ""
+  if(cfg.enc_datasheet_id) {
+    const d3_3 = decryptCloudData<string>(cfg.enc_datasheet_id)
+    if(!d3_3.pass) return d3_3.err
+    old_datasheet = d3_3.data ?? ""
+  }
+  if(typeof vika_datasheet_id === "string") {
+    if(vika_datasheet_id !== old_datasheet) {
+      cfg.enc_datasheet_id = encryptDataWithAES(vika_datasheet_id, aesKey)
+      updated = true
+    }
+  }
+
+  // 4. get to update
+  if(updated) {
+    const wCol = db.collection("Workspace")
+    await wCol.doc(space._id).update({ vika: cfg })
+  }
+
+  return { code: "0000" }
+}
+
+
+async function handle_get_vika(
+  vRes: VerifyTokenRes_B,
+  body: Record<string, any>,
+) {
+  // 1. checking out memberId
+  const res1 = await getSharedData1(vRes, body)
+  if(!res1.pass) return res1.err
+  const space = res1.data
+
+  // 2. handle return data
+  const returnData: Res_OC_GetVika = {
+    operateType: "get-vika",
+  }
+  const cfg = space.vika
+  if(!cfg) {
+    return {
+      code: "0000",
+      data: returnData,
+    }
+  }
+
+  // 3.1 decrypt enc_api_token
+  if(cfg.enc_api_token) {
+    const d1 = decryptCloudData<string>(cfg.enc_api_token)
+    if(!d1.pass) {
+      console.warn("enc_api_token decrypt failed in handle_get_vika: ", d1.err)
+      return { 
+        code: "E4009", 
+        errMsg: "enc_api_token decryption failed while getting vika",
+      }
+    }
+    returnData.plz_enc_api_token = d1.data
+  }
+
+  // 3.2 decrypt enc_datasheet_id
+  if(cfg.enc_datasheet_id) {
+    const d2 = decryptCloudData<string>(cfg.enc_datasheet_id)
+    if(!d2.pass) {
+      console.warn("enc_datasheet_id decrypt failed in handle_get_vika: ", d2.err)
+      return { 
+        code: "E4009", 
+        errMsg: "enc_datasheet_id decryption failed while getting vika",
+      }
+    }
+    returnData.plz_enc_datasheet_id = d2.data
+  }
+
+  // 3.3 handle enable
+  returnData.enable = cfg.enable
+
+  // 4. encrypt data
+  const res4 = getSharedData2(vRes, returnData)
+  return res4
 }
 
 async function handle_set_dingtalk(

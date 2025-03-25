@@ -284,3 +284,10 @@ export interface Res_OC_GetDingTalk {
   enable?: BaseIsOn
   webhook_url?: string
 }
+
+export interface Res_OC_GetVika {
+  operateType: "get-vika"
+  enable?: BaseIsOn
+  api_token?: string
+  datasheet_id?: string
+}
