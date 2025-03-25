@@ -87,6 +87,12 @@
 
 现在你可以回到 [留白记事](https://my.liubai.cc/) 上记录，同时观察 WPS 的多维表格有没有你的最新记录。
 
+## 进阶
+
+金山文档的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)或[邮件](mailto:hi@liubai.cc)告诉我们，我再把它整理到文档上来。
+
+当然，你也可以直接在 [GitHub](https://github.com/yenche123/liubai/blob/cool/liubai-docs/docs/guide/connect/wps.md) 上编辑本页面，提交 PR 🙌
+
 ## 常见问题
 
 ### 1. 只能备份吗？可不可以双向同步？

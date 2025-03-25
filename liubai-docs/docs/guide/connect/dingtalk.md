@@ -124,6 +124,12 @@
 
 现在，你回到留白记事上做记录，测试一下新的记事是否能备份到钉钉上。
 
+## 进阶
+
+钉钉的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)或[邮件](mailto:hi@liubai.cc)告诉我们，我再把它整理到文档上来。
+
+当然，你也可以直接在 [GitHub](https://github.com/yenche123/liubai/blob/cool/liubai-docs/docs/guide/connect/dingtalk.md) 上编辑本页面，提交 PR 🙌
+
 ## 常见问题
 
 ### 1. 只能备份吗？可不可以双向同步？

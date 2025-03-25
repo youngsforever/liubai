@@ -4,9 +4,10 @@
 
 你可以根据需要：
 
-- 在卡片需要被提醒时，通知到[微信](https://my.liubai.cc/connect/wechat)上；
+- 在卡片需要被提醒时，通知到 [微信](https://my.liubai.cc/connect/wechat) 上；
 - 将你的记录，实时备份到 [WPS](./wps) 上；
-- 将你的记录，实时备份到 [钉钉](./dingtalk) 上。
+- 将你的记录，实时备份到 [钉钉](./dingtalk) 上；
+- 将你的记录，实时备份到 [维格云](./vika) 上。
 
 我们实测过，配置不超过 5 分钟，若有超时者，请随时[与我们联系](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)，我们直接在线帮你解决。
 
