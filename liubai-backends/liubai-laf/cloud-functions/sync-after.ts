@@ -52,6 +52,11 @@ const aiWorkers: LiuAi.AiWorker[] = [
     "character": "hunyuan",
   },
   {
+    "computingProvider": "tencent-hunyuan",
+    "model": "hunyuan-t1-latest",
+    "character": "hunyuan"
+  },
+  {
     "computingProvider": "aliyun-bailian",
     "model": "qwq-32b",
     "character": "tongyi-qwen",
