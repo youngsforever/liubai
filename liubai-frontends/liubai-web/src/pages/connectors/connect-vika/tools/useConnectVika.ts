@@ -11,12 +11,10 @@ import { useAwakeNum } from "~/hooks/useCommon"
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore"
 import APIs from "~/requests/APIs"
 import liuReq from "~/requests/liu-req"
-import { useThrottleFn } from "~/hooks/useVueUse"
+import { useDebounceFn, useThrottleFn } from "~/hooks/useVueUse"
 import { showErrMsg } from "~/pages/level1/tools/show-msg"
 import cui from "~/components/custom-ui"
 import time from "~/utils/basic/time"
-import type { LiuTimeout } from "~/utils/basic/type-tool"
-import valTool from "~/utils/basic/val-tool"
 
 let lastUserInputStamp = 0
 
@@ -45,22 +43,15 @@ export function useConnectVika() {
     toChangeBackup(cwData, newV)
   }, 400)
 
-  let lastInputTimeout: LiuTimeout
-  const onBackupInput = (e: Event) => {
-    if(lastInputTimeout) {
-      clearTimeout(lastInputTimeout)
-    }
+  const onBackupInput = useDebounceFn(() => {
     lastUserInputStamp = time.getTime()
-    lastInputTimeout = setTimeout(() => {
-      lastInputTimeout = undefined
-      const oldV1 = cwData.original_api_token
-      const oldV2 = cwData.original_datasheet_id
-      const newV1 = cwData.api_token ?? ""
-      const newV2 = cwData.datasheet_id ?? ""
-      const isDifferent = Boolean(oldV1 !== newV1 || oldV2 !== newV2)
-      cwData.canSave = isDifferent
-    }, 100)
-  }
+    const oldV1 = cwData.original_api_token
+    const oldV2 = cwData.original_datasheet_id
+    const newV1 = cwData.api_token ?? ""
+    const newV2 = cwData.datasheet_id ?? ""
+    const isDifferent = Boolean(oldV1 !== newV1 || oldV2 !== newV2)
+    cwData.canSave = isDifferent
+  }, 100)
 
   const onTapConfigMethod = () => {
     const link = "https://docs.liubai.cc/guide/connect/vika"
