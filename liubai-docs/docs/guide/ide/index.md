@@ -14,6 +14,10 @@
   <img src="./assets-ide/banner-vscode.jpg" alt="vscode" width="330" style="margin-block-end: 10px; border-radius: 10px;">
 </a>
 
+<a href="./vscodium">
+  <img src="./assets-ide/banner-vscodium.png" alt="vscodium" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+</a>
+
 <a href="./trae">
   <img src="./assets-ide/banner-trae.jpg" alt="trae" width="330" style="margin-block-end: 10px; border-radius: 10px;">
 </a>

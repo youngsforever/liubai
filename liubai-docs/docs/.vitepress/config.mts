@@ -68,6 +68,7 @@ export default defineConfig({
                 { text: "Cursor", link: "/guide/ide/cursor" },
                 { text: "Windsurf", link: "/guide/ide/windsurf" },
                 { text: "VS Code", link: "/guide/ide/vscode" },
+                { text: "VSCodium", link: "/guide/ide/vscodium" },
                 { text: "Trae", link: "/guide/ide/trae" },
                 { text: "github.dev", link: "/guide/ide/github-dev" },
               ]
