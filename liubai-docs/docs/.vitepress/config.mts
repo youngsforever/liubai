@@ -1,4 +1,7 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig, loadEnv } from 'vitepress'
+
+const nodeEnv = process.env.NODE_ENV
+const _env = loadEnv(nodeEnv ?? "", process.cwd())
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -9,6 +12,7 @@ export default defineConfig({
     ['link', { rel: 'icon', href: '/logo_512x512_v2.png' }],
     ['link', { rel: 'apple-touch-icon', href: '/logo_512x512_v2.png' }],
   ],
+
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
 
@@ -135,12 +139,36 @@ export default defineConfig({
       next: '下一页',
     }
   },
+
   lastUpdated: true,
 
   markdown: {
     image: {
       lazyLoading: true,
     }
+  },
+
+
+  transformHead(context) {
+    if(nodeEnv !== "production") return
+
+    const umamiSrc = _env.VITE_UMAMI_SRC
+    const umamiId = _env.VITE_UMAMI_ID
+    if(!umamiSrc || !umamiId) return
+
+    return [
+
+      // for umami
+      [
+        "script",
+        {
+          "defer": "true",
+          "src": umamiSrc,
+          "data-website-id": umamiId
+        }
+      ]
+
+    ]
   },
 
 })
