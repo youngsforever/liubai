@@ -188,10 +188,13 @@ watch(() => scData.state, (newV) => {
   position: relative;
   font-size: var(--mini-font);
   color: var(--primary-color);
-  border-radius: 4px;
-  padding: 4px 12px;
+  border-radius: 20px;
+  padding: 4px 16px;
   overflow: hidden;
   display: inline-flex;
+  font-weight: 200;
+  font-style: italic;
+
 
   &::before {
     content: "";
@@ -200,8 +203,8 @@ watch(() => scData.state, (newV) => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--primary-color);
-    opacity: .16;
+    background: var(--cool-bg);
+    opacity: .24;
   }
 }
 

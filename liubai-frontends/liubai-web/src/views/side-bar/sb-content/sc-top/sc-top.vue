@@ -28,6 +28,7 @@ const {
   onTapMoreMenuItem,
   onTapName,
   onTapAvatar,
+  onTapPremium,
   CONNECTORS,
 } = useScTop(emits)
 
@@ -72,7 +73,7 @@ const searchTip = `${liuUtil.getHelpTip('Mod')} + K`
       :distance="4"
       :aria-label="t('premium.badge_tip')"
     >
-      <div class="liu-no-user-select liu-premium">
+      <div class="liu-no-user-select liu-premium" @click="onTapPremium">
         <span>🥂</span>
         <span class="liu-premium-text">Premium</span>
       </div>

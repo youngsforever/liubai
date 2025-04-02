@@ -130,6 +130,23 @@ const iconColor = `var(--main-normal)`
   <!-- connections + settings + trash -->
   <div class="mc-box">
 
+    <!-- membership -->
+    <NaviLink v-if="CONNECTORS" to="/subscription">
+      <div class="iu-no-user-select liu-hover mc-item">
+        <div class="mci-icon-box">
+          <SvgIcon :color="iconColor" name="membership" class="mci-icon"></SvgIcon>
+        </div>
+        <div class="mci-text">
+          <span>{{ t('setting.membership') }}</span>
+        </div>
+        <div class="mci-footer">
+          <div class="mcif-arrow">
+            <SvgIcon :color="iconColor" name="arrow-right2" class="mcif-arrow-icon"></SvgIcon>
+          </div>
+        </div>
+      </div>
+    </NaviLink>
+
     <!-- connections -->
     <NaviLink v-if="CONNECTORS" :to="prefix + 'connectors'">
       <div class="iu-no-user-select liu-hover mc-item">
