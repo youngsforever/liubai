@@ -47,6 +47,11 @@ export function useScTop(emits: ScTopEmits) {
 
   const { CONNECTORS } = liuEnv.getEnv()
 
+  const onTapPremium = () => {
+    rr.router.switchTab({ name: "subscription" }, rr.route)
+    emits("canclosepopup")
+  }
+
   return {
     prefix,
     myProfile,
@@ -55,6 +60,7 @@ export function useScTop(emits: ScTopEmits) {
     onTapMoreMenuItem,
     onTapName,
     onTapAvatar,
+    onTapPremium,
     CONNECTORS,
   }
 }
