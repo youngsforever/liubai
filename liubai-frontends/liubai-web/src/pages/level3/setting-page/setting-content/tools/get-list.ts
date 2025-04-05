@@ -2,29 +2,12 @@ import { i18n } from "~/locales"
 import type { 
   LanguageItem, 
   ThemeItem,
-  TermsItem,
   FontSizeItem
 } from "./types"
 import { useWindowSize } from "~/hooks/useVueUse"
 import cfg from "~/config"
 
 const t = i18n.global.t
-
-
-// TODO: 添加对应的链接
-export function getTermsList() {
-  const list: TermsItem[] = [
-    {
-      text: t('setting.service_terms'),
-      link: ""
-    },
-    {
-      text: t('setting.privacy_policy'),
-      link: ""
-    }
-  ]
-  return list
-}
 
 export function getThemeList() {
   const { width } = useWindowSize()

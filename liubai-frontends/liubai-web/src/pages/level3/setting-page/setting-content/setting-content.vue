@@ -26,7 +26,6 @@ const {
   onTapTheme,
   onTapLanguage,
   onTapFontSize,
-  onTapTerms,
   onTapLogout,
   onTapDebug,
   onToggleMobileDebug,

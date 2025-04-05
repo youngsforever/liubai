@@ -18,18 +18,11 @@ export interface FontSizeItem {
   iconName: string
 }
 
-export interface TermsItem {
-  text: string
-  link: string
-}
-
 export interface SettingContentData {
   language: LocalLocale
   language_txt: string
   theme: LocalTheme
   fontSize: LocalFontSize
-  openTerms: boolean
-  termsList: TermsItem[]
   hasBackend: boolean
 
   // community
