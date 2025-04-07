@@ -86,7 +86,7 @@ export function useActiveSyncNum() {
   onDeactivated(() => isActivated.value = false)
   onBeforeUnmount(() => isActivated.value = false)
 
-  watch([syncNum, isActivated], (
+  const stop = watch([syncNum, isActivated], (
     [newV1, newV2]
   ) => {
     if(newV1 < 1) return
@@ -96,6 +96,7 @@ export function useActiveSyncNum() {
 
   return {
     activeSyncNum: readonly(activeSyncNum),
+    stop,
   }
 }
 

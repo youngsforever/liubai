@@ -540,7 +540,13 @@
     "alipay": "Alipay",
     "wxpay": "WeChat Pay",
     "go_to_group": "Join VIP Group",
-    "view_benefits": "View Benefits"
+    "view_benefits": "View Benefits",
+    "subscription_prompt_1": "Let me work for you 👷",
+    "subscription_prompt_2": "You're supposed to pay for it due to your usage.",
+    "subscription_prompt_3": "You can join our VIP group to express your need after getting Liubai Premium.",
+    "let_me_see": "Let me see",
+    "let_me_see_2": "View",
+    "still_close": "still close"
   },
   "a2hs": {
     "title": "Add to Home",
