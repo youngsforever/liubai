@@ -443,7 +443,8 @@
     "unbind_tip_1": "確定要解除綁定{name}嗎？該操作可能會造成帳號遺失。",
     "unbind_tip_2": "解除綁定後，當前微信帳號一個月內不得再綁定。確定要解綁嗎？",
     "unbind_2": "確定解綁",
-    "unbind_success": "已解除綁定"
+    "unbind_success": "已解除綁定",
+    "documentation": "幫助中心"
   },
   "export": {
     "markdown": "匯出成 markdown 文件",
@@ -539,7 +540,13 @@
     "alipay": "支付寶",
     "wxpay": "微信支付",
     "go_to_group": "進入 VIP 群組",
-    "view_benefits": "檢視權益"
+    "view_benefits": "檢視權益",
+    "subscription_prompt_1": "讓我為你打工👷",
+    "subscription_prompt_2": "你一直都在用，是不是應該付費支持一下？",
+    "subscription_prompt_3": "我們承諾會一直有免費方案，但你的支持是真的、完全、100% 能讓我為你提供更好的服務。\n購買會員後，可以加入群組直接向我提需求。",
+    "let_me_see": "我看看",
+    "let_me_see_2": "我看看",
+    "still_close": "依然關閉"
   },
   "a2hs": {
     "title": "加入到桌面",

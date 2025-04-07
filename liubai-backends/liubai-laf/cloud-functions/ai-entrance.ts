@@ -94,7 +94,6 @@ const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first
 const charactersTakingARest: AiCharacter[] = [
   "ds-reasoner",
   "deepseek",
-  "kimi",
 ]
 
 /************************** types ************************/

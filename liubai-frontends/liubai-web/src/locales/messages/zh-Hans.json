@@ -443,7 +443,8 @@
     "unbind_tip_1": "确定要解除绑定{name}吗？该操作可能造成帐号遗失。",
     "unbind_tip_2": "解绑后，当前微信一个月内不得再绑定。确定要解绑吗？",
     "unbind_2": "确定解绑",
-    "unbind_success": "解绑成功"
+    "unbind_success": "解绑成功",
+    "documentation": "帮助中心"
   },
   "export": {
     "markdown": "导出成 markdown 文件",
@@ -539,7 +540,13 @@
     "alipay": "支付宝",
     "wxpay": "微信支付",
     "go_to_group": "进入会员群",
-    "view_benefits": "查看权益"
+    "view_benefits": "查看权益",
+    "subscription_prompt_1": "让我为你打工👷",
+    "subscription_prompt_2": "你一直都在用，是不是应该付费支持一下？",
+    "subscription_prompt_3": "我们承诺会一直有免费方案，但你的支持是真的、完全、100% 能让我为你提供更好的服务。\n购买会员后，可以进群直接向我提需求。",
+    "let_me_see": "我看看",
+    "let_me_see_2": "我看看",
+    "still_close": "依然关闭"
   },
   "a2hs": {
     "title": "添加到桌面",

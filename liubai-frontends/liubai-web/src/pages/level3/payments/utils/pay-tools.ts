@@ -335,6 +335,5 @@ export async function storageMySubscription(
     updatedStamp: time.getTime(),
   }
   const res = await db.users.update(userId, u)
-  console.log("storageMySubscription res: ", res)
   wStore.setSubscriptionAfterUpdatingDB(latestSub)
 }

@@ -2,7 +2,7 @@
 import { type Ref, reactive, watch } from "vue"
 import type { SettingContentData } from "./types"
 import cui from "~/components/custom-ui"
-import { getLanguageList, getTermsList } from "./get-list"
+import { getLanguageList } from "./get-list"
 import { deleteLocalData } from "./handle-logout"
 import { whenTapTheme } from "./handle-theme"
 import { whenTapLanguage } from "./handle-lang"
@@ -46,11 +46,10 @@ export function useSettingContent() {
     language_txt: "",
     theme: "system",
     fontSize: onceData.fontSize ?? "L",
-    openTerms: false,
-    termsList: getTermsList(),
     hasBackend,
 
     redLink: thirdLink.RED_FOLLOW_URL,
+    documentationLink: _env.DOCUMENTATION_URL,
     openSourceLink: thirdLink.OPEN_SOURCE_URL,
 
     debugBtn: Boolean(_env.DEBUG_BTN),
@@ -104,7 +103,6 @@ export function useSettingContent() {
     onTapTheme: () => whenTapTheme(data),
     onTapLanguage: () => whenTapLanguage(data),
     onTapFontSize: () => whenTapFontSize(data),
-    onTapTerms: () => data.openTerms = !data.openTerms,
     onTapLogout: () => whenTapLogout(),
     onTapDebug: () => whenTapDebug(data),
     onToggleMobileDebug,

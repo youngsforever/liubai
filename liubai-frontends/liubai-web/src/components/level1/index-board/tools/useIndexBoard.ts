@@ -1,5 +1,5 @@
 import { reactive, watch } from "vue";
-import type { IbData } from "./types";
+import type { IbData, IbDataKey } from "./types";
 import liuApi from "~/utils/liu-api";
 import cui from "~/components/custom-ui";
 import localCache from "~/utils/system/local-cache";
@@ -15,6 +15,8 @@ import { toUpdateSW } from "~/hooks/pwa/useServiceWorker";
 import { useIdle } from "~/hooks/useVueUse";
 import { useShowAddToHomeScreen } from "~/hooks/pwa/useA2HS";
 import type { SimpleFunc } from "~/utils/basic/type-tool";
+import { useActiveSyncNum } from "~/hooks/useCommon";
+import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore";
 
 const SEC_90 = 90 * time.SECONED
 
@@ -29,6 +31,7 @@ export function useIndexBoard() {
   const ibData = reactive<IbData>({
     a2hs: false,
     newVersion: false,
+    subscribePrompt: false,
   })
   const ctx: IbCtx = {
     rr,
@@ -37,10 +40,32 @@ export function useIndexBoard() {
   }
   listenToNewVersion(ctx)
   const { toA2HS } = listenToA2HS(ibData)
+  handleSubscribePrompt(ibData)
 
   const onTapInstall = () => {
     ctx.hasEverTapInstall = true
     toA2HS?.()
+  }
+
+  const onTapViewSubscription = () => {
+    ibData.subscribePrompt = false
+    rr.router.push({ name: "subscription" })
+  }
+
+  const onTapCancelSubscription = async () => {
+    ibData.subscribePrompt = false
+    const { launchNum = 0 } = localCache.getOnceData()
+    if(launchNum % 10 !== 4) return
+    const res1 = await cui.showModal({
+      title: "🍞",
+      content_key: "payment.subscription_prompt_3",
+      confirm_key: "payment.let_me_see_2",
+      cancel_key: "payment.still_close",
+      isTitleEqualToEmoji: true,
+    })
+    if(res1.confirm) {
+      rr.router.push({ name: "subscription" })
+    }
   }
 
   return {
@@ -49,6 +74,8 @@ export function useIndexBoard() {
     onTapCloseA2hsTip: () => toCloseA2HS(ctx, toA2HS),
     onConfirmNewVersion: () => toConfirmNewVersion(ctx),
     onCancelNewVersion: () => toCancelNewVersion(ctx),
+    onTapViewSubscription,
+    onTapCancelSubscription,
   }
 }
 
@@ -148,16 +175,8 @@ function listenToNewVersion(
   const { hasNewVersion } = storeToRefs(gStore)
 
   const _checkIfPrompt = () => {
-    const { a2hs, newVersion } = ctx.ibData
-    if(a2hs) {
-      console.warn("a2hs has already existed")
-      return
-    }
-
-    if(newVersion) {
-      console.warn("newVersion has already existed")
-      return
-    }
+    const res1 = canIShow(ctx.ibData)
+    if(!res1) return
 
     const {
       lastInstallNewVersion,
@@ -213,6 +232,19 @@ function listenToNewVersion(
   })
 }
 
+function canIShow(
+  ibData: IbData,
+) {
+  const keys = Object.keys(ibData) as IbDataKey[]
+  for(let i=0; i< keys.length; i++) {
+    const key = keys[i]
+    if(ibData[key]) {
+      return false
+    }
+  }
+  return true
+}
+
 
 function listenToA2HS(
   ibData: IbData,
@@ -243,9 +275,9 @@ function listenToA2HS(
 
   watch(showButtonForA2HS, (newV) => {
     if(newV) {
-      if(!ibData.newVersion) {
-        ibData.a2hs = true
-      }
+      const res1 = canIShow(ibData)
+      if(!res1) return
+      ibData.a2hs = true
     }
     else {
       ibData.a2hs = false
@@ -253,4 +285,40 @@ function listenToA2HS(
   })
 
   return { toA2HS }
+}
+
+function handleSubscribePrompt(
+  ibData: IbData,
+) {
+
+  const _check = () => {
+    const res1 = canIShow(ibData)
+    if(!res1) return
+
+    const { launchNum = 0 } = localCache.getOnceData()
+    if((launchNum % 5) !== 4) return
+
+    const wStore = useWorkspaceStore()
+    if(wStore.isPremium) return
+
+    ibData.subscribePrompt = true
+  }
+
+  const { 
+    activeSyncNum,
+    stop: stop1,
+  } = useActiveSyncNum()
+
+  const _wait = () => {
+    setTimeout(() => {
+      _check()
+    }, time.SECONED * 3)
+  }
+
+  const stop2 = watch(activeSyncNum, (newV) => {
+    if(newV < 1) return
+    _wait()
+    stop1()
+    stop2()
+  })  
 }

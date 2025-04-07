@@ -1760,6 +1760,31 @@ export interface Table_AiChat extends BaseTable {
 }
 
 
+export interface Table_Coupon extends BaseTable {
+  owner?: string
+  oState: OState
+  fromType: "official" | "user"
+  tags?: string[]
+  emoji?: string
+  brand?: string
+  keywords?: string[]
+  title?: string
+  copybox?: string
+  description?: string
+  images?: Cloud_ImageStore[]
+  gottenNum: number
+  maxNum?: number
+  expireStamp?: number
+}
+
+export interface Table_Action extends BaseTable {
+  userId: string
+  infoType: "get_coupon"
+  couponId?: string
+}
+
+
+
 /*********************** 基于 Table 的扩展类型 ***********************/
 
 export interface LiuUserInfo {

@@ -443,7 +443,8 @@
     "unbind_tip_1": "Are you sure to unlink {name}? This operation may result in the loss of your account.",
     "unbind_tip_2": "You cannot connect this WeChat's account to Liubai one month after unlinking. Are you sure to unlink?",
     "unbind_2": "Yes, Unlink",
-    "unbind_success": "Success to Unlink"
+    "unbind_success": "Success to Unlink",
+    "documentation": "Help Center"
   },
   "export": {
     "markdown": "Export as markdown files",
@@ -539,7 +540,13 @@
     "alipay": "Alipay",
     "wxpay": "WeChat Pay",
     "go_to_group": "Join VIP Group",
-    "view_benefits": "View Benefits"
+    "view_benefits": "View Benefits",
+    "subscription_prompt_1": "Let me work for you 👷",
+    "subscription_prompt_2": "You're supposed to pay for it due to your usage.",
+    "subscription_prompt_3": "You can join our VIP group to express your need after getting Liubai Premium.",
+    "let_me_see": "Let me see",
+    "let_me_see_2": "View",
+    "still_close": "still close"
   },
   "a2hs": {
     "title": "Add to Home",

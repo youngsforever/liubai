@@ -2,6 +2,7 @@
 import { useIndexBoard } from './tools/useIndexBoard';
 import A2hsTip from './a2hs-tip/a2hs-tip.vue';
 import NewVersionTip from "./new-version-tip/new-version-tip.vue"
+import SubscribePrompt from './subscribe-prompt/subscribe-prompt.vue';
 
 const {
   ibData,
@@ -9,6 +10,8 @@ const {
   onTapCloseA2hsTip,
   onConfirmNewVersion,
   onCancelNewVersion,
+  onTapViewSubscription,
+  onTapCancelSubscription,
 } = useIndexBoard()
 
 </script>
@@ -16,8 +19,8 @@ const {
 
   <A2hsTip
     :expand="ibData.a2hs"
-    @tapinstall="onTapInstall"
-    @tapclose="onTapCloseA2hsTip"
+    @confirm="onTapInstall"
+    @cancel="onTapCloseA2hsTip"
   ></A2hsTip>
 
   <NewVersionTip
@@ -25,6 +28,12 @@ const {
     @confirm="onConfirmNewVersion"
     @cancel="onCancelNewVersion"
   ></NewVersionTip>
+
+  <SubscribePrompt
+    :expand="ibData.subscribePrompt"
+    @confirm="onTapViewSubscription"
+    @cancel="onTapCancelSubscription"
+  ></SubscribePrompt>
   
 
 </template>
