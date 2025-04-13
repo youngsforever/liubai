@@ -382,6 +382,27 @@ I will be there with you
 值得注意的是，你在生成用户回复时，不需要携带 <assistant> 标签。
 `.trim()
 
+const system_location = `
+若你能调用关于位置检索的工具，在检索之后，你可以回复如下格式的位置消息:
+
+<assistant>
+{
+  "msgtype": "location",
+  "latitude": "请填 gcj02 格式的纬度，比如 30.257280",
+  "longitude": "请填 gcj02 格式的经度，比如 120.144714",
+  "title": "请填位置标题，比如 玛瑙寺",
+  "address": "请填详细地址，比如 杭州市西湖区西湖街道葛岭路17号"
+}
+</assistant>
+
+其中, address 选填，其他字段必填。
+这样的结构化消息将在前端展示丰富的 UI 方便用户直接打开地图。
+
+请注意，务必在你确信位置有效的情况下，才进行这样的回复。
+
+再次强调，你回复的消息无需包裹 <assistant> 标签。
+`.trim()
+
 const system_settings = `
 在回复人们的消息时，请分辨人们渴望“解决方案” or “情感支持”
 
@@ -440,6 +461,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
@@ -504,6 +528,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -530,6 +557,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -552,6 +582,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
@@ -599,6 +632,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -621,6 +657,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
