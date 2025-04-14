@@ -1223,6 +1223,11 @@ export class WebSearch {
 
 }
 
+/******************** tool for geo / location ************************/
+export class GeoLocation {
+  
+}
+
 /******************** shared tools ************************/
 
 export interface ToolSharedOpt {
@@ -1753,6 +1758,66 @@ export class ToolShared {
     msg += t("add_calendar_7", { agreeLink, editLink })
 
     return msg
+  }
+
+
+  /****************************** about maps ************************/
+  /**
+   * 逆地理编码: 根据经纬度获取地址
+   * https://lbs.amap.com/api/webservice/guide/api/georegeo
+   */
+  async maps_regeo(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  /**
+   * 地理编码: 根据地址获取经纬度
+   * https://lbs.amap.com/api/webservice/guide/api/georegeo
+   */
+  async maps_geo(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  /**
+   * 骑行路径规划
+   * https://lbs.amap.com/api/webservice/guide/api/newroute
+   */
+  async maps_direction_bicycling(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  /**
+   * 驾车路径规划
+   */
+  async maps_direction_driving(
+    funcJson: Record<string, any>,
+  ) {
+    
+  }
+
+  /**
+   * 步行路径规划
+   */
+  async maps_direction_walking(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  /**
+   *  关键词搜
+   *  https://lbs.amap.com/api/webservice/guide/api-advanced/newpoisearch
+   */
+  async maps_text_search(
+    funcJson: Record<string, any>,
+  ) {
+
   }
 
 }

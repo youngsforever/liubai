@@ -211,6 +211,9 @@ declare global {
       /** DingTalk */
       LIU_DINGTALK_REPORTER?: string         // like "https://oapi.dingtalk.com/robot/send?access_token=xxxxxx"
 
+      /** Amap */
+      LIU_AMAP_WEB_KEY?: string              // Web Key of Amap
+
     }
   }
 }

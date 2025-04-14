@@ -2844,6 +2844,43 @@ class ToolHandler {
     return parsingRes
   }
 
+  /****************************** about maps ************************/
+  async maps_regeo(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  async maps_geo(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  async maps_direction_bicycling(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  async maps_direction_driving(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  async maps_direction_walking(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
+  async maps_text_search(
+    funcJson: Record<string, any>,
+  ) {
+
+  }
+
 }
 
 

@@ -1761,6 +1761,10 @@ export interface Table_AiChat extends BaseTable {
   drawPictureModel?: string
   drawPictureData?: Record<string, any>
 
+  // about map geo location
+  mapProvider?: LiuAi.MapProvider
+  mapSearchData?: Record<string, any>
+
   // about human
   userId?: string
   channel?: "wx_gzh"
@@ -3536,6 +3540,7 @@ export namespace LiuAi {
   }
 
   export type SearchProvider = "zhipu" | "serper" | "tavily"
+  export type MapProvider = "amap"
 
   export interface SearchResult {
     markdown: string
@@ -3578,6 +3583,13 @@ export namespace LiuAi {
     textToUser: string
     textToBot: string
     assistantChatId: string
+  }
+
+  export interface MapResult {
+    provider: MapProvider
+    textToUser?: string
+    textToBot: string
+    originalResult: Record<string, any>
   }
 
   export interface RunParam {
