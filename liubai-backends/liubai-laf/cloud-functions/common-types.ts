@@ -1622,6 +1622,8 @@ export interface Table_Subscription extends BaseTable {
   price_NZD?: string        // 比如 "$5.75"
   price_TWD?: string        // 比如 "150"
 
+  original_CNY?: string     // 原价，比如 "¥240"，必须包含货币符号
+
   amount_CNY?: number       // 人民币价格，单位为“分”，当调用 `payment-order` 且为下单订阅单时，必填
                             // 该值可填 0
   renewal_only?: boolean    // 是否仅续费者有效，新用户不适用
@@ -2035,6 +2037,7 @@ export interface Res_SubPlan_Info {
   price: string
   currency: string   // 三位英文 “大写” 字符组成
   symbol: string     // 货币符号，比如 "¥"
+  original_price?: string     // 原价，比如 "¥240"，必须包含货币符号
 }
 
 export interface Res_SubPlan_StripeCheckout {
