@@ -921,7 +921,7 @@ export class AiShared {
     const res1 = valTool.strToObj(text)
     
     // 2. if it's a location
-    if(res1.type === "location") {
+    if(res1.msgtype === "location") {
       const res2 = this._turnIntoMapInfo(res1, user)
       if(!res2) return
       newText = res2
