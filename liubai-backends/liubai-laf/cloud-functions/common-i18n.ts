@@ -395,7 +395,8 @@ export const aiLang: LangAtom = {
     // maps
     "see_map": "{bot}看了一眼地图",
     "parse_latlng": "{bot}解析了经纬度",
-    "parse_address": "{bot}搜索了地址",
+    "search_address": "{bot}搜索了地址",
+    "search_around": "{bot}搜索了周边",
     "route_plan": "{bot}规划了路线",
     "location_msg": "【位置消息】",
     "address_info": "地址: {address}",
@@ -515,7 +516,8 @@ export const aiLang: LangAtom = {
     // maps
     "see_map": "{bot}看了一眼地圖",
     "parse_latlng": "{bot}解析了經緯度",
-    "parse_address": "{bot}搜尋了地址",
+    "search_address": "{bot}搜尋了地址",
+    "search_around": "{bot}搜尋了周邊",
     "route_plan": "{bot}規劃了路線",
     "location_msg": "【位置訊息】",
     "address_info": "地址: {address}",
@@ -635,7 +637,8 @@ export const aiLang: LangAtom = {
     // maps
     "see_map": "{bot} looked at the map",
     "parse_latlng": "{bot} parsed the latitude and longitude",
-    "parse_address": "{bot} searched the address",
+    "search_address": "{bot} searched the address",
+    "search_around": "{bot} searched the area",
     "route_plan": "{bot} planned the route",
     "location_msg": "[Location Message]",
     "address_info": "Address: {address}",

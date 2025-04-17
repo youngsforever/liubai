@@ -2021,6 +2021,13 @@ export class ToolShared {
     const geo = new GeoLocation()
     const res1 = await geo.maps_text_search(funcJson)
     if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("search_address", { bot })
+    res1.data.textToUser = textToUser
+    return res1
   }
 
   async maps_around_search(funcJson: Record<string, any>) {
@@ -2029,6 +2036,12 @@ export class ToolShared {
     const res1 = await geo.maps_around_search(funcJson)
     if(!res1.pass) return res1
 
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("search_around", { bot })
+    res1.data.textToUser = textToUser
+    return res1
   }
 
 }

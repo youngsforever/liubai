@@ -981,6 +981,28 @@ class BaseBot {
         )
         this._addAiLogsForMap(aiLogs, mapsRes)
       }
+      else if(funcName === "maps_text_search") {
+        const mapsRes = await toolHandler.maps_text_search(funcJson)
+        if(!mapsRes) continue
+        await this._continueAfterMaps(
+          postParam,
+          tool_calls,
+          mapsRes,
+          tool_call_id,
+        )
+        this._addAiLogsForMap(aiLogs, mapsRes)
+      }
+      else if(funcName === "maps_around_search") {
+        const mapsRes = await toolHandler.maps_around_search(funcJson)
+        if(!mapsRes) continue
+        await this._continueAfterMaps(
+          postParam,
+          tool_calls,
+          mapsRes,
+          tool_call_id,
+        )
+        this._addAiLogsForMap(aiLogs, mapsRes)
+      }
       else if(funcName === "draw_picture") {
         const drawRes = await toolHandler.draw_picture(funcJson)
         if(!drawRes) continue
@@ -2831,8 +2853,7 @@ class ToolHandler {
   async maps_regeo(
     funcJson: Record<string, any>,
   ) {
-    const toolShared = this._toolShared
-    const res1 = await toolShared.maps_regeo(funcJson)
+    const res1 = await this._toolShared.maps_regeo(funcJson)
     const res2 = await this._after_maps(funcJson, "maps_regeo", res1)
     return res2
   }
@@ -2840,8 +2861,7 @@ class ToolHandler {
   async maps_geo(
     funcJson: Record<string, any>,
   ) {
-    const toolShared = this._toolShared
-    const res1 = await toolShared.maps_geo(funcJson)
+    const res1 = await this._toolShared.maps_geo(funcJson)
     const res2 = await this._after_maps(funcJson, "maps_geo", res1)
     return res2
   }
@@ -2867,12 +2887,17 @@ class ToolHandler {
   async maps_text_search(
     funcJson: Record<string, any>,
   ) {
-
+    const res1 = await this._toolShared.maps_text_search(funcJson)
+    const res2 = await this._after_maps(funcJson, "maps_text_search", res1)
+    return res2
   }
 
   async maps_around_search(
     funcJson: Record<string, any>,
   ) {
+    const res1 = await this._toolShared.maps_around_search(funcJson)
+    const res2 = await this._after_maps(funcJson, "maps_around_search", res1)
+    return res2
 
   }
 
