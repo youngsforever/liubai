@@ -65,6 +65,7 @@ import {
   BaseLLM,
   LogHelper,
   Translator,
+  TransformContent,
 } from "@/ai-shared"
 import { ai_cfg } from "@/common-config"
 
@@ -1250,7 +1251,7 @@ class BaseBot {
     textToUser = this._clipContent(textToUser, chatCompletion)
 
     // 1.3 handle special message, like location info
-    const textToUser2 = AiShared.convertTextBeforeReplying(textToUser, user)
+    const textToUser2 = TransformContent.convertTextBeforeReplying(textToUser, user)
     if(!textToUser2) {
       console.warn("fail to convert text before replying")
       console.log(textToUser)

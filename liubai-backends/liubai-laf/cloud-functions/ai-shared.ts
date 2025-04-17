@@ -915,86 +915,6 @@ export class AiShared {
     return model
   }
 
-
-  static convertTextBeforeReplying(
-    text: string,
-    user?: Table_User,
-  ) {
-    if(!text.startsWith("{")) return text
-    if(!text.endsWith("}")) return text
-    let newText = text
-
-    // 1. structure text to location
-    const res1 = valTool.strToObj(text)
-    
-    // 2. if it's a location
-    if(res1.msgtype === "location") {
-      const res2 = this._turnIntoMapInfo(res1, user)
-      if(!res2) return
-      newText = res2
-    }
-    
-    return newText
-  }
-
-  private static _turnIntoMapInfo(
-    obj: Record<string, any>,
-    user?: Table_User,
-  ) {
-    const { latitude, longitude, title, address } = obj
-
-    // 1. check out params
-    const res1 = ValueTransform.str2Num(latitude)
-    const res2 = ValueTransform.str2Num(longitude)
-    if(!res1.pass || !res2.pass) return
-    if(!title || typeof title !== "string") return
-
-    // 2. init msg
-    const { t: t1 } = useI18n(aiLang, { user })
-    const { t: t2 } = useI18n(commonLang, { user })
-    let msg = t1("location_msg") + "\n\n"
-
-    // 2.1 add title
-    msg += (title + "\n")
-
-    // 2.2 add address
-    let hasAddress = Boolean(address && typeof address === "string" && address !== title)
-    if(hasAddress) {
-      msg += (address + "\n")
-    }
-    msg += "\n"
-
-    // 2.3 add amap link
-    const amapUrl = new URL("https://uri.amap.com/marker")
-    const amapSp = amapUrl.searchParams
-    amapSp.set("position", `${longitude},${latitude}`)
-    amapSp.set("name", title)
-    amapSp.set("src", t2("app_name"))
-    amapSp.set("callnative", "1")
-    const amapLink = amapUrl.toString()
-    msg += `<a href="${amapLink}">${t1('open_via_amap')}</a>\n`
-
-    // 2.4 add baidu link
-    const baiduUrl = new URL("http://api.map.baidu.com/marker")
-    const baiduSp = baiduUrl.searchParams
-    baiduSp.set("location", `${latitude},${longitude}`)
-    baiduSp.set("title", title)
-    if(hasAddress) {
-      baiduSp.set("content", address)
-    }
-    else {
-      baiduSp.set("content", t2("from_us"))
-    }
-    baiduSp.set("src", "webapp.ptsd.liubai")
-    baiduSp.set("output", "html")
-    baiduSp.set("coord_type", "gcj02")
-    const baiduLink = baiduUrl.toString()
-    msg += `<a href="${baiduLink}">${t1('open_via_baidu')}</a>`
-
-    return msg
-  }
-
-
 }
 
 export class TellUser {
@@ -2396,6 +2316,116 @@ export class TransformContent {
     const createdStr = LiuDateUtil.displayTime(v.createdStamp, locale, user?.timezone)
     msg += `  <created>${createdStr}</created>\n`
     msg = `<${v.contentId}>\n${msg}</${v.contentId}>`
+    return msg
+  }
+
+
+  static convertTextBeforeReplying(
+    text: string,
+    user?: Table_User,
+  ) {
+    // 1. try to structure text first
+    const txt1 = this.structureText(text, user)
+    if(txt1 !== text) return txt1
+
+    /**
+     *  2. extract text like:
+     *  {
+     *    "msgtype": "location",
+     *    "latitude": "30.168669",
+     *    "longitude": "120.134827",
+     *    "title": "浙江省杭州市滨江区浦沿街道滨文路868号",
+     *    "address": "浙江省杭州市滨江区浦沿街道滨文路868号"
+     *  }
+     * 
+     * 这个位置位于浙江省杭州市滨江区的浦沿街道......
+     */
+    const idx2_1 = text.indexOf("{")
+    const idx2_2 = text.indexOf("}")
+    if(idx2_1 < 0 || idx2_2 < 1) return text
+    if(idx2_1 > idx2_2) return text
+    const str2 = text.substring(idx2_1, idx2_2 + 1)
+    const txt2 = this.structureText(str2, user)
+    
+    return txt2
+  }
+
+  static structureText(
+    text: string,
+    user?: Table_User,
+  ) {
+    if(!text.startsWith("{")) return text
+    if(!text.endsWith("}")) return text
+    let newText = text
+
+    // 1. structure text to location
+    const res1 = valTool.strToObj(text)
+    
+    // 2. if it's a location
+    if(res1.msgtype === "location") {
+      const res2 = this._turnIntoMapInfo(res1, user)
+      if(!res2) return
+      newText = res2
+    }
+    
+    return newText
+  }
+
+
+  private static _turnIntoMapInfo(
+    obj: Record<string, any>,
+    user?: Table_User,
+  ) {
+    const { latitude, longitude, title, address } = obj
+
+    // 1. check out params
+    const res1 = ValueTransform.str2Num(latitude)
+    const res2 = ValueTransform.str2Num(longitude)
+    if(!res1.pass || !res2.pass) return
+    if(!title || typeof title !== "string") return
+
+    // 2. init msg
+    const { t: t1 } = useI18n(aiLang, { user })
+    const { t: t2 } = useI18n(commonLang, { user })
+    let msg = t1("location_msg") + "\n\n"
+
+    // 2.1 add title
+    msg += (title + "\n")
+
+    // 2.2 add address
+    let hasAddress = Boolean(address && typeof address === "string" && address !== title)
+    if(hasAddress) {
+      msg += (address + "\n")
+    }
+    msg += "\n"
+
+    // 2.3 add amap link
+    const amapUrl = new URL("https://uri.amap.com/marker")
+    const amapSp = amapUrl.searchParams
+    amapSp.set("position", `${longitude},${latitude}`)
+    amapSp.set("name", title)
+    amapSp.set("src", t2("app_name"))
+    amapSp.set("callnative", "1")
+    const amapLink = amapUrl.toString()
+    msg += `<a href="${amapLink}">${t1('open_via_amap')}</a>\n`
+
+    // 2.4 add baidu link
+    const baiduUrl = new URL("http://api.map.baidu.com/marker")
+    const baiduSp = baiduUrl.searchParams
+    baiduSp.set("location", `${latitude},${longitude}`)
+    baiduSp.set("title", title)
+    if(hasAddress) {
+      baiduSp.set("content", address)
+    }
+    else {
+      baiduSp.set("content", t2("from_us"))
+    }
+    baiduSp.set("src", "webapp.ptsd.liubai")
+    baiduSp.set("output", "html")
+    baiduSp.set("coord_type", "gcj02")
+    const baiduLink = baiduUrl.toString()
+    msg += `<a href="${baiduLink}">${t1('open_via_baidu')}</a>`
+
     return msg
   }
 
