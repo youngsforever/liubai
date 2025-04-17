@@ -13,6 +13,7 @@ import {
   type AiI18nSharedParam, 
   type T_I18N,
   type OaiTool,
+  Ns_MapTool,
 } from "@/common-types"
 import { i18nFill } from "@/common-i18n"
 
@@ -1056,6 +1057,82 @@ export const aiTools: OaiTool[] = [
           }
         },
         required: ["latitude", "longitude"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  /** GEO */
+  {
+    type: "function",
+    function: {
+      name: "maps_geo",
+      description: "地理编码。将详细的结构化地址转换为 gcj02 格式的经纬度。",
+      parameters: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            description: "结构化地址信息，规则遵循：国家、省份、城市、区县、城镇、乡村、街道、门牌号码、屋邨、大厦，如：上海市闵行区东川路800号。",
+          },
+          city: {
+            type: "string",
+            description: "城市，选填。规则遵循：指定城市的中文（如杭州）、指定城市的中文全拼（hangzhou），不支持县级市。当指定城市查询内容为空时，会进行全国范围内的地址转换检索。",
+          }
+        },
+        required: ["address"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  /** Map Search by keyword */
+  {
+    type: "function",
+    function: {
+      name: "maps_text_search",
+      description: "地点关键词搜索。关键词可以是详细地址，比如：北京市朝阳区望京阜荣街10号；也可以是 POI 名称，例如：首开广场。",
+      parameters: {
+        type: "object",
+        properties: {
+          keywords: {
+            type: "string",
+            description: "地点关键词，表示需要被检索的地点文本信息。限制：不得超过 80 个字符。",
+          },
+          region: {
+            type: "string",
+            description: "搜索区划，可选。仅支持城市名，比如：杭州市。",
+          }
+        },
+        required: ["keywords"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  {
+    type: "function",
+    function: {
+      name: "maps_around_search",
+      description: "周边搜索。可设置圆心和半径，搜索圆形区域内的地点信息，适用于根据经纬度搜索周边。",
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description: "中心点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+          radius: {
+            type: "string",
+            description: "搜索半径，单位为米。限制: 0~50000，默认值为 5000"
+          },
+          sortrule: {
+            type: "string",
+            description: "排序规则，可选。可选值：distance（默认值，按距离排序）weight（按相关度排序）。",
+            enum: Ns_MapTool.amapSortrule,
+          },
+        },
+        required: ["location"],
         additionalProperties: false
       }
     }

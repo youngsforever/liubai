@@ -970,6 +970,17 @@ class BaseBot {
         )
         this._addAiLogsForMap(aiLogs, mapsRes)
       }
+      else if(funcName === "maps_geo") {
+        const mapsRes = await toolHandler.maps_regeo(funcJson)
+        if(!mapsRes) continue
+        await this._continueAfterMaps(
+          postParam,
+          tool_calls,
+          mapsRes,
+          tool_call_id,
+        )
+        this._addAiLogsForMap(aiLogs, mapsRes)
+      }
       else if(funcName === "draw_picture") {
         const drawRes = await toolHandler.draw_picture(funcJson)
         if(!drawRes) continue
@@ -2796,17 +2807,17 @@ class ToolHandler {
   }
 
   /****************************** about maps ************************/
-  async maps_regeo(
+  private async _after_maps(
     funcJson: Record<string, any>,
+    funcName: string,
+    res1: DataPass<LiuAi.MapResult>
   ) {
-    const toolShared = this._toolShared
-    const res1 = await toolShared.maps_regeo(funcJson)
     if(!res1.pass) return
 
     const mapSearchData = res1.data.originalResult
     const mapProvider = res1.data.provider
     const data2: Partial<LiuAi.HelperAssistantMsgParam> = {
-      funcName: "maps_regeo",
+      funcName,
       funcJson,
       mapProvider,
       mapSearchData,
@@ -2816,10 +2827,23 @@ class ToolHandler {
     return res1.data
   }
 
+
+  async maps_regeo(
+    funcJson: Record<string, any>,
+  ) {
+    const toolShared = this._toolShared
+    const res1 = await toolShared.maps_regeo(funcJson)
+    const res2 = await this._after_maps(funcJson, "maps_regeo", res1)
+    return res2
+  }
+
   async maps_geo(
     funcJson: Record<string, any>,
   ) {
-
+    const toolShared = this._toolShared
+    const res1 = await toolShared.maps_geo(funcJson)
+    const res2 = await this._after_maps(funcJson, "maps_geo", res1)
+    return res2
   }
 
   async maps_direction_bicycling(

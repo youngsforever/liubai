@@ -3849,3 +3849,21 @@ export namespace Ns_FFmpeg {
     mp3Path: string
   }
 }
+
+
+export namespace Ns_MapTool {
+
+  export const Sch_MapsGeoParam = vbot.object({
+    address: sch_string_length(3),
+    city: Sch_Opt_Str,
+  })
+
+  export const Sch_MapsSearchParam = vbot.object({
+    keywords: sch_string_length(2),
+    region: Sch_Opt_Str,
+  })
+
+  export const amapSortrule = ["distance", "weight"] as const
+  
+
+}

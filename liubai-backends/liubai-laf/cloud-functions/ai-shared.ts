@@ -38,6 +38,7 @@ import {
   type OaiStreamChoiceDelta,
   type OaiChatCompletionChunk,
   type LiuRqReturn,
+  Ns_MapTool,
 } from "@/common-types"
 import { WxGzhSender } from "@/service-send"
 import { 
@@ -1259,6 +1260,28 @@ class GeoLocation {
     }
   }
 
+  private _afterFetchMaps(
+    result: LiuRqReturn,
+  ): DataPass<LiuAi.MapResult> {
+    // 4. handle error
+    const err4 = this.postCheck(result)
+    if(err4) return err4
+    const data4 = result.data ?? {}
+
+    // 5. handle return data
+    const data5: LiuAi.MapResult = {
+      provider: "amap",
+      textToBot: valTool.objToStr(data4),
+      originalResult: data4,
+    }
+    console.warn("maps result: ", data4)
+
+    return {
+      pass: true,
+      data: data5,
+    }
+  }
+
   /**
    * 逆地理编码: 根据经纬度获取地址
    * https://lbs.amap.com/api/webservice/guide/api/georegeo
@@ -1288,23 +1311,9 @@ class GeoLocation {
     const link = url.toString()
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    // 4. handle error
-    const err4 = this.postCheck(res3)
-    if(err4) return err4
-    const data4 = res3.data ?? {}
-
-    // 5. handle return data
-    const data5: LiuAi.MapResult = {
-      provider: "amap",
-      textToBot: valTool.objToStr(data4),
-      originalResult: data4,
-    }
-    console.warn("maps_regeo result: ", data4)
-
-    return {
-      pass: true,
-      data: data5,
-    }
+    // 4. handle result
+    const res4 = this._afterFetchMaps(res3)
+    return res4
   }
 
   /**
@@ -1314,7 +1323,29 @@ class GeoLocation {
   async maps_geo(
     funcJson: Record<string, any>,
   ) {
+    const errRes = checker.getErrResult()
+    const err1 = this.preCheck()
+    if(err1) return err1
 
+    const res1 = vbot.safeParse(Ns_MapTool.Sch_MapsGeoParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_geo param: ")
+      console.log(funcJson)
+      console.log(res1.issues)
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res1.issues)
+      return errRes
+    }
+
+    const key = this._amapApiKey
+    const url = new URL("https://restapi.amap.com/v3/geocode/geo")
+    url.searchParams.set("key", key)
+    url.searchParams.set("address", funcJson.address)
+    url.searchParams.set("city", funcJson.city)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
   }
 
   /**
@@ -1352,6 +1383,13 @@ class GeoLocation {
   async maps_text_search(
     funcJson: Record<string, any>,
   ) {
+
+  }
+
+  async maps_around_search(
+    funcJson: Record<string, any>,
+  ) {
+    
 
   }
   
@@ -1899,6 +1937,20 @@ export class ToolShared {
     const bot = this._botName
     const { t } = useI18n(aiLang, { user: this._user })
     const textToUser = t("parse_latlng", { bot })
+    res1.data.textToUser = textToUser
+    return res1
+  }
+
+  async maps_geo(funcJson: Record<string, any>) {
+    // 1. call GeoLocation
+    const geo = new GeoLocation()
+    const res1 = await geo.maps_geo(funcJson)
+    if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("see_map", { bot })
     res1.data.textToUser = textToUser
     return res1
   }
