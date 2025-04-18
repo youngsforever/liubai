@@ -201,7 +201,7 @@ const showScrollbarProperty = middleBridge.canShowScrollbarProperty()
 
 .lv-scrollbar {
   scrollbar-color: var(--scrollbar-thumb) transparent;
-  scrollbar-width: v-bind("isMobile ? 'none' : 'auto'"); 
+  scrollbar-width: v-bind("isMobile || hideScrollbar ? 'none' : 'auto'"); 
 }
 
 
