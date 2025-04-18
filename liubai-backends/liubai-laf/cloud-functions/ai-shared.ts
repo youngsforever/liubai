@@ -56,7 +56,7 @@ import {
   ValueTransform,
 } from "@/common-util"
 import { aiBots, aiI18nShared } from "@/ai-prompt"
-import { useI18n, aiLang, getCurrentLocale, commonLang } from "@/common-i18n"
+import { useI18n, aiLang, getCurrentLocale, commonLang, getAppName } from "@/common-i18n"
 import { WxGzhUploader } from "@/file-utils"
 import { 
   getBasicStampWhileAdding, 
@@ -1342,7 +1342,6 @@ class GeoLocation {
       url.searchParams.set("city", funcJson.city)
     }
     const link = url.toString()
-    console.log("maps_geo link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -2075,8 +2074,15 @@ export class ToolShared {
 
     // 2. add textToUser
     const bot = this._botName
-    const { t } = useI18n(aiLang, { user: this._user })
-    const textToUser = t("parse_latlng", { bot })
+    const { t: t1 } = useI18n(aiLang, { user: this._user })
+    let textToUser = t1("parse_latlng", { bot })
+
+    // 3. add a link to tap
+    const url3 = new URL("https://uri.amap.com/marker")
+    const location = `${funcJson.longitude},${funcJson.latitude}`
+    url3.searchParams.set("location", location)
+    textToUser = this.packageLinkForAmap(url3, textToUser, "0")
+    
     res1.data.textToUser = textToUser
     return res1
   }
@@ -2090,7 +2096,17 @@ export class ToolShared {
     // 2. add textToUser
     const bot = this._botName
     const { t } = useI18n(aiLang, { user: this._user })
-    const textToUser = t("see_map", { bot })
+    let textToUser = t("see_map", { bot })
+
+    // 3. add a link to tap
+    const url3 = new URL("https://uri.amap.com/search")
+    url3.searchParams.set("keyword", funcJson.address)
+    url3.searchParams.set("view", "map")
+    if(funcJson.city) {
+      url3.searchParams.set("city", funcJson.city)
+    }
+    textToUser = this.packageLinkForAmap(url3, textToUser)
+
     res1.data.textToUser = textToUser
     return res1
   }
@@ -2187,19 +2203,27 @@ export class ToolShared {
     let textToUser = t1("route_plan", { bot })
 
     // 5. add a link to tap
-    const { t: t2 } = useI18n(commonLang, { user: this._user })
     const url5 = new URL("https://uri.amap.com/navigation")
     const sp5 = url5.searchParams
     sp5.set("from", origin)
     sp5.set("to", destination)
     sp5.set("mode", this.aMapDirectionToMode[d])
-    sp5.set("src", t2("appName"))
-    sp5.set("callnative", "1")
-    const link5 = url5.toString()
-    textToUser = `<a href="${link5}">${textToUser}</a>`
+    textToUser = this.packageLinkForAmap(url5, textToUser)
 
     res3.data.textToUser = textToUser
     return res3
+  }
+
+  private packageLinkForAmap(
+    url: URL,
+    oldTextToUser: string,
+    callnative = "1",
+  ) {
+    const appName = getAppName({ user: this._user })
+    url.searchParams.set("src", appName)
+    url.searchParams.set("callnative", callnative)
+    const link = url.toString()
+    return `<a href="${link}">${oldTextToUser}</a>`
   }
 
 }
@@ -2703,7 +2727,7 @@ export class TransformContent {
     const amapSp = amapUrl.searchParams
     amapSp.set("position", `${longitude},${latitude}`)
     amapSp.set("name", title)
-    amapSp.set("src", t2("app_name"))
+    amapSp.set("src", t2("appName"))
     amapSp.set("callnative", "1")
     const amapLink = amapUrl.toString()
     msg += `<a href="${amapLink}">${t1('open_via_amap')}</a>\n`
