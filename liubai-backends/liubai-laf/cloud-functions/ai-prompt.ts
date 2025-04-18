@@ -1109,7 +1109,6 @@ export const aiTools: OaiTool[] = [
       }
     }
   },
-
   {
     type: "function",
     function: {
@@ -1146,32 +1145,27 @@ export const aiTools: OaiTool[] = [
       parameters: {
         type: "object",
         properties: {
-          directionType: {
+          direction: {
             type: "string",
             description: "路径规划类型，必填。合法值: driving (驾车路线); walking (步行路线); bicycling (单车骑行路线); electrobike (电动车骑行路线); transit (公交路线)。",
             enum: Ns_MapTool.directionTypes,
           },
-
           origin: {
             type: "string",
             description: "起点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
           },
-
           destination: {
             type: "string",
             description: "终点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
           },
-
           date: {
             type: "string",
             description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18",
           },
-
           time: {
             type: "string",
             description: "选填，仅公交路线规划时有效，表示出行时间，比如: 9-54",
           },
-
         },
         required: ["direction", "origin", "destination"],
         additionalProperties: false

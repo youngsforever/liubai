@@ -1342,6 +1342,7 @@ class GeoLocation {
       url.searchParams.set("city", funcJson.city)
     }
     const link = url.toString()
+    console.log("maps_geo link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1363,6 +1364,7 @@ class GeoLocation {
     sp.set("origin", funcJson.origin)
     sp.set("destination", funcJson.destination)
     const link = url.toString()
+    console.log("maps_direction_driving link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1384,6 +1386,7 @@ class GeoLocation {
     sp.set("origin", funcJson.origin)
     sp.set("destination", funcJson.destination)
     const link = url.toString()
+    console.log("maps_direction_walking link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1406,6 +1409,7 @@ class GeoLocation {
     sp.set("origin", funcJson.origin)
     sp.set("destination", funcJson.destination)
     const link = url.toString()
+    console.log("maps_direction_bicycling link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1426,6 +1430,7 @@ class GeoLocation {
     sp.set("origin", funcJson.origin)
     sp.set("destination", funcJson.destination)
     const link = url.toString()
+    console.log("maps_direction_electrobike link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1447,6 +1452,7 @@ class GeoLocation {
     if(funcJson.date) sp.set("date", funcJson.date)
     if(funcJson.time) sp.set("time", funcJson.time)
     const link = url.toString()
+    console.log("maps_direction_transit link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1481,6 +1487,7 @@ class GeoLocation {
       url.searchParams.set("city_limit", "true")
     }
     const link = url.toString()
+    console.log("maps_text_search link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1519,6 +1526,7 @@ class GeoLocation {
       sp.set("sortrule", funcJson.sortrule)
     }
     const link = url.toString()
+    console.log("maps_around_search link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -2115,6 +2123,14 @@ export class ToolShared {
     return res1
   }
 
+  private aMapDirectionToMode: Record<Ns_MapTool.DirectionType, string> = {
+    "driving": "car",
+    "walking": "walk",
+    "bicycling": "ride",
+    "electrobike": "ride",
+    "transit": "bus",
+  }
+
   async maps_direction(
     funcJson: Record<string, any>,
   ): Promise<DataPass<LiuAi.MapResult>> {
@@ -2139,7 +2155,7 @@ export class ToolShared {
     }
 
     // 3. decide to go
-    const d = funcJson.directionType as Ns_MapTool.DirectionType
+    const d = funcJson.direction as Ns_MapTool.DirectionType
     let res3: DataPass<LiuAi.MapResult> | undefined
     const geo = new GeoLocation()
     if(d === "driving") {
@@ -2160,15 +2176,28 @@ export class ToolShared {
     if(!res3) {
       return { 
         pass: false, 
-        err: { code: "E4000", errMsg: "directionType is not legal" },
+        err: { code: "E4000", errMsg: "direction is not legal" },
       }
     }
     if(!res3.pass) return res3
 
     // 4. add textToUser
     const bot = this._botName
-    const { t } = useI18n(aiLang, { user: this._user })
-    const textToUser = t("route_plan", { bot })
+    const { t: t1 } = useI18n(aiLang, { user: this._user })
+    let textToUser = t1("route_plan", { bot })
+
+    // 5. add a link to tap
+    const { t: t2 } = useI18n(commonLang, { user: this._user })
+    const url5 = new URL("https://uri.amap.com/navigation")
+    const sp5 = url5.searchParams
+    sp5.set("from", origin)
+    sp5.set("to", destination)
+    sp5.set("mode", this.aMapDirectionToMode[d])
+    sp5.set("src", t2("appName"))
+    sp5.set("callnative", "1")
+    const link5 = url5.toString()
+    textToUser = `<a href="${link5}">${textToUser}</a>`
+
     res3.data.textToUser = textToUser
     return res3
   }

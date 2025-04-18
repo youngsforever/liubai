@@ -3882,7 +3882,7 @@ export namespace Ns_MapTool {
   export type DirectionType = (typeof directionTypes)[number]
 
   export const Sch_DirectionParam = vbot.object({
-    directionType: vbot.picklist(directionTypes),
+    direction: vbot.picklist(directionTypes),
     origin: sch_string_length(3),
     destination: sch_string_length(3),
     date: Sch_Opt_Str,
