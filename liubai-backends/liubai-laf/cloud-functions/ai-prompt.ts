@@ -1129,10 +1129,51 @@ export const aiTools: OaiTool[] = [
           sortrule: {
             type: "string",
             description: "排序规则，可选。可选值：distance（默认值，按距离排序）weight（按相关度排序）。",
-            enum: Ns_MapTool.amapSortrule,
+            enum: Ns_MapTool.amapSortrules,
           },
         },
         required: ["location"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  {
+    type: "function",
+    function: {
+      name: "maps_direction",
+      description: "路径规划，共分成驾车路线、步行路线、单车骑行路线、电动车骑行路线和公交路线规划 5 种。",
+      parameters: {
+        type: "object",
+        properties: {
+          directionType: {
+            type: "string",
+            description: "路径规划类型，必填。合法值: driving (驾车路线); walking (步行路线); bicycling (单车骑行路线); electrobike (电动车骑行路线); transit (公交路线)。",
+            enum: Ns_MapTool.directionTypes,
+          },
+
+          origin: {
+            type: "string",
+            description: "起点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+
+          destination: {
+            type: "string",
+            description: "终点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+
+          date: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18",
+          },
+
+          time: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示出行时间，比如: 9-54",
+          },
+
+        },
+        required: ["direction", "origin", "destination"],
         additionalProperties: false
       }
     }

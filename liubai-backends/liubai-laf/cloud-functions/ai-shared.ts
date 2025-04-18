@@ -1349,18 +1349,6 @@ class GeoLocation {
   }
 
   /**
-   * 骑行路径规划
-   * https://lbs.amap.com/api/webservice/guide/api/newroute
-   */
-  async maps_direction_bicycling(
-    funcJson: Record<string, any>,
-  ) {
-    const err1 = this.preCheck()
-    if(err1) return err1
-
-  }
-
-  /**
    * 驾车路径规划
    */
   async maps_direction_driving(
@@ -1368,7 +1356,17 @@ class GeoLocation {
   ) {
     const err1 = this.preCheck()
     if(err1) return err1
-    
+
+    const url = new URL("https://restapi.amap.com/v5/direction/driving")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
   }
 
   /**
@@ -1380,6 +1378,79 @@ class GeoLocation {
     const err1 = this.preCheck()
     if(err1) return err1
 
+    const url = new URL("https://restapi.amap.com/v5/direction/walking")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
+  }
+
+  /**
+   * 单车骑行路径规划
+   * https://lbs.amap.com/api/webservice/guide/api/newroute
+   */
+  async maps_direction_bicycling(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/bicycling")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
+  }
+
+
+  /** 电动车骑行路径规划 */
+  async maps_direction_electrobike(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/electrobike")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
+  }
+
+  /** 公交路径规划 */
+  async maps_direction_transit(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/transit/integrated")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    if(funcJson.date) sp.set("date", funcJson.date)
+    if(funcJson.time) sp.set("time", funcJson.time)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
   }
 
   /**
@@ -2042,6 +2113,64 @@ export class ToolShared {
     const textToUser = t("search_around", { bot })
     res1.data.textToUser = textToUser
     return res1
+  }
+
+  async maps_direction(
+    funcJson: Record<string, any>,
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    // 1. check out params
+    const res1 = vbot.safeParse(Ns_MapTool.Sch_DirectionParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_direction param:")
+      console.log(funcJson)
+      const errMsg = checker.getErrMsgFromIssues(res1.issues)
+      const errRes = checker.getErrResult(errMsg)
+      return errRes
+    }
+
+    // 2. check out origin and destination
+    const { origin, destination } = funcJson
+    const origin2 = ValueTransform.splitInto2Num(origin)
+    const destination2 = ValueTransform.splitInto2Num(destination)
+    if(!origin2 || !destination2) {
+      console.warn("cannot parse origin or destination")
+      const errRes = checker.getErrResult("fail to parse origin or destination")
+      return errRes
+    }
+
+    // 3. decide to go
+    const d = funcJson.directionType as Ns_MapTool.DirectionType
+    let res3: DataPass<LiuAi.MapResult> | undefined
+    const geo = new GeoLocation()
+    if(d === "driving") {
+      res3 = await geo.maps_direction_driving(funcJson)
+    }
+    else if(d === "walking") {
+      res3 = await geo.maps_direction_walking(funcJson)
+    }
+    else if(d === "bicycling") {
+      res3 = await geo.maps_direction_bicycling(funcJson)
+    }
+    else if(d === "electrobike") {
+      res3 = await geo.maps_direction_electrobike(funcJson)
+    }
+    else if(d === "transit") {
+      res3 = await geo.maps_direction_transit(funcJson)
+    }
+    if(!res3) {
+      return { 
+        pass: false, 
+        err: { code: "E4000", errMsg: "directionType is not legal" },
+      }
+    }
+    if(!res3.pass) return res3
+
+    // 4. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("route_plan", { bot })
+    res3.data.textToUser = textToUser
+    return res3
   }
 
 }

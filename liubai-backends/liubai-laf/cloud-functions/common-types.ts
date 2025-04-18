@@ -3863,12 +3863,31 @@ export namespace Ns_MapTool {
     region: Sch_Opt_Str,
   })
 
-  export const amapSortrule = ["distance", "weight"] as const
+  export const amapSortrules = ["distance", "weight"] as const
   
   export const Sch_AroundSearchParam = vbot.object({
     location: sch_string_length(3),
     radius: Sch_Opt_Str,
-    sortrule: vbot.optional(vbot.picklist(amapSortrule)),
+    sortrule: vbot.optional(vbot.picklist(amapSortrules)),
   })
+
+  export const directionTypes = [
+    "driving",
+    "walking",
+    "bicycling",
+    "electrobike",
+    "transit",
+  ] as const
+
+  export type DirectionType = (typeof directionTypes)[number]
+
+  export const Sch_DirectionParam = vbot.object({
+    directionType: vbot.picklist(directionTypes),
+    origin: sch_string_length(3),
+    destination: sch_string_length(3),
+    date: Sch_Opt_Str,
+    time: Sch_Opt_Str,
+  })
+  
 
 }

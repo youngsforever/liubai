@@ -1003,6 +1003,17 @@ class BaseBot {
         )
         this._addAiLogsForMap(aiLogs, mapsRes)
       }
+      else if(funcName === "maps_direction") {
+        const mapsRes = await toolHandler.maps_direction(funcJson)
+        if(!mapsRes) continue
+        await this._continueAfterMaps(
+          postParam,
+          tool_calls,
+          mapsRes,
+          tool_call_id,
+        )
+        this._addAiLogsForMap(aiLogs, mapsRes)
+      }
       else if(funcName === "draw_picture") {
         const drawRes = await toolHandler.draw_picture(funcJson)
         if(!drawRes) continue
@@ -2866,24 +2877,6 @@ class ToolHandler {
     return res2
   }
 
-  async maps_direction_bicycling(
-    funcJson: Record<string, any>,
-  ) {
-
-  }
-
-  async maps_direction_driving(
-    funcJson: Record<string, any>,
-  ) {
-
-  }
-
-  async maps_direction_walking(
-    funcJson: Record<string, any>,
-  ) {
-
-  }
-
   async maps_text_search(
     funcJson: Record<string, any>,
   ) {
@@ -2898,7 +2891,14 @@ class ToolHandler {
     const res1 = await this._toolShared.maps_around_search(funcJson)
     const res2 = await this._after_maps(funcJson, "maps_around_search", res1)
     return res2
+  }
 
+  async maps_direction(
+    funcJson: Record<string, any>,
+  ) {
+    const res1 = await this._toolShared.maps_direction(funcJson)
+    const res2 = await this._after_maps(funcJson, "maps_direction", res1)
+    return res2
   }
 
 }
