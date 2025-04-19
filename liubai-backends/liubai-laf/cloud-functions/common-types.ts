@@ -751,6 +751,7 @@ export type OaiChoice = OpenAI.Chat.ChatCompletion.Choice
 export type OaiStreamCompletion = Stream<OaiChatCompletionChunk>
 export type OaiStreamChoiceDelta = OpenAI.Chat.ChatCompletionChunk.Choice.Delta & {
   reasoning_content?: string
+  reasoning?: string  // for stepfun
 }
 
 export interface DsReasonerMessage {

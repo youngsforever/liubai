@@ -208,7 +208,7 @@ export const aiBots: AiBot[] = [
     model: "step-2-mini",
     abilities: ["chat"],
     alias: ["阶跃星辰", "stepfun", "阶跃"],
-    maxWindowTokenK: 8,
+    maxWindowTokenK: 32,
     priority: 10,
   },
   {
@@ -273,7 +273,7 @@ export const aiBots: AiBot[] = [
     name: "跃问",
     character: "yuewen",
     provider: "stepfun",
-    model: "step-1o-vision-32k",
+    model: "step-1o-turbo-vision",
     abilities: ["chat", "image_to_text"],
     alias: ["阶跃星辰", "stepfun", "阶跃"],
     maxWindowTokenK: 32,

@@ -76,6 +76,8 @@ type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
 export class BaseLLM {
   protected _client: OpenAI | undefined
   protected _baseUrl: string | undefined
+  private _isStepfun = false
+
   constructor(
     apiKey?: string, 
     baseURL?: string,
@@ -88,6 +90,10 @@ export class BaseLLM {
     catch(err) {
       console.warn("BaseLLM constructor gets client error: ")
       console.log(err)
+    }
+
+    if(baseURL && baseURL.includes("api.stepfun.com")) {
+      this._isStepfun = true
     }
   }
 
@@ -189,6 +195,9 @@ export class BaseLLM {
           // console.log("delta.content: ", delta.content)
           answerContent += delta.content
         }
+        else if(_this._isStepfun && delta.reasoning) {
+          reasoningContent += delta.reasoning
+        }
 
         // handle finish_reason
         const reason = aChoice.finish_reason
@@ -255,6 +264,22 @@ export class BaseLLM {
     return result
   }
 
+  private _processChatCompletion(
+    chatCompletion: any,
+  ) {
+    if(!chatCompletion) return
+    if(!this._isStepfun) return
+
+    // 1. turn reasoning into reasoning_content for step-r1-v-mini
+    const theChoice = chatCompletion?.choices?.[0]
+    if(!theChoice) return
+    const message = theChoice?.message as any
+    if(!message) return
+    if(typeof message.reasoning === "string" && !message.reasoning_content) {
+      message.reasoning_content = message.reasoning
+      delete message.reasoning
+    }
+  }
 
   private async _chat(
     params: OaiCreateParam,
@@ -271,6 +296,8 @@ export class BaseLLM {
       const t1 = getNowStamp()
       const chatCompletion = await client.chat.completions.create(copiedParams)
       const t2 = getNowStamp()
+
+      _this._processChatCompletion(chatCompletion)
 
       _this._tryTimes = 0
       _this._log(chatCompletion as any, t2 - t1, opt)

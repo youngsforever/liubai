@@ -96,7 +96,6 @@ const aiWorkers: LiuAi.AiWorker[] = [
     "model": "glm-z1-airx",
     "character": "zhipu",
   },
-
   {
     "computingProvider": "zhipu",
     "model": "glm-z1-air",
@@ -111,7 +110,7 @@ const aiWorkers: LiuAi.AiWorker[] = [
     "computingProvider": "stepfun",
     "model": "step-2-mini",
     "character": "yuewen",
-  }
+  },
 ]
 
 export async function main(ctx: FunctionContext) {
@@ -896,7 +895,7 @@ class AiCluster {
       res2 = xml
     }
     catch(err) {
-      console.warn("AiCluster xml2js.Parser parse error: ", err)
+      console.warn("AiCluster xml2js.Parser parse error: ", content)
       return
     }
 
