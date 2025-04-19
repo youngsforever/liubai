@@ -3713,6 +3713,8 @@ export namespace LiuAi {
 
   export type ToolName = "add_note" | "add_todo" | "add_calendar" 
     | "web_search" | "parse_link" | "draw_picture" | "get_schedule" | "get_cards"
+    | "maps_regeo" | "maps_geo" | "maps_text_search" | "maps_around_search"
+    | "maps_direction"
 
   export type Sys2Preference = "midnight" | "other"
 

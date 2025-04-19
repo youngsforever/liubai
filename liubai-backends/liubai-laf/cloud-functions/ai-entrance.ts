@@ -1670,11 +1670,15 @@ class BotDsReasoner extends BaseBot {
       tools,
       temperature: 0.6,  // reference: https://github.com/deepseek-ai/DeepSeek-R1/pull/399/files
     }
+    console.warn("ds reasoner chatParam:", chatParam)
     let chatCompletion = await this.chat(chatParam, bot)
+    console.warn("ds reasoner chatCompletion:", chatCompletion)
 
     // 5.2 try again if needed
     if(!chatCompletion) {
+      console.warn("try again !!!")
       const res5_2 = await this.tryAgain(aiParam, chatParam)
+      console.warn("try again res5_2:", res5_2)
       if(res5_2) {
         chatCompletion = res5_2.newChatCompletion
         bot = res5_2.newBot

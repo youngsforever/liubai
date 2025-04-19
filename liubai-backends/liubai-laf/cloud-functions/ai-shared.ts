@@ -2804,4 +2804,18 @@ export class LogHelper {
     }
   }
 
+  static printLastChars(
+    text: string,
+    lastNum = 1000,
+  ) {
+    const tLength = text.length
+    if(tLength <= lastNum) {
+      console.log(text)
+      return
+    }
+    const startIdx = tLength - lastNum
+    const printMsg = "......" + text.substring(startIdx)
+    console.log(printMsg)
+  }
+
 }
