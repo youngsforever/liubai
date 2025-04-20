@@ -1909,6 +1909,7 @@ class BotTencentHunyuan extends BaseBot {
       prompts.push({ role: "user", content: "Continue / 继续" })
     }
     PromptsChecker.interleaveUserAssistant(prompts)
+    PromptsChecker.processForHunyuan(prompts)
 
     // 4. calculate maxTokens
     const maxToken = AiHelper.getMaxToken(totalToken, chats[0], bot)
@@ -3047,6 +3048,28 @@ class PromptsChecker {
       if(role === "user") return
       prompts.splice(i, 1)
       i--
+    }
+  }
+
+
+  /** 混元的模型: tool这个角色后，只能
+   * 1. 跟 assistant 
+   * 2. 或者跟 tool 
+   * 3. 或者什么都不接（也就是放在最后一个元素） 
+   */
+  static processForHunyuan(prompts: OaiPrompt[]) {
+    for(let i=0; i<prompts.length-1; i++) {
+      const currentOne = prompts[i]
+      const role = currentOne.role
+      if(role !== "tool") continue
+      const nextOne = prompts[i+1]
+      const nextRole = nextOne.role
+      if(nextRole === "assistant" || nextRole === "tool") continue
+      const newAssistant: OaiPrompt = {
+        role: "assistant",
+        content: ai_cfg.i_got_it,
+      }
+      prompts.splice(i+1, 0, newAssistant)
     }
   }
 

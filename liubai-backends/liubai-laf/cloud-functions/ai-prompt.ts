@@ -174,7 +174,7 @@ export const aiBots: AiBot[] = [
     character: "hunyuan",
     provider: "tencent-hunyuan",
     model: "hunyuan-turbos-latest",
-    abilities: ["chat"],
+    abilities: ["chat", "tool_use"],
     alias: ["混元", "混元AI", "腾讯混元", "HY"],
     maxWindowTokenK: 24,
     priority: 10,
