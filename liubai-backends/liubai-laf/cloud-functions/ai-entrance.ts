@@ -1109,19 +1109,24 @@ class BaseBot {
     let prompts = [...messages]
     const maxWindowTokens = bot.maxWindowTokenK * 1000
     let restTokens = maxWindowTokens - usedTokens
-    if(restTokens < 1) return
     const mLength = messages.length
     if(mLength < 2) return
-    if(mLength > 5) {
+
+    // 2. constrain prompts and restTokens
+    if(restTokens < 1) {
+      prompts = PromptsChecker.getLastUserPrompts(prompts)
+      restTokens = maxWindowTokens - AiShared.calculatePromptsToken(prompts)
+    }
+    else if(mLength > 5) {
       const systemPrompt = messages[0]
       const tempPrompts = messages.slice(mLength - 4)
       prompts = [systemPrompt, ...tempPrompts]
     }
 
-    // 2. calculate the new content's token
+    // 3. calculate the new content's token
     // and constrain the restTokens
-    const token2 = AiShared.calculateTextToken(newText)
-    restTokens -= token2
+    const token3 = AiShared.calculateTextToken(newText)
+    restTokens -= token3
     const isReasoning = AiShared.isReasoningBot(bot)
     const thresholdTop = isReasoning ? MIN_REASONING_TOKENS : MAX_WX_TOKEN
     if(restTokens > thresholdTop) {
@@ -1142,7 +1147,7 @@ class BaseBot {
     return { restTokens, prompts }
   }
 
-  private async _contineAfterToolUse(
+  private async _continueAfterToolUse(
     postParam: PostRunParam,
     tool_calls: OaiToolCall[],
     textToBot: string,
@@ -1217,7 +1222,7 @@ class BaseBot {
     readRes: LiuAi.ReadCardsResult,
     tool_call_id: string,
   ) {
-    await this._contineAfterToolUse(
+    await this._continueAfterToolUse(
       postParam,
       tool_calls,
       readRes.textToBot,
@@ -1231,7 +1236,7 @@ class BaseBot {
     searchRes: LiuAi.SearchResult,
     tool_call_id: string,
   ) {
-    await this._contineAfterToolUse(
+    await this._continueAfterToolUse(
       postParam,
       tool_calls,
       searchRes.markdown,
@@ -1245,7 +1250,7 @@ class BaseBot {
     parsingLinkRes: LiuAi.ParseLinkResult,
     tool_call_id: string,
   ) {
-    await this._contineAfterToolUse(
+    await this._continueAfterToolUse(
       postParam,
       tool_calls,
       parsingLinkRes.markdown,
@@ -1259,7 +1264,7 @@ class BaseBot {
     mapRes: LiuAi.MapResult,
     tool_call_id: string,
   ) {
-    await this._contineAfterToolUse(
+    await this._continueAfterToolUse(
       postParam,
       tool_calls,
       mapRes.textToBot,
@@ -3071,6 +3076,18 @@ class PromptsChecker {
       }
       prompts.splice(i+1, 0, newAssistant)
     }
+  }
+
+  /** 返回最后一个 message 为 user 的 prompt 以及再之后的 prompt */
+  static getLastUserPrompts(prompts: OaiPrompt[]) {
+    for(let i=prompts.length-1; i>=0; i--) {
+      const currentOne = prompts[i]
+      const role = currentOne.role
+      if(role === "user") {
+        return prompts.slice(i)
+      }
+    }
+    return prompts
   }
 
 }

@@ -737,6 +737,17 @@ export class AiShared {
     return token
   }
 
+  static calculatePromptsToken(
+    prompts: OaiPrompt[],
+  ) {
+    let token = 0
+    for(let i=0; i< prompts.length; i++) {
+      const v = prompts[i]
+      token += AiShared.calculatePromptToken(v)
+    }
+    return token
+  }
+
   static async addChat(data: Partial_Id<Table_AiChat>) {
     const col = db.collection("AiChat")
     const res1 = await col.add(data)
