@@ -494,7 +494,7 @@ const system_prompt = `
   type: "function",
   function: {
     name: "maps_geo",
-    description: "地理编码。将详细的结构化地址转换为 gcj02 格式的经纬度。",
+    description: "地理编码。获取地点的基础信息（比如: citycode），或者将详细的结构化地址转换为 gcj02 格式的经纬度。",
     parameters: {
       type: "object",
       properties: {
@@ -596,6 +596,14 @@ const system_prompt = `
         destination: {
           type: "string",
           description: "终点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+        },
+        city1: {
+          type: "string",
+          description: "transit (公交路线) 时必填，表示起点所在城市，仅支持 citycode，citycode 可以从 maps_geo 工具中获取",
+        },
+        city2: {
+          type: "string",
+          description: "transit (公交路线) 时必填，表示目的地所在城市，仅支持 citycode，citycode 可以从 maps_geo 工具中获取",
         },
         date: {
           type: "string",

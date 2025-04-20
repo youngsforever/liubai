@@ -3887,6 +3887,18 @@ export namespace Ns_MapTool {
     direction: vbot.picklist(directionTypes),
     origin: sch_string_length(3),
     destination: sch_string_length(3),
+    city: Sch_Opt_Str,
+    cityd: Sch_Opt_Str,
+    date: Sch_Opt_Str,
+    time: Sch_Opt_Str,
+  })
+
+  export const Sch_RouteParam = vbot.object({
+    direction: vbot.picklist(directionTypes),
+    origin: sch_string_length(3),
+    destination: sch_string_length(3),
+    city1: Sch_Opt_Str,
+    city2: Sch_Opt_Str,
     date: Sch_Opt_Str,
     time: Sch_Opt_Str,
   })

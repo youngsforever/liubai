@@ -1067,7 +1067,7 @@ export const aiTools: OaiTool[] = [
     type: "function",
     function: {
       name: "maps_geo",
-      description: "地理编码。将详细的结构化地址转换为 gcj02 格式的经纬度。",
+      description: "地理编码。获取某个地点的基础信息，或者将详细的结构化地址转换为 gcj02 格式的经纬度。",
       parameters: {
         type: "object",
         properties: {
@@ -1152,19 +1152,27 @@ export const aiTools: OaiTool[] = [
           },
           origin: {
             type: "string",
-            description: "起点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+            description: "起点经纬度。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
           },
           destination: {
             type: "string",
-            description: "终点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+            description: "终点经纬度。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+          city: {
+            type: "string",
+            description: "选填，transit (公交路线) 规划时必填，表示起点城市名称，比如：杭州市。",
+          },
+          cityd: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示终点城市名称，比如：杭州市。若同城可不填。",
           },
           date: {
             type: "string",
-            description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18",
+            description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18。在无需设置预计出发时间时，请不要携带此参数。",
           },
           time: {
             type: "string",
-            description: "选填，仅公交路线规划时有效，表示出行时间，比如: 9-54",
+            description: "选填，仅公交路线规划时有效，表示出行时间，比如: 09:54。在无需设置预计出发时间时，请不要携带此参数。",
           },
         },
         required: ["direction", "origin", "destination"],

@@ -1288,6 +1288,7 @@ class GeoLocation {
    */
   async maps_regeo(
     funcJson: Record<string, any>,
+    extensions: "all" | "base",
   ): Promise<DataPass<LiuAi.MapResult>> {
     const err1 = this.preCheck()
     if(err1) return err1
@@ -1306,7 +1307,7 @@ class GeoLocation {
     const url = new URL("https://restapi.amap.com/v3/geocode/regeo")
     url.searchParams.set("key", this._amapApiKey)
     url.searchParams.set("location", location)
-    url.searchParams.set("extensions", "all")
+    url.searchParams.set("extensions", extensions)
     const link = url.toString()
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
@@ -1436,22 +1437,56 @@ class GeoLocation {
     return res4
   }
 
-  /** 公交路径规划 */
+  /** 公交路径规划 v3: https://lbs.amap.com/api/webservice/guide/api/direction#t5 */
   async maps_direction_transit(
     funcJson: Record<string, any>,
   ) {
     const err1 = this.preCheck()
     if(err1) return err1
+    if(!funcJson.city) {
+      const errRes = checker.getErrResult("the param city is required")
+      return errRes
+    }
+
+    const url = new URL("https://restapi.amap.com/v3/direction/transit/integrated")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    sp.set("city", funcJson.city)
+    if(funcJson.cityd) sp.set("cityd", funcJson.cityd)
+    if(funcJson.date) sp.set("date", funcJson.date)
+    if(funcJson.time) sp.set("time", funcJson.time)
+    const link = url.toString()
+    console.log("maps_direction_transit link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = this._afterFetchMaps(res3)
+    return res4
+  }
+
+  /** 公交路径规划 v5: https://lbs.amap.com/api/webservice/guide/api/newroute#t8 */
+  async maps_direction_transit_more(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+    if(!funcJson.city1 || !funcJson.city2) {
+      const errRes = checker.getErrResult("the params city1 and city2 are required")
+      return errRes
+    }
 
     const url = new URL("https://restapi.amap.com/v5/direction/transit/integrated")
     const sp = url.searchParams
     sp.set("key", this._amapApiKey)
     sp.set("origin", funcJson.origin)
     sp.set("destination", funcJson.destination)
+    sp.set("city1", funcJson.city1)
+    sp.set("city2", funcJson.city2)
     if(funcJson.date) sp.set("date", funcJson.date)
     if(funcJson.time) sp.set("time", funcJson.time)
     const link = url.toString()
-    console.log("maps_direction_transit link::: ", link)
+    console.log("maps_direction_transit_more link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     const res4 = this._afterFetchMaps(res3)
@@ -1545,6 +1580,7 @@ export class ToolShared {
 
   private _user: Table_User
   private _botName = ""
+  private _isSystem2 = false
 
   constructor(
     user: Table_User,
@@ -1558,6 +1594,7 @@ export class ToolShared {
     if(opt?.fromSystem2) {
       const { t } = useI18n(aiLang, { user })
       botName = t("system2_r1")
+      this._isSystem2 = true
     }
     this._botName = botName
   }
@@ -2067,9 +2104,12 @@ export class ToolShared {
   }
 
   async maps_regeo(funcJson: Record<string, any>) {
+    // 0. get params
+    const extensions = this._isSystem2 ? "all" : "base"
+
     // 1. call GeoLocation
     const geo = new GeoLocation()
-    const res1 = await geo.maps_regeo(funcJson)
+    const res1 = await geo.maps_regeo(funcJson, extensions)
     if(!res1.pass) return res1
 
     // 2. add textToUser
@@ -2151,7 +2191,8 @@ export class ToolShared {
     funcJson: Record<string, any>,
   ): Promise<DataPass<LiuAi.MapResult>> {
     // 1. check out params
-    const res1 = vbot.safeParse(Ns_MapTool.Sch_DirectionParam, funcJson)
+    const sch1 = this._isSystem2 ? Ns_MapTool.Sch_RouteParam : Ns_MapTool.Sch_DirectionParam
+    const res1 = vbot.safeParse(sch1, funcJson)
     if(!res1.success) {
       console.warn("cannot parse maps_direction param:")
       console.log(funcJson)
@@ -2187,7 +2228,11 @@ export class ToolShared {
       res3 = await geo.maps_direction_electrobike(funcJson)
     }
     else if(d === "transit") {
-      res3 = await geo.maps_direction_transit(funcJson)
+      if(this._isSystem2) {
+        res3 = await geo.maps_direction_transit_more(funcJson)
+      } else {
+        res3 = await geo.maps_direction_transit(funcJson)
+      }
     }
     if(!res3) {
       return { 
