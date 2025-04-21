@@ -129,7 +129,7 @@ const {
 
 .tct-item-container {
   position: relative;
-  padding-inline-start: 14px;
+  padding-inline-start: 10px;
 }
 
 .tct-ai-box {
