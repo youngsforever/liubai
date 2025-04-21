@@ -514,6 +514,8 @@ export async function liuReq<T = any>(
       errMsg2 = errMsg.toLowerCase()
     }
 
+    console.log("errName: ", errName)
+
     if(errName === "TimeoutError") {
       return { code: "F0002" }
     }
@@ -523,6 +525,9 @@ export async function liuReq<T = any>(
     if(errName === "TypeError") {
       if(errMsg2.includes("failed to fetch")) {
         return { code: "B0001" }
+      }
+      if(errMsg2.includes("fetch failed") || errMsg2.includes("ETIMEDOUT")) {
+        return { code: "B0003" }
       }
     }
     return { code: "C0001" }

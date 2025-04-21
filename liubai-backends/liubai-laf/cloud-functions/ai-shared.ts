@@ -40,7 +40,7 @@ import {
   type LiuRqReturn,
   Ns_MapTool,
 } from "@/common-types"
-import { WxGzhSender } from "@/service-send"
+import { LiuReporter, WxGzhSender } from "@/service-send"
 import { 
   checkAndGetWxGzhAccessToken,
   checker,
@@ -1271,25 +1271,57 @@ class GeoLocation {
     }
   }
 
-  private _afterFetchMaps(
+  private async _handleReqError(
     result: LiuRqReturn,
-  ): DataPass<LiuAi.MapResult> {
-    // 4. handle error
-    const err4 = this.postCheck(result)
-    if(err4) return err4
-    const data4 = result.data ?? {}
+    reqLink: string,
+  ) {
+    const errCode = result.code
+    console.warn("err code: ", errCode)
+    if(errCode !== "B0003") return
+    await valTool.waitMilli(2202)
+    const newResult = await liuReq(reqLink, undefined, { method: "GET" })
+    return newResult
+  }
 
-    // 5. handle return data
-    const data5: LiuAi.MapResult = {
-      provider: "amap",
-      textToBot: valTool.objToStr(data4),
-      originalResult: data4,
+  private async _afterFetchMaps(
+    result: LiuRqReturn,
+    reqLink: string,
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    // 1. check if error
+    const err1 = this.postCheck(result)
+    if(err1) {
+      const newResult = await this._handleReqError(result, reqLink)
+      if(!newResult) return err1
+
+      // 2. check if err again
+      const err2 = this.postCheck(newResult)
+      if(err2) return err2
+
+      result = newResult
     }
-    console.warn("maps result: ", data4)
+    const data2 = result.data ?? {}
+
+    // 3. handle return data
+    const data3: LiuAi.MapResult = {
+      provider: "amap",
+      textToBot: valTool.objToStr(data2),
+      originalResult: data2,
+    }
+    console.warn("maps result: ", data2)
+
+    // 4. check more
+    if(data2.status !== "1") {
+      const reporter = new LiuReporter()
+      reporter.sendAny(
+        "Fetching Amap Error", 
+        data2, 
+        `request link: ${reqLink}`
+      )
+    }
 
     return {
       pass: true,
-      data: data5,
+      data: data3,
     }
   }
 
@@ -1323,7 +1355,7 @@ class GeoLocation {
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
     // 4. handle result
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1356,7 +1388,7 @@ class GeoLocation {
     const link = url.toString()
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1378,7 +1410,7 @@ class GeoLocation {
     console.log("maps_direction_driving link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1400,7 +1432,7 @@ class GeoLocation {
     console.log("maps_direction_walking link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1423,7 +1455,7 @@ class GeoLocation {
     console.log("maps_direction_bicycling link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1444,7 +1476,7 @@ class GeoLocation {
     console.log("maps_direction_electrobike link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1472,7 +1504,7 @@ class GeoLocation {
     console.log("maps_direction_transit link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1500,7 +1532,7 @@ class GeoLocation {
     console.log("maps_direction_transit_more link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1535,7 +1567,7 @@ class GeoLocation {
     console.log("maps_text_search link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
 
@@ -1574,7 +1606,7 @@ class GeoLocation {
     console.log("maps_around_search link::: ", link)
     const res3 = await liuReq(link, undefined, { method: "GET" })
 
-    const res4 = this._afterFetchMaps(res3)
+    const res4 = await this._afterFetchMaps(res3, link)
     return res4
   }
   
