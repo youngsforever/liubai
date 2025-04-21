@@ -37,7 +37,7 @@ const { t } = useI18n()
       <!-- icon -->
       <div class="tct-ai-character" :class="{
         'tct-ai-deepseek': aiCharacter === 'deepseek',
-        'tct-ai-circle': aiCharacter === 'kimi' || aiCharacter === 'wanzhi',
+        'tct-ai-circle': aiCharacter === 'wanzhi',
         'tct-ai-ds-reasoner': aiCharacter === 'ds-reasoner',
       }"></div>
 
