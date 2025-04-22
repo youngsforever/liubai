@@ -1,0 +1,15 @@
+<!-- custom-navibar.wxml -->
+
+<view class="cn-container">
+
+  <!-- status bar -->
+  <view class="cn-status-bar"
+    style="height: {{height1}}px"
+  />
+
+  <!-- navigation bar -->
+  <view class="cn-box" style="height: {{height2}}px">
+
+  </view>
+
+</view>

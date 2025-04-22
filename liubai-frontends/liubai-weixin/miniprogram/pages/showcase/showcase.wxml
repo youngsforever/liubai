@@ -1,15 +1,13 @@
 <!-- showcase.wxml -->
-<scroll-view class="liu-scroll-view" 
-  scroll-y 
+
+<scroll-view 
+  scroll-y
+  class="liu-scroll-view"
   type="custom"
   associative-container="pop-gesture"
-  id="showcase-scroll-view"
 >
-  <view class="navi-placeholder"></view>
+  <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
   <button catchtap="onTapBack">返回</button>
-  <view class="sc-renderer">{{renderer}}</view>
-  
-
+  <view class="showcase-text">当前渲染模式: {{renderer}}</view>
 </scroll-view>
-
-<view class="navi-bar"></view>
+<custom-navibar height1="{{height1}}" height2="{{height2}}"></custom-navibar>

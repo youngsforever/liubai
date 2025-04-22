@@ -1,6 +1,18 @@
 {
   "libVersion": "3.8.1",
-  "condition": {},
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/showcase/showcase",
+          "pathName": "pages/showcase/showcase",
+          "query": "",
+          "scene": null,
+          "launchMode": "embedded"
+        }
+      ]
+    }
+  },
   "projectname": "liubai-weixin",
   "setting": {
     "urlCheck": true,

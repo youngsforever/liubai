@@ -16,5 +16,13 @@ export class LiuApi {
     wx.navigateBack(opt)
   }
 
+  static getWindowInfo() {
+    return wx.getWindowInfo()
+  }
+
+  static getMenuButtonBoundingClientRect() {
+    return wx.getMenuButtonBoundingClientRect()
+  }
+
 
 }

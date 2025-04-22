@@ -1,23 +1,21 @@
 // showcase.ts
 
+import { navibarBehavior } from "../../behaviors/navibar-behavior"
+import { rendererBehavior } from "../../behaviors/renderer-behavior"
+import valTool from "../../utils/val-tool"
+
 Component({
 
-  data: {
-    renderer: "webview",
-  },
+  behaviors: [rendererBehavior, navibarBehavior],
+
+  data: {},
 
   lifetimes: {
 
-    attached() {
+    async attached() {
 
-      const nodesRef = this.createSelectorQuery().select("#showcase-scroll-view")
-      nodesRef.boundingClientRect(res => {
-        console.log("boundingClientRect res: ", res)
-      }).exec()
-
-      this.setData({
-        renderer: this.renderer,
-      })
+      await valTool.waitMilli(500)
+      console.log("get renderer: ", this.data.renderer)
       
     }
 

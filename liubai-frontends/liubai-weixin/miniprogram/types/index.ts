@@ -1,0 +1,3 @@
+
+
+export type BoundingClientRectResolver = WechatMiniprogram.BoundingClientRectCallback

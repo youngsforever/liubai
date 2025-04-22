@@ -1,0 +1,18 @@
+/** custom-navibar.wxss */
+
+.cn-container {
+  width: 100%;
+  top: 0;
+  left: 0;
+  position: fixed;
+}
+
+.cn-status-bar {
+  width: 100%;
+  background-color: cadetblue;
+}
+
+.cn-box {
+  width: 100%;
+  background-color: burlywood;
+}

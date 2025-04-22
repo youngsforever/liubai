@@ -251,6 +251,10 @@ const isStringWithVal = (val: any): val is string => {
   return hasValue<string>(val, "string")
 }
 
+const objHasAnyKey = (obj: Record<string, any>) => {
+  return Object.keys(obj).length > 0
+}
+
 export default {
   waitMilli,
   copyObject,
@@ -273,4 +277,5 @@ export default {
   uniqueArray,
   hasValue,
   isStringWithVal,
+  objHasAnyKey,
 }
