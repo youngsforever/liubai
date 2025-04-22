@@ -1,0 +1,9 @@
+<!-- index.wxml -->
+<scroll-view class="liu-scroll-view" scroll-y type="list">
+
+  <view class="liu-container" style="background-color: var(--liu-blue)"></view>
+  <view class="liu-container" style="background-color: var(--liu-red)"></view>
+  <button catchtap="goToShowcase">跳转到 showcase</button>
+  <view class="liu-container" style="background-color: var(--liu-green)"></view>
+
+</scroll-view>

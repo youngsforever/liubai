@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/showcase/showcase"
+  ],
+  "style": "v2",
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#232323"
+  },
+  "darkmode": true,
+  "resizable": true,
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents",
+  "rendererOptions": {
+    "skyline": {
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.1",
+      "sdkVersionEnd": "15.255.255",
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true
+    }
+  },
+  "renderer": "skyline"
+}

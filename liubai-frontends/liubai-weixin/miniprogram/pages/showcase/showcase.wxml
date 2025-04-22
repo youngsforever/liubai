@@ -1,0 +1,14 @@
+<!-- showcase.wxml -->
+<scroll-view class="liu-scroll-view" 
+  scroll-y 
+  type="custom"
+  associative-container="pop-gesture"
+  id="showcase-scroll-view"
+>
+  <view class="navi-placeholder"></view>
+  <button catchtap="onTapBack">返回</button>
+  
+
+</scroll-view>
+
+<view class="navi-bar"></view>
