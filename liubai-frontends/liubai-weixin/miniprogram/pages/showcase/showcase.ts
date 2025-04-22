@@ -2,7 +2,9 @@
 
 Component({
 
-  data: {},
+  data: {
+    renderer: "webview",
+  },
 
   lifetimes: {
 
@@ -12,6 +14,10 @@ Component({
       nodesRef.boundingClientRect(res => {
         console.log("boundingClientRect res: ", res)
       }).exec()
+
+      this.setData({
+        renderer: this.renderer,
+      })
       
     }
 

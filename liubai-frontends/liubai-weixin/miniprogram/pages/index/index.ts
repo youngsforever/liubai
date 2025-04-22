@@ -6,6 +6,15 @@ Component({
 
   lifetimes: {
 
+    attached() {
+
+      const nodesRef = this.createSelectorQuery().select(".liu-scroll-view")
+      nodesRef.boundingClientRect(res => {
+        console.log("boundingClientRect res: ", res)
+      }).exec()
+
+    },
+
   },
 
   methods: {
