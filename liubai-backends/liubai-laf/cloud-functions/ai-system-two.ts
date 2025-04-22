@@ -68,6 +68,8 @@ const enumGetScheduleHoursFromNow = valTool.objToStr(aiToolGetScheduleHoursFromN
 const enumGetScheduleSpecificDates = valTool.objToStr(aiToolGetScheduleSpecificDates)
 const enumGetCardTypes = valTool.objToStr(aiToolGetCardTypes)
 const enumImageSizeTypes = valTool.objToStr(aiImageSizeTypes)
+const enumAmapSortrules = valTool.objToStr(Ns_MapTool.amapSortrules)
+const enumDirectionTypes = valTool.objToStr(Ns_MapTool.directionTypes)
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -563,7 +565,7 @@ const system_prompt = `
         sortrule: {
           type: "string",
           description: "排序规则，可选。可选值：distance（默认值，按距离排序）weight（按相关度排序）。",
-          enum: ${Ns_MapTool.amapSortrules},
+          enum: ${enumAmapSortrules},
         },
       },
       required: ["location"],
@@ -587,7 +589,7 @@ const system_prompt = `
         direction: {
           type: "string",
           description: "路径规划类型，必填。合法值: driving (驾车路线); walking (步行路线); bicycling (单车骑行路线); electrobike (电动车骑行路线); transit (公交路线)。",
-          enum: ${Ns_MapTool.directionTypes},
+          enum: ${enumDirectionTypes},
         },
         origin: {
           type: "string",
