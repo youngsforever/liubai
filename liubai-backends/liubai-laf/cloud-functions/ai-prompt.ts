@@ -13,6 +13,7 @@ import {
   type AiI18nSharedParam, 
   type T_I18N,
   type OaiTool,
+  Ns_MapTool,
 } from "@/common-types"
 import { i18nFill } from "@/common-i18n"
 
@@ -173,7 +174,7 @@ export const aiBots: AiBot[] = [
     character: "hunyuan",
     provider: "tencent-hunyuan",
     model: "hunyuan-turbos-latest",
-    abilities: ["chat"],
+    abilities: ["chat", "tool_use"],
     alias: ["混元", "混元AI", "腾讯混元", "HY"],
     maxWindowTokenK: 24,
     priority: 10,
@@ -208,7 +209,7 @@ export const aiBots: AiBot[] = [
     model: "step-2-mini",
     abilities: ["chat"],
     alias: ["阶跃星辰", "stepfun", "阶跃"],
-    maxWindowTokenK: 8,
+    maxWindowTokenK: 32,
     priority: 10,
   },
   {
@@ -273,7 +274,7 @@ export const aiBots: AiBot[] = [
     name: "跃问",
     character: "yuewen",
     provider: "stepfun",
-    model: "step-1o-vision-32k",
+    model: "step-1o-turbo-vision",
     abilities: ["chat", "image_to_text"],
     alias: ["阶跃星辰", "stepfun", "阶跃"],
     maxWindowTokenK: 32,
@@ -382,6 +383,27 @@ I will be there with you
 值得注意的是，你在生成用户回复时，不需要携带 <assistant> 标签。
 `.trim()
 
+const system_location = `
+若你能调用关于位置检索的工具，在检索之后，你可以回复如下格式的位置消息:
+
+<assistant>
+{
+  "msgtype": "location",
+  "latitude": "请填 gcj02 格式的纬度，比如 30.257280",
+  "longitude": "请填 gcj02 格式的经度，比如 120.144714",
+  "title": "请填位置标题，比如 玛瑙寺",
+  "address": "请填详细地址，比如 杭州市西湖区西湖街道葛岭路17号"
+}
+</assistant>
+
+其中, address 选填，其他字段必填。
+这样的结构化消息将在前端展示丰富的 UI 方便用户直接打开地图。
+
+请注意，务必在你确信位置有效的情况下，才进行这样的回复。
+
+再次强调，你回复的消息无需包裹 <assistant> 标签。
+`.trim()
+
 const system_settings = `
 在回复人们的消息时，请分辨人们渴望“解决方案” or “情感支持”
 
@@ -440,6 +462,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
@@ -504,6 +529,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -530,6 +558,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -552,6 +583,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
@@ -599,6 +633,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【特别格式: 位置消息】
+${system_location}
+
 【你的设定】
 ${system_settings}
 
@@ -621,6 +658,9 @@ ${system_wx_entry}
 
 【问答示例】
 ${system_example}
+
+【特别格式: 位置消息】
+${system_location}
 
 【你的设定】
 ${system_settings}
@@ -991,6 +1031,151 @@ export const aiTools: OaiTool[] = [
           }
         },
         required: ["cardType"],
+        additionalProperties: false
+      }
+    }
+  },
+
+
+  /***************************** Maps **************************/
+  /** Re GEO */
+  {
+    type: "function",
+    function: {
+      name: "maps_regeo",
+      description: "逆地理编码。给定一组经纬度，返回该位置的详细地址，以及附近环境。",
+      parameters: {
+        type: "object",
+        properties: {
+          latitude: {
+            type: "string",
+            description: "纬度，gcj02 格式，比如 30.257280",
+          },
+          longitude: {
+            type: "string",
+            description: "经度，gcj02 格式，比如 120.144714",
+          }
+        },
+        required: ["latitude", "longitude"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  /** GEO */
+  {
+    type: "function",
+    function: {
+      name: "maps_geo",
+      description: "地理编码。获取某个地点的基础信息，或者将详细的结构化地址转换为 gcj02 格式的经纬度。",
+      parameters: {
+        type: "object",
+        properties: {
+          address: {
+            type: "string",
+            description: "结构化地址信息，规则遵循：国家、省份、城市、区县、城镇、乡村、街道、门牌号码、屋邨、大厦，如：上海市闵行区东川路800号。",
+          },
+          city: {
+            type: "string",
+            description: "城市，选填。规则遵循：指定城市的中文（如杭州）、指定城市的中文全拼（hangzhou），不支持县级市。当指定城市查询内容为空时，会进行全国范围内的地址转换检索。",
+          }
+        },
+        required: ["address"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  /** Map Search by keyword */
+  {
+    type: "function",
+    function: {
+      name: "maps_text_search",
+      description: "地点关键词搜索。关键词可以是详细地址，比如：北京市朝阳区望京阜荣街10号；也可以是 POI 名称，例如：首开广场。",
+      parameters: {
+        type: "object",
+        properties: {
+          keywords: {
+            type: "string",
+            description: "地点关键词，表示需要被检索的地点文本信息。限制：不得超过 80 个字符。",
+          },
+          region: {
+            type: "string",
+            description: "搜索区划，可选。仅支持城市名，比如：杭州市。",
+          }
+        },
+        required: ["keywords"],
+        additionalProperties: false
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "maps_around_search",
+      description: "周边搜索。可设置圆心和半径，搜索圆形区域内的地点信息，适用于根据经纬度搜索周边。",
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description: "中心点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+          radius: {
+            type: "string",
+            description: "搜索半径，单位为米。限制: 0~50000，默认值为 5000"
+          },
+          sortrule: {
+            type: "string",
+            description: "排序规则，可选。可选值：distance（默认值，按距离排序）weight（按相关度排序）。",
+            enum: Ns_MapTool.amapSortrules,
+          },
+        },
+        required: ["location"],
+        additionalProperties: false
+      }
+    }
+  },
+
+  {
+    type: "function",
+    function: {
+      name: "maps_direction",
+      description: "路径规划，共分成驾车路线、步行路线、单车骑行路线、电动车骑行路线和公交路线规划 5 种。",
+      parameters: {
+        type: "object",
+        properties: {
+          direction: {
+            type: "string",
+            description: "路径规划类型，必填。合法值: driving (驾车路线); walking (步行路线); bicycling (单车骑行路线); electrobike (电动车骑行路线); transit (公交路线)。",
+            enum: Ns_MapTool.directionTypes,
+          },
+          origin: {
+            type: "string",
+            description: "起点经纬度。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+          destination: {
+            type: "string",
+            description: "终点经纬度。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+          },
+          city: {
+            type: "string",
+            description: "选填，transit (公交路线) 规划时必填，表示起点城市名称，比如：杭州市。",
+          },
+          cityd: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示终点城市名称，比如：杭州市。若同城可不填。",
+          },
+          date: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18。在无需设置预计出发时间时，请不要携带此参数。",
+          },
+          time: {
+            type: "string",
+            description: "选填，仅公交路线规划时有效，表示出行时间，比如: 09:54。在无需设置预计出发时间时，请不要携带此参数。",
+          },
+        },
+        required: ["direction", "origin", "destination"],
         additionalProperties: false
       }
     }

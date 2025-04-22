@@ -681,7 +681,7 @@ export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" 
 // input_audio: user inputs audio and LLM can understand
 // reasoning: Reasoning Models
 
-export type AiMsgType = "text" | "image" | "voice"
+export type AiMsgType = "text" | "image" | "voice" | "location"
 
 export type AiCommandByHuman = "kick" | "add" | "clear_history" 
   | "more_operations" | "continue" | "group_status"
@@ -718,6 +718,7 @@ export interface AiEntry {
   image_url?: string
   audio_url?: string
   audio_base64?: string
+  location?: LiuAi.LocationAtom
 
   // from weixin gzh
   wx_media_id?: string
@@ -751,6 +752,7 @@ export type OaiChoice = OpenAI.Chat.ChatCompletion.Choice
 export type OaiStreamCompletion = Stream<OaiChatCompletionChunk>
 export type OaiStreamChoiceDelta = OpenAI.Chat.ChatCompletionChunk.Choice.Delta & {
   reasoning_content?: string
+  reasoning?: string  // for stepfun
 }
 
 export interface DsReasonerMessage {
@@ -1760,9 +1762,14 @@ export interface Table_AiChat extends BaseTable {
   drawPictureModel?: string
   drawPictureData?: Record<string, any>
 
+  // about map geo location
+  mapProvider?: LiuAi.MapProvider
+  mapSearchData?: Record<string, any>
+
   // about human
   userId?: string
   channel?: "wx_gzh"
+  location?: LiuAi.LocationAtom
 
   // specific data about wx gzh
   wxMediaId?: string
@@ -2786,7 +2793,6 @@ export interface Wx_Gzh_ShortVideo extends Wx_Gzh_Base {
   MsgDataId?: string
 }
 
-// TODO: Location
 export interface Wx_Gzh_Location extends Wx_Gzh_Base {
   MsgType: "location"
   Location_X: string  // 纬度, e.g. "26.953295"
@@ -3535,6 +3541,15 @@ export namespace LiuAi {
   }
 
   export type SearchProvider = "zhipu" | "serper" | "tavily"
+  export type MapProvider = "amap"
+
+  export interface LocationAtom {
+    latitude: string
+    longitude: string
+    scale?: string
+    description?: string
+    format: "gcj02"
+  }
 
   export interface SearchResult {
     markdown: string
@@ -3579,6 +3594,13 @@ export namespace LiuAi {
     assistantChatId: string
   }
 
+  export interface MapResult {
+    provider: MapProvider
+    textToUser?: string
+    textToBot: string
+    originalResult: Record<string, any>
+  }
+
   export interface RunParam {
     entry: AiEntry
     room: Table_AiRoom
@@ -3602,8 +3624,12 @@ export namespace LiuAi {
     toolName: "draw_picture"
     drawResult: LiuAi.PaletteResult
   }
+
+  export interface RunLog_D {
+    toolName: "maps_whatever"
+  }
   
-  export type RunLog = (RunLog_A | RunLog_B | RunLog_C) & {
+  export type RunLog = (RunLog_A | RunLog_B | RunLog_C | RunLog_D) & {
     character: AiCharacter
     textToUser: string
     logStamp: number
@@ -3638,6 +3664,8 @@ export namespace LiuAi {
     drawPictureUrl?: string
     drawPictureModel?: string
     drawPictureData?: Record<string, any>
+    mapProvider?: LiuAi.MapProvider
+    mapSearchData?: Record<string, any>
   }
 
   export interface ApiEndpoint {
@@ -3685,6 +3713,8 @@ export namespace LiuAi {
 
   export type ToolName = "add_note" | "add_todo" | "add_calendar" 
     | "web_search" | "parse_link" | "draw_picture" | "get_schedule" | "get_cards"
+    | "maps_regeo" | "maps_geo" | "maps_text_search" | "maps_around_search"
+    | "maps_direction"
 
   export type Sys2Preference = "midnight" | "other"
 
@@ -3820,4 +3850,58 @@ export namespace Ns_FFmpeg {
   export interface Res_ArmToMp3 {
     mp3Path: string
   }
+}
+
+
+export namespace Ns_MapTool {
+
+  export const Sch_GeoParam = vbot.object({
+    address: sch_string_length(3),
+    city: Sch_Opt_Str,
+  })
+
+  export const Sch_TextSearchParam = vbot.object({
+    keywords: sch_string_length(2),
+    region: Sch_Opt_Str,
+  })
+
+  export const amapSortrules = ["distance", "weight"] as const
+  
+  export const Sch_AroundSearchParam = vbot.object({
+    location: sch_string_length(3),
+    radius: Sch_Opt_Str,
+    sortrule: vbot.optional(vbot.picklist(amapSortrules)),
+  })
+
+  export const directionTypes = [
+    "driving",
+    "walking",
+    "bicycling",
+    "electrobike",
+    "transit",
+  ] as const
+
+  export type DirectionType = (typeof directionTypes)[number]
+
+  export const Sch_DirectionParam = vbot.object({
+    direction: vbot.picklist(directionTypes),
+    origin: sch_string_length(3),
+    destination: sch_string_length(3),
+    city: Sch_Opt_Str,
+    cityd: Sch_Opt_Str,
+    date: Sch_Opt_Str,
+    time: Sch_Opt_Str,
+  })
+
+  export const Sch_RouteParam = vbot.object({
+    direction: vbot.picklist(directionTypes),
+    origin: sch_string_length(3),
+    destination: sch_string_length(3),
+    city1: Sch_Opt_Str,
+    city2: Sch_Opt_Str,
+    date: Sch_Opt_Str,
+    time: Sch_Opt_Str,
+  })
+  
+
 }

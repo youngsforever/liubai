@@ -47,23 +47,22 @@ const onTapClear = (index: number) => {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
+}
 
+.ce-tag-item {
+  padding: 3px 2px 3px 16px;
+  font-size: var(--btn-font);
+  color: var(--liu-quote);
+  background-color: var(--tag-bg);
+  border-radius: 6px;
+  margin-inline-end: 10px;
+  margin-block-end: 10px;
+  display: flex;
+  align-items: center;
+  white-space: pre-wrap;
 
-  .ce-tag-item {
-    padding: 3px 2px 3px 16px;
-    font-size: var(--btn-font);
-    color: var(--liu-quote);
-    background-color: var(--tag-bg);
-    border-radius: 6px;
-    margin-inline-end: 10px;
-    margin-block-end: 10px;
-    display: flex;
-    align-items: center;
-    white-space: pre-wrap;
-
-    .ce-tag-emoji {
-      margin-inline-end: 6px;
-    }
+  .ce-tag-emoji {
+    margin-inline-end: 6px;
   }
 }
 
@@ -94,5 +93,29 @@ const onTapClear = (index: number) => {
     }
   }
 }
+
+@container liu-mc-container (max-width: 500px) {
+  .ce-tag-item {
+    font-size: var(--mini-font);
+  }
+
+  .ce-tag-delete {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .ce-tag-item {
+    font-size: var(--mini-font);
+  }
+
+  .ce-tag-delete {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+
 
 </style>

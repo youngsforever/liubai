@@ -57,9 +57,11 @@ export const tencent_ses_tmpl_cfg = {
 /********************* ai config ****************/
 export const ai_cfg = {
   // 当前会话大于等于该值时，才去设置 needSystem2Stamp
-  minCoversationsToRecordForSystemTwo: 4,
+  minCoversationsToRecordForSystemTwo: 3,
 
   // 当前会话大于等于该值时，“系统二”才去处理
-  minConversationsToTriggerSystemTwo: 6,
+  minConversationsToTriggerSystemTwo: 5,
 
+  // 用在混元模型里，当 tool 角色后，只能跟 assistant 或者 tool 或者什么都不接
+  i_got_it: "知道了",
 }

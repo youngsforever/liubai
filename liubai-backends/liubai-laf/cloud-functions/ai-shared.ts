@@ -37,8 +37,10 @@ import {
   type OaiStreamCompletion,
   type OaiStreamChoiceDelta,
   type OaiChatCompletionChunk,
+  type LiuRqReturn,
+  Ns_MapTool,
 } from "@/common-types"
-import { WxGzhSender } from "@/service-send"
+import { LiuReporter, WxGzhSender } from "@/service-send"
 import { 
   checkAndGetWxGzhAccessToken,
   checker,
@@ -54,7 +56,7 @@ import {
   ValueTransform,
 } from "@/common-util"
 import { aiBots, aiI18nShared } from "@/ai-prompt"
-import { useI18n, aiLang, getCurrentLocale } from "@/common-i18n"
+import { useI18n, aiLang, getCurrentLocale, commonLang, getAppName } from "@/common-i18n"
 import { WxGzhUploader } from "@/file-utils"
 import { 
   getBasicStampWhileAdding, 
@@ -76,6 +78,8 @@ type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
 export class BaseLLM {
   protected _client: OpenAI | undefined
   protected _baseUrl: string | undefined
+  private _isStepfun = false
+
   constructor(
     apiKey?: string, 
     baseURL?: string,
@@ -88,6 +92,10 @@ export class BaseLLM {
     catch(err) {
       console.warn("BaseLLM constructor gets client error: ")
       console.log(err)
+    }
+
+    if(baseURL && baseURL.includes("api.stepfun.com")) {
+      this._isStepfun = true
     }
   }
 
@@ -189,6 +197,9 @@ export class BaseLLM {
           // console.log("delta.content: ", delta.content)
           answerContent += delta.content
         }
+        else if(_this._isStepfun && delta.reasoning) {
+          reasoningContent += delta.reasoning
+        }
 
         // handle finish_reason
         const reason = aChoice.finish_reason
@@ -255,6 +266,22 @@ export class BaseLLM {
     return result
   }
 
+  private _processChatCompletion(
+    chatCompletion: any,
+  ) {
+    if(!chatCompletion) return
+    if(!this._isStepfun) return
+
+    // 1. turn reasoning into reasoning_content for step-r1-v-mini
+    const theChoice = chatCompletion?.choices?.[0]
+    if(!theChoice) return
+    const message = theChoice?.message as any
+    if(!message) return
+    if(typeof message.reasoning === "string" && !message.reasoning_content) {
+      message.reasoning_content = message.reasoning
+      delete message.reasoning
+    }
+  }
 
   private async _chat(
     params: OaiCreateParam,
@@ -271,6 +298,8 @@ export class BaseLLM {
       const t1 = getNowStamp()
       const chatCompletion = await client.chat.completions.create(copiedParams)
       const t2 = getNowStamp()
+
+      _this._processChatCompletion(chatCompletion)
 
       _this._tryTimes = 0
       _this._log(chatCompletion as any, t2 - t1, opt)
@@ -708,6 +737,17 @@ export class AiShared {
     return token
   }
 
+  static calculatePromptsToken(
+    prompts: OaiPrompt[],
+  ) {
+    let token = 0
+    for(let i=0; i< prompts.length; i++) {
+      const v = prompts[i]
+      token += AiShared.calculatePromptToken(v)
+    }
+    return token
+  }
+
   static async addChat(data: Partial_Id<Table_AiChat>) {
     const col = db.collection("AiChat")
     const res1 = await col.add(data)
@@ -815,6 +855,13 @@ export class AiShared {
         }
       }
     }
+    else if(funcName?.startsWith("maps_") && v.mapSearchData) {
+      toolMsg = {
+        role: "tool",
+        content: valTool.objToStr(v.mapSearchData),
+        tool_call_id,
+      }
+    }
 
     return toolMsg
   }
@@ -879,7 +926,6 @@ export class AiShared {
 
     return model
   }
-
 
 }
 
@@ -990,6 +1036,9 @@ export class TellUser {
     if(wx_gzh_openid) {
       if(gzhType === "subscription_account") {
         console.warn("we cannot send the menu to the user due to subscription_account")
+        console.log("prefixMessage: ", prefixMessage)
+        console.log("menuList: ", menuList)
+        console.log("suffixMessage: ", suffixMessage)
         return
       }
 
@@ -1196,6 +1245,373 @@ export class WebSearch {
 
 }
 
+/******************** tool for geo / location ************************/
+class GeoLocation {
+
+  private _amapApiKey: string
+
+  constructor() {
+    const _env = process.env
+    this._amapApiKey = _env.LIU_AMAP_WEB_KEY ?? ""
+  }
+
+  preCheck() {
+    if(!this._amapApiKey) {
+      return checker.getErrResult("amap api key is not set", "E5001")
+    }
+  }
+
+  postCheck(res: LiuRqReturn) {
+    if(res.code !== "0000" || !res.data) {
+      const err = checker.getErrResult(
+        res.errMsg ?? "network error",
+        res.code,
+      )
+      return err
+    }
+  }
+
+  private async _handleReqError(
+    result: LiuRqReturn,
+    reqLink: string,
+  ) {
+    const errCode = result.code
+    console.warn("err code: ", errCode)
+    if(errCode !== "B0003") return
+    await valTool.waitMilli(2202)
+    const newResult = await liuReq(reqLink, undefined, { method: "GET" })
+    return newResult
+  }
+
+  private async _afterFetchMaps(
+    result: LiuRqReturn,
+    reqLink: string,
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    // 1. check if error
+    const err1 = this.postCheck(result)
+    if(err1) {
+      const newResult = await this._handleReqError(result, reqLink)
+      if(!newResult) return err1
+
+      // 2. check if err again
+      const err2 = this.postCheck(newResult)
+      if(err2) return err2
+
+      result = newResult
+    }
+    const data2 = result.data ?? {}
+
+    // 3. handle return data
+    const data3: LiuAi.MapResult = {
+      provider: "amap",
+      textToBot: valTool.objToStr(data2),
+      originalResult: data2,
+    }
+    console.warn("maps result: ", data2)
+
+    // 4. check more
+    if(data2.status !== "1") {
+      const reporter = new LiuReporter()
+      reporter.sendAny(
+        "Fetching Amap Error", 
+        data2, 
+        `request link: ${reqLink}`
+      )
+    }
+
+    return {
+      pass: true,
+      data: data3,
+    }
+  }
+
+  /**
+   * 逆地理编码: 根据经纬度获取地址
+   * https://lbs.amap.com/api/webservice/guide/api/georegeo
+   */
+  async maps_regeo(
+    funcJson: Record<string, any>,
+    extensions: "all" | "base",
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const { latitude, longitude } = funcJson
+    const res2_1 = ValueTransform.str2Num(latitude)
+    const res2_2 = ValueTransform.str2Num(longitude)
+    if(!res2_1.pass || !res2_2.pass) {
+      const err2 = checker.getErrResult(
+        "latitude and longitude are not numbers",
+      )
+      return err2
+    }
+    
+    const location = `${res2_2.data},${res2_1.data}`
+    const url = new URL("https://restapi.amap.com/v3/geocode/regeo")
+    url.searchParams.set("key", this._amapApiKey)
+    url.searchParams.set("location", location)
+    url.searchParams.set("extensions", extensions)
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    // 4. handle result
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /**
+   * 地理编码: 根据地址获取经纬度
+   * https://lbs.amap.com/api/webservice/guide/api/georegeo
+   */
+  async maps_geo(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const res1 = vbot.safeParse(Ns_MapTool.Sch_GeoParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_geo param: ")
+      console.log(funcJson)
+      console.log(res1.issues)
+      const errRes = checker.getErrResult()
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res1.issues)
+      return errRes
+    }
+
+    const url = new URL("https://restapi.amap.com/v3/geocode/geo")
+    url.searchParams.set("key",  this._amapApiKey)
+    url.searchParams.set("address", funcJson.address)
+    if(funcJson.city) {
+      url.searchParams.set("city", funcJson.city)
+    }
+    const link = url.toString()
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /**
+   * 驾车路径规划
+   */
+  async maps_direction_driving(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/driving")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    console.log("maps_direction_driving link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /**
+   * 步行路径规划
+   */
+  async maps_direction_walking(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/walking")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    console.log("maps_direction_walking link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /**
+   * 单车骑行路径规划
+   * https://lbs.amap.com/api/webservice/guide/api/newroute
+   */
+  async maps_direction_bicycling(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/bicycling")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    console.log("maps_direction_bicycling link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+
+  /** 电动车骑行路径规划 */
+  async maps_direction_electrobike(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const url = new URL("https://restapi.amap.com/v5/direction/electrobike")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    const link = url.toString()
+    console.log("maps_direction_electrobike link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /** 公交路径规划 v3: https://lbs.amap.com/api/webservice/guide/api/direction#t5 */
+  async maps_direction_transit(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+    if(!funcJson.city) {
+      const errRes = checker.getErrResult("the param city is required")
+      return errRes
+    }
+
+    const url = new URL("https://restapi.amap.com/v3/direction/transit/integrated")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    sp.set("city", funcJson.city)
+    if(funcJson.cityd) sp.set("cityd", funcJson.cityd)
+    if(funcJson.date) sp.set("date", funcJson.date)
+    if(funcJson.time) sp.set("time", funcJson.time)
+    const link = url.toString()
+    console.log("maps_direction_transit link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /** 公交路径规划 v5: https://lbs.amap.com/api/webservice/guide/api/newroute#t8 */
+  async maps_direction_transit_more(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+    if(!funcJson.city1 || !funcJson.city2) {
+      const errRes = checker.getErrResult("the params city1 and city2 are required")
+      return errRes
+    }
+
+    const url = new URL("https://restapi.amap.com/v5/direction/transit/integrated")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("origin", funcJson.origin)
+    sp.set("destination", funcJson.destination)
+    sp.set("city1", funcJson.city1)
+    sp.set("city2", funcJson.city2)
+    if(funcJson.date) sp.set("date", funcJson.date)
+    if(funcJson.time) sp.set("time", funcJson.time)
+    const link = url.toString()
+    console.log("maps_direction_transit_more link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  /**
+   *  关键词搜
+   *  https://lbs.amap.com/api/webservice/guide/api-advanced/newpoisearch
+   */
+  async maps_text_search(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const res1 = vbot.safeParse(Ns_MapTool.Sch_TextSearchParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_text_search param: ")
+      console.log(funcJson)
+      console.log(res1.issues)
+      const errRes = checker.getErrResult()
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res1.issues)
+      return errRes
+    }
+
+    const url = new URL("https://restapi.amap.com/v5/place/text")
+    url.searchParams.set("key", this._amapApiKey)
+    url.searchParams.set("keywords", funcJson.keywords)
+    if(funcJson.region) {
+      url.searchParams.set("region", funcJson.region)
+      url.searchParams.set("city_limit", "true")
+    }
+    const link = url.toString()
+    console.log("maps_text_search link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+
+  async maps_around_search(
+    funcJson: Record<string, any>,
+  ) {
+    const err1 = this.preCheck()
+    if(err1) return err1
+
+    const res1 = vbot.safeParse(Ns_MapTool.Sch_AroundSearchParam, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_around_search param: ")
+      console.log(funcJson)
+      console.log(res1.issues)
+      const errRes = checker.getErrResult()
+      errRes.err.errMsg = checker.getErrMsgFromIssues(res1.issues)
+      return errRes
+    }
+    
+    const url = new URL("https://restapi.amap.com/v5/place/around")
+    const sp = url.searchParams
+    sp.set("key", this._amapApiKey)
+    sp.set("location", funcJson.location)
+    if(funcJson.radius) {
+      const radiusRes = ValueTransform.str2Num(funcJson.radius)
+      if(!radiusRes.pass) {
+        const errRes = checker.getErrResult("radius is not a number")
+        return errRes
+      }
+      sp.set("radius", radiusRes.data.toString())
+    }
+    if(funcJson.sortrule) {
+      sp.set("sortrule", funcJson.sortrule)
+    }
+    const link = url.toString()
+    console.log("maps_around_search link::: ", link)
+    const res3 = await liuReq(link, undefined, { method: "GET" })
+
+    const res4 = await this._afterFetchMaps(res3, link)
+    return res4
+  }
+  
+}
+
 /******************** shared tools ************************/
 
 export interface ToolSharedOpt {
@@ -1207,6 +1623,7 @@ export class ToolShared {
 
   private _user: Table_User
   private _botName = ""
+  private _isSystem2 = false
 
   constructor(
     user: Table_User,
@@ -1220,6 +1637,7 @@ export class ToolShared {
     if(opt?.fromSystem2) {
       const { t } = useI18n(aiLang, { user })
       botName = t("system2_r1")
+      this._isSystem2 = true
     }
     this._botName = botName
   }
@@ -1728,6 +2146,174 @@ export class ToolShared {
     return msg
   }
 
+  async maps_regeo(funcJson: Record<string, any>) {
+    // 0. get params
+    const extensions = this._isSystem2 ? "all" : "base"
+
+    // 1. call GeoLocation
+    const geo = new GeoLocation()
+    const res1 = await geo.maps_regeo(funcJson, extensions)
+    if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t: t1 } = useI18n(aiLang, { user: this._user })
+    let textToUser = t1("parse_latlng", { bot })
+
+    // 3. add a link to tap
+    const url3 = new URL("https://uri.amap.com/marker")
+    const location = `${funcJson.longitude},${funcJson.latitude}`
+    url3.searchParams.set("location", location)
+    textToUser = this.packageLinkForAmap(url3, textToUser, "0")
+    
+    res1.data.textToUser = textToUser
+    return res1
+  }
+
+  async maps_geo(funcJson: Record<string, any>) {
+    // 1. call GeoLocation
+    const geo = new GeoLocation()
+    const res1 = await geo.maps_geo(funcJson)
+    if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    let textToUser = t("see_map", { bot })
+
+    // 3. add a link to tap
+    const url3 = new URL("https://uri.amap.com/search")
+    url3.searchParams.set("keyword", funcJson.address)
+    url3.searchParams.set("view", "map")
+    if(funcJson.city) {
+      url3.searchParams.set("city", funcJson.city)
+    }
+    textToUser = this.packageLinkForAmap(url3, textToUser)
+
+    res1.data.textToUser = textToUser
+    return res1
+  }
+
+  async maps_text_search(funcJson: Record<string, any>) {
+    // 1. call GeoLocation
+    const geo = new GeoLocation()
+    const res1 = await geo.maps_text_search(funcJson)
+    if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("search_address", { bot })
+    res1.data.textToUser = textToUser
+    return res1
+  }
+
+  async maps_around_search(funcJson: Record<string, any>) {
+    // 1. call GeoLocation
+    const geo = new GeoLocation()
+    const res1 = await geo.maps_around_search(funcJson)
+    if(!res1.pass) return res1
+
+    // 2. add textToUser
+    const bot = this._botName
+    const { t } = useI18n(aiLang, { user: this._user })
+    const textToUser = t("search_around", { bot })
+    res1.data.textToUser = textToUser
+    return res1
+  }
+
+  private aMapDirectionToMode: Record<Ns_MapTool.DirectionType, string> = {
+    "driving": "car",
+    "walking": "walk",
+    "bicycling": "ride",
+    "electrobike": "ride",
+    "transit": "bus",
+  }
+
+  async maps_direction(
+    funcJson: Record<string, any>,
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    // 1. check out params
+    const sch1 = this._isSystem2 ? Ns_MapTool.Sch_RouteParam : Ns_MapTool.Sch_DirectionParam
+    const res1 = vbot.safeParse(sch1, funcJson)
+    if(!res1.success) {
+      console.warn("cannot parse maps_direction param:")
+      console.log(funcJson)
+      const errMsg = checker.getErrMsgFromIssues(res1.issues)
+      const errRes = checker.getErrResult(errMsg)
+      return errRes
+    }
+
+    // 2. check out origin and destination
+    const { origin, destination } = funcJson
+    const origin2 = ValueTransform.splitInto2Num(origin)
+    const destination2 = ValueTransform.splitInto2Num(destination)
+    if(!origin2 || !destination2) {
+      console.warn("cannot parse origin or destination")
+      const errRes = checker.getErrResult("fail to parse origin or destination")
+      return errRes
+    }
+
+    // 3. decide to go
+    const d = funcJson.direction as Ns_MapTool.DirectionType
+    let res3: DataPass<LiuAi.MapResult> | undefined
+    const geo = new GeoLocation()
+    if(d === "driving") {
+      res3 = await geo.maps_direction_driving(funcJson)
+    }
+    else if(d === "walking") {
+      res3 = await geo.maps_direction_walking(funcJson)
+    }
+    else if(d === "bicycling") {
+      res3 = await geo.maps_direction_bicycling(funcJson)
+    }
+    else if(d === "electrobike") {
+      res3 = await geo.maps_direction_electrobike(funcJson)
+    }
+    else if(d === "transit") {
+      if(this._isSystem2) {
+        res3 = await geo.maps_direction_transit_more(funcJson)
+      } else {
+        res3 = await geo.maps_direction_transit(funcJson)
+      }
+    }
+    if(!res3) {
+      return { 
+        pass: false, 
+        err: { code: "E4000", errMsg: "direction is not legal" },
+      }
+    }
+    if(!res3.pass) return res3
+
+    // 4. add textToUser
+    const bot = this._botName
+    const { t: t1 } = useI18n(aiLang, { user: this._user })
+    let textToUser = t1("route_plan", { bot })
+
+    // 5. add a link to tap
+    const url5 = new URL("https://uri.amap.com/navigation")
+    const sp5 = url5.searchParams
+    sp5.set("from", origin)
+    sp5.set("to", destination)
+    sp5.set("mode", this.aMapDirectionToMode[d])
+    textToUser = this.packageLinkForAmap(url5, textToUser)
+
+    res3.data.textToUser = textToUser
+    return res3
+  }
+
+  private packageLinkForAmap(
+    url: URL,
+    oldTextToUser: string,
+    callnative = "1",
+  ) {
+    const appName = getAppName({ user: this._user })
+    url.searchParams.set("src", appName)
+    url.searchParams.set("callnative", callnative)
+    const link = url.toString()
+    return `<a href="${link}">${oldTextToUser}</a>`
+  }
+
 }
 
 /******************** tool for painting ************************/
@@ -2144,6 +2730,116 @@ export class TransformContent {
     return msg
   }
 
+
+  static convertTextBeforeReplying(
+    text: string,
+    user?: Table_User,
+  ) {
+    // 1. try to structure text first
+    const txt1 = this.structureText(text, user)
+    if(txt1 !== text) return txt1
+
+    /**
+     *  2. extract text like:
+     *  {
+     *    "msgtype": "location",
+     *    "latitude": "30.168669",
+     *    "longitude": "120.134827",
+     *    "title": "浙江省杭州市滨江区浦沿街道滨文路868号",
+     *    "address": "浙江省杭州市滨江区浦沿街道滨文路868号"
+     *  }
+     * 
+     * 这个位置位于浙江省杭州市滨江区的浦沿街道......
+     */
+    const idx2_1 = text.indexOf("{")
+    const idx2_2 = text.indexOf("}")
+    if(idx2_1 < 0 || idx2_2 < 1) return text
+    if(idx2_1 > idx2_2) return text
+    const str2 = text.substring(idx2_1, idx2_2 + 1)
+    const txt2 = this.structureText(str2, user)
+    
+    return txt2
+  }
+
+  static structureText(
+    text: string,
+    user?: Table_User,
+  ) {
+    if(!text.startsWith("{")) return text
+    if(!text.endsWith("}")) return text
+    let newText = text
+
+    // 1. structure text to location
+    const res1 = valTool.strToObj(text)
+    
+    // 2. if it's a location
+    if(res1.msgtype === "location") {
+      const res2 = this._turnIntoMapInfo(res1, user)
+      if(!res2) return
+      newText = res2
+    }
+    
+    return newText
+  }
+
+
+  private static _turnIntoMapInfo(
+    obj: Record<string, any>,
+    user?: Table_User,
+  ) {
+    const { latitude, longitude, title, address } = obj
+
+    // 1. check out params
+    const res1 = ValueTransform.str2Num(latitude)
+    const res2 = ValueTransform.str2Num(longitude)
+    if(!res1.pass || !res2.pass) return
+    if(!title || typeof title !== "string") return
+
+    // 2. init msg
+    const { t: t1 } = useI18n(aiLang, { user })
+    const { t: t2 } = useI18n(commonLang, { user })
+    let msg = t1("location_msg") + "\n\n"
+
+    // 2.1 add title
+    msg += (title + "\n")
+
+    // 2.2 add address
+    let hasAddress = Boolean(address && typeof address === "string" && address !== title)
+    if(hasAddress) {
+      msg += (address + "\n")
+    }
+    msg += "\n"
+
+    // 2.3 add amap link
+    const amapUrl = new URL("https://uri.amap.com/marker")
+    const amapSp = amapUrl.searchParams
+    amapSp.set("position", `${longitude},${latitude}`)
+    amapSp.set("name", title)
+    amapSp.set("src", t2("appName"))
+    amapSp.set("callnative", "1")
+    const amapLink = amapUrl.toString()
+    msg += `<a href="${amapLink}">${t1('open_via_amap')}</a>\n`
+
+    // 2.4 add baidu link
+    const baiduUrl = new URL("http://api.map.baidu.com/marker")
+    const baiduSp = baiduUrl.searchParams
+    baiduSp.set("location", `${latitude},${longitude}`)
+    baiduSp.set("title", title)
+    if(hasAddress) {
+      baiduSp.set("content", address)
+    }
+    else {
+      baiduSp.set("content", t2("from_us"))
+    }
+    baiduSp.set("src", "webapp.ptsd.liubai")
+    baiduSp.set("output", "html")
+    baiduSp.set("coord_type", "gcj02")
+    const baiduLink = baiduUrl.toString()
+    msg += `<a href="${baiduLink}">${t1('open_via_baidu')}</a>`
+
+    return msg
+  }
+
 }
 
 export class LogHelper {
@@ -2194,6 +2890,20 @@ export class LogHelper {
       const printMsg = valTool.objToStr({ messages })
       console.log(printMsg)
     }
+  }
+
+  static printLastChars(
+    text: string,
+    lastNum = 1000,
+  ) {
+    const tLength = text.length
+    if(tLength <= lastNum) {
+      console.log(text)
+      return
+    }
+    const startIdx = tLength - lastNum
+    const printMsg = "......" + text.substring(startIdx)
+    console.log(printMsg)
   }
 
 }

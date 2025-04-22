@@ -36,6 +36,7 @@ import {
   aiToolGetScheduleSpecificDates,
   aiToolGetCardTypes,
   aiImageSizeTypes,
+  Ns_MapTool,
 } from "@/common-types"
 import cloud from "@lafjs/cloud"
 import { 
@@ -49,6 +50,7 @@ import xml2js from "xml2js"
 import { 
   AiShared, 
   BaseLLM, 
+  LogHelper, 
   Palette, 
   TellUser, 
   ToolShared, 
@@ -66,6 +68,8 @@ const enumGetScheduleHoursFromNow = valTool.objToStr(aiToolGetScheduleHoursFromN
 const enumGetScheduleSpecificDates = valTool.objToStr(aiToolGetScheduleSpecificDates)
 const enumGetCardTypes = valTool.objToStr(aiToolGetCardTypes)
 const enumImageSizeTypes = valTool.objToStr(aiImageSizeTypes)
+const enumAmapSortrules = valTool.objToStr(Ns_MapTool.amapSortrules)
+const enumDirectionTypes = valTool.objToStr(Ns_MapTool.directionTypes)
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -458,6 +462,168 @@ const system_prompt = `
 }
 \`\`\`
 
+### 地图: 逆地理编码
+
+\`\`\`
+{
+  type: "function",
+  function: {
+    name: "maps_regeo",
+    description: "逆地理编码。给定一组经纬度，返回该位置的详细地址，以及附近环境。",
+    parameters: {
+      type: "object",
+      properties: {
+        latitude: {
+          type: "string",
+          description: "纬度，gcj02 格式，比如 30.257280",
+        },
+        longitude: {
+          type: "string",
+          description: "经度，gcj02 格式，比如 120.144714",
+        }
+      },
+      required: ["latitude", "longitude"],
+      additionalProperties: false
+    }
+  }
+}
+\`\`\`
+
+### 地图: 地理编码
+
+\`\`\`
+{
+  type: "function",
+  function: {
+    name: "maps_geo",
+    description: "地理编码。获取地点的基础信息（比如: citycode），或者将详细的结构化地址转换为 gcj02 格式的经纬度。",
+    parameters: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "结构化地址信息，规则遵循：国家、省份、城市、区县、城镇、乡村、街道、门牌号码、屋邨、大厦，如：上海市闵行区东川路800号。",
+        },
+        city: {
+          type: "string",
+          description: "城市，选填。规则遵循：指定城市的中文（如杭州）、指定城市的中文全拼（hangzhou），不支持县级市。当指定城市查询内容为空时，会进行全国范围内的地址转换检索。",
+        }
+      },
+      required: ["address"],
+      additionalProperties: false
+    }
+  }
+}
+\`\`\`
+
+### 地图: 地点关键词搜索
+
+\`\`\`
+{
+  type: "function",
+  function: {
+    name: "maps_text_search",
+    description: "地点关键词搜索。关键词可以是详细地址，比如：北京市朝阳区望京阜荣街10号；也可以是 POI 名称，例如：首开广场。",
+    parameters: {
+      type: "object",
+      properties: {
+        keywords: {
+          type: "string",
+          description: "地点关键词，表示需要被检索的地点文本信息。限制：不得超过 80 个字符。",
+        },
+        region: {
+          type: "string",
+          description: "搜索区划，可选。仅支持城市名，比如：杭州市。",
+        }
+      },
+      required: ["keywords"],
+      additionalProperties: false
+    }
+  }
+}
+\`\`\`
+
+### 地图: 周边搜索
+
+\`\`\`
+{
+  type: "function",
+  function: {
+    name: "maps_around_search",
+    description: "周边搜索。可设置圆心和半径，搜索圆形区域内的地点信息，适用于根据经纬度搜索周边。",
+    parameters: {
+      type: "object",
+      properties: {
+        location: {
+          type: "string",
+          description: "中心点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+        },
+        radius: {
+          type: "string",
+          description: "搜索半径，单位为米。限制: 0~50000，默认值为 5000",
+        },
+        sortrule: {
+          type: "string",
+          description: "排序规则，可选。可选值：distance（默认值，按距离排序）weight（按相关度排序）。",
+          enum: ${enumAmapSortrules},
+        },
+      },
+      required: ["location"],
+      additionalProperties: false
+    }
+  }
+}
+\`\`\`
+
+### 地图: 导航、路线规划
+
+\`\`\`
+{
+  type: "function",
+  function: {
+    name: "maps_direction",
+    description: "路径规划，共分成驾车路线、步行路线、单车骑行路线、电动车骑行路线和公交路线规划 5 种。",
+    parameters: {
+      type: "object",
+      properties: {
+        direction: {
+          type: "string",
+          description: "路径规划类型，必填。合法值: driving (驾车路线); walking (步行路线); bicycling (单车骑行路线); electrobike (电动车骑行路线); transit (公交路线)。",
+          enum: ${enumDirectionTypes},
+        },
+        origin: {
+          type: "string",
+          description: "起点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+        },
+        destination: {
+          type: "string",
+          description: "终点坐标。经度在前，纬度在后，经纬度小数点后不得超过6位，之间用英文字符 ',' 分隔。",
+        },
+        city1: {
+          type: "string",
+          description: "transit (公交路线) 时必填，表示起点所在城市，仅支持 citycode，citycode 可以从 maps_geo 工具中获取",
+        },
+        city2: {
+          type: "string",
+          description: "transit (公交路线) 时必填，表示目的地所在城市，仅支持 citycode，citycode 可以从 maps_geo 工具中获取",
+        },
+        date: {
+          type: "string",
+          description: "选填，仅公交路线规划时有效，表示出行日期，比如: 2025-04-18",
+        },
+        time: {
+          type: "string",
+          description: "选填，仅公交路线规划时有效，表示出行时间，比如: 9-54",
+        },
+      },
+      required: ["direction", "origin", "destination"],
+      additionalProperties: false
+    }
+  }
+}
+\`\`\`
+
+
 ## 请求
 
 现在你已经学会如何以正确的格式进行输出，并且能读懂日志理解之前发生了什么，同时你还能驾轻就熟地使用各种我们已定义好的工具。
@@ -487,7 +653,7 @@ const user_prompt = `
 
 看完以上日志后，最后我们提醒您：
 
-1. 以上日志（尤其是来自 bot 的消息）可能存在幻觉问题，需要你仔细甄别。
+1. 以上日志（尤其是来自 bot 的消息）可能存在幻觉问题，需要你调用工具进行检查，仔细甄别。
 2. 你的最终输出结果（非思考过程）请务必遵循上文 system prompt 中“你的输出格式”，也就是将你的想法包裹在 <xml> 标签中，里头还包含 <direction> 和 <content> 标签。
 
 现在是你的时间。
@@ -781,7 +947,10 @@ class SystemTwo {
       const bool = Boolean(v.toolName === "get_cards" || v.toolName === "get_schedule")
       return bool
     })
-    const workingLogs = allLogs.filter(v => v.toolName === "draw_picture")
+    const workingLogs = allLogs.filter(v => {
+      const bool = Boolean(v.toolName === "draw_picture" || v.toolName === "maps_whatever")
+      return bool
+    })
 
     // 3. get i18n
     const { t } = useI18n(aiLang, { user: this._ctx.user })
@@ -873,6 +1042,9 @@ class SystemTwo {
         content: userPrompt,
       }
     ]
+
+    console.warn("system_prompt:")
+    LogHelper.printLastChars(system_prompt)
 
     // 7. add _reasonerAndUs
     messages.push(...reasonerAndUs)
@@ -1195,6 +1367,12 @@ class SystemTwo {
       const getCardsRes2 = this.afterGettingCards(getCardsRes1, funcJson, tool_call)
       return getCardsRes2
     }
+
+    if(funcName?.startsWith("maps_")) {
+      const mapRes1 = await toolHandler2.maps_whatever(funcName, funcJson)
+      const mapRes2 = this.afterMapsWhatever(mapRes1, tool_call)
+      return mapRes2
+    }
     
     return true
   }
@@ -1345,6 +1523,32 @@ class SystemTwo {
     const parseRes = dataPass.data
     const parseMd = parseRes.markdown
     return this._addPromptsForToolUse(parseMd, tool_call)
+  }
+
+  private afterMapsWhatever(
+    dataPass: DataPass<LiuAi.MapResult>,
+    tool_call: OaiToolCall,
+  ) {
+    // 1. handle error
+    if(!dataPass.pass) {
+      return this._addErrPromptsForToolUse(dataPass.err, tool_call)
+    }
+    const mapRes = dataPass.data
+
+    // 2. add running log
+    if(mapRes.textToUser) {
+      const log: LiuAi.RunLog = {
+        toolName: "maps_whatever",
+        character: SYS2_CHARACTER,
+        textToUser: mapRes.textToUser,
+        logStamp: getNowStamp(),
+      }
+      this._runLogs.push(log)
+    }
+
+    // 3. add prompts
+    const mapMd = mapRes.textToBot
+    return this._addPromptsForToolUse(mapMd, tool_call)
   }
 
 
@@ -1802,6 +2006,53 @@ class ToolHandler2 {
     if(!chatId) return this._getErrForAddingMsg()
 
     return res1
+  }
+
+  async maps_whatever(
+    funcName: string,
+    funcJson: Record<string, any>,
+  ): Promise<DataPass<LiuAi.MapResult>> {
+    // 1. get required params
+    const toolShared = this._toolShared
+
+    // 2. get result
+    let res: DataPass<LiuAi.MapResult> | undefined
+    if(funcName === "maps_regeo") {
+      res = await toolShared.maps_regeo(funcJson)
+    }
+    else if(funcName === "maps_geo") {
+      res = await toolShared.maps_geo(funcJson)
+    }
+    else if(funcName === "maps_text_search") {
+      res = await toolShared.maps_text_search(funcJson)
+    }
+    else if(funcName === "maps_around_search") {
+      res = await toolShared.maps_around_search(funcJson)
+    }
+    else if(funcName === "maps_direction") {
+      res = await toolShared.maps_direction(funcJson)
+    }
+
+    // 3. handle error
+    if(!res) {
+      return {
+        pass: false,
+        err: { code: "E4000", errMsg: "funcName is invalid" }
+      }
+    }
+    if(!res.pass) return res
+    const data3 = res.data
+
+    // 4. add chat
+    const data4: Partial<Table_AiChat> = {
+      funcName,
+      funcJson,
+      mapProvider: data3.provider,
+      mapSearchData: data3.originalResult,
+    }
+    const chatId = await this._addMsgToChat(data4)
+    if(!chatId) return this._getErrForAddingMsg()
+    return res
   }
 
 

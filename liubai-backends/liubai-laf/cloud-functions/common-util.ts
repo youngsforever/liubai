@@ -384,6 +384,16 @@ export class ValueTransform {
     }
   }
 
+  static splitInto2Num(x: string) {
+    const list = x.split(",")
+    if(list.length !== 2) return
+    const [n1, n2] = list
+    const num1 = Number(n1)
+    const num2 = Number(n2)
+    if(isNaN(num1) || isNaN(num2)) return
+    return [num1, num2]
+  }
+
 }
 
 
@@ -504,6 +514,8 @@ export async function liuReq<T = any>(
       errMsg2 = errMsg.toLowerCase()
     }
 
+    console.log("errName: ", errName)
+
     if(errName === "TimeoutError") {
       return { code: "F0002" }
     }
@@ -513,6 +525,9 @@ export async function liuReq<T = any>(
     if(errName === "TypeError") {
       if(errMsg2.includes("failed to fetch")) {
         return { code: "B0001" }
+      }
+      if(errMsg2.includes("fetch failed") || errMsg2.includes("ETIMEDOUT")) {
+        return { code: "B0003" }
       }
     }
     return { code: "C0001" }
