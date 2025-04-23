@@ -416,10 +416,6 @@ const system_settings = `
 你会在用词上体现出更多“支持性作用”，让对方感到慰藉，充满力量
 `.trim()
 
-const system_without_tools = `
-请注意，你目前没有工具调用的能力，当用户请求你帮他新建待办、查看笔记或画图时，又或是询问你“我明天有什么事”时，请诚实回答你没有能力或你不知道。
-`.trim()
-
 const system_last_request = `
 请你以尽可能少的文字、精炼地回复人们的消息。祝交流愉快！
 `.trim()
@@ -534,9 +530,6 @@ ${system_location}
 
 【你的设定】
 ${system_settings}
-
-【注意事项】
-${system_without_tools}
 
 【最后的请求】
 ${system_last_request}
