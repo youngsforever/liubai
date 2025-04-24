@@ -4,11 +4,15 @@
 
   <!-- status bar -->
   <view class="cn-status-bar"
+    wx:if="{{ height1 > 0 }}"
     style="height: {{height1}}px"
   />
 
   <!-- navigation bar -->
-  <view class="cn-box" style="height: {{height2}}px">
+  <view class="cn-box" 
+    wx:if="{{ height2 > 0 }}"
+    style="height: {{height2}}px"
+  >
 
   </view>
 

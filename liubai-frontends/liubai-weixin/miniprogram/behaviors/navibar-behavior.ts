@@ -2,6 +2,7 @@ import { LiuApi } from "../utils/LiuApi"
 import valTool from "../utils/val-tool"
 import type { BoundingClientRectResolver } from "../types"
 import type { NbData } from "./tools/types"
+import { LiuUtil } from "../utils/liu-util/index"
 
 export const navibarBehavior = Behavior({
 
@@ -38,17 +39,22 @@ export const navibarBehavior = Behavior({
       async calculateHeight() {
   
         // 1. get window and screen info
-        const deviceInfo = LiuApi.getWindowInfo()
-        console.log("deviceInfo: ", deviceInfo)
+        const sizeInfo = LiuApi.getWindowInfo()
+        console.log("sizeInfo: ", sizeInfo)
   
         // 2. get menu button info
         const menuButtonInfo = LiuApi.getMenuButtonBoundingClientRect()
         console.log("menuButtonInfo: ", menuButtonInfo)
 
-        // 3. get enter options
+        // 3.1 get enter options
         const enterData = LiuApi.getEnterOptionsSync()
         const apiCategory = enterData.apiCategory
         const mode = enterData.mode
+        console.log("enterData: ", enterData)
+
+        // 3.2 get our characteristic
+        const cha = LiuUtil.getCharacteristic()
+        console.log("cha: ", cha)
 
         // 4. get scroll view info
         const pageInfo = await this.getSvBoundingClientRect()
@@ -56,7 +62,7 @@ export const navibarBehavior = Behavior({
         console.log("pageInfo: ", pageInfo)
 
         // 5. get default heigh1 & height2
-        const safeArea = deviceInfo.safeArea ?? {}
+        const safeArea = sizeInfo.safeArea ?? {}
         const safeTop = safeArea?.top ?? 0
         const mbTop = menuButtonInfo?.top ?? 0
         const mbHeight = menuButtonInfo.height ?? 0
@@ -64,10 +70,10 @@ export const navibarBehavior = Behavior({
         let height2 = mbHeight
 
         // 6. check if we need to consider status bar
-        const windowHeight = deviceInfo.windowHeight
-        const screenHeight = deviceInfo.screenHeight
+        const windowHeight = sizeInfo.windowHeight
+        const screenHeight = sizeInfo.screenHeight
         const scrollViewHeight = pageInfo?.height ?? windowHeight
-        let considerStatusBar = true
+        let considerStatusBar = Boolean(cha.isMobile)
         if(apiCategory !== "browseOnly") {
           if(scrollViewHeight + 60 < windowHeight) {
             considerStatusBar = false

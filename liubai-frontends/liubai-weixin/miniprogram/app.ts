@@ -1,5 +1,5 @@
 // app.ts
-import { cfg } from "./config/index"
+import { LiuApi } from "./utils/LiuApi"
 
 App({
   
@@ -9,8 +9,9 @@ App({
 
   onLaunch() {
 
-    console.warn("let me see cfg: ")
-    console.log(cfg)
+    const skylineInfo = LiuApi.getSkylineInfoSync()
+    console.log("skyline info: ")
+    console.log(skylineInfo)
     
   },
 })

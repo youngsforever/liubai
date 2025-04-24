@@ -32,5 +32,13 @@ export class LiuApi {
     return wx.getEnterOptionsSync()
   }
 
+  static getSkylineInfoSync() {
+    return wx.getSkylineInfoSync()
+  }
+
+  static getDeviceInfo() {
+    return wx.getDeviceInfo()
+  }
+
 
 }
