@@ -183,6 +183,7 @@ class LiuRouter {
       const v2 = Object.assign({}, v)
       return v2
     })
+    console.log("list: ", list)
     return list
   }
 

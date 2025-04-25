@@ -2,7 +2,6 @@ import { onActivated, watch, reactive, onMounted } from "vue";
 import type { LocationQuery } from "vue-router";
 import { useRouteAndLiuRouter } from '~/routes/liu-router';
 import valTool from "~/utils/basic/val-tool";
-import liuApi from "~/utils/liu-api";
 import type { VcState, VcCtx, VcData, VcThirdParty, VcEmits } from "./types"
 import thirdLink from "~/config/third-link";
 import liuUtil from "~/utils/liu-util";
@@ -181,10 +180,17 @@ function listenRouteChange(
     const embedData = vvLinkStore.getEmbedData(url)
     if(embedData) url = embedData.link
 
-    // console.log("iframe url: ")
-    // console.log(url)
-    // console.log(" ")
     setNewIframeSrc(url, embedData?.otherData)
+  }
+
+  const tryToOpenCode = () => {
+    const vvLinkStore = useVvLinkStore()
+    const srcdoc = vvLinkStore.getCurrentSrcDoc(route)
+    if(!srcdoc) {
+      ctx.router.naviBackUntilNoSpecificQuery(route, "vcode")
+      return
+    }
+    showView(ctx, "srcdoc", srcdoc)
   }
   
   const checkRouteChange = (newQuery: LocationQuery) => {
@@ -196,6 +202,7 @@ function listenRouteChange(
       github, 
       bing, 
       vlink,
+      vcode,
       vfile,
     } = newQuery
 
@@ -210,6 +217,9 @@ function listenRouteChange(
     }
     else if(_hasVal(vlink)) {
       tryToOpenLink()
+    }
+    else if(_hasVal(vcode)) {
+      tryToOpenCode()
     }
     else if(_hasVal(vfile)) {
       tryToOpenFile()

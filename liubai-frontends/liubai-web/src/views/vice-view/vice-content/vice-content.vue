@@ -64,7 +64,7 @@ const {
     <template v-for="(item, index) in vcData.list" :key="item.id">
 
       <div class="liu-view" v-show="item.show">
-        <!-- iframe -->
+        <!-- iframe with src -->
         <VcIframe
           v-if="item.state === 'iframe'"
           :is-outter-draging="item.show && isOutterDraging"
@@ -72,6 +72,15 @@ const {
           :vc-height="vcHeight2"
           :mask-margin-top="maskMarginTop"
           :other-data="item.otherData"
+        ></VcIframe>
+
+        <!-- iframe with srcdoc -->
+        <VcIframe
+          v-else-if="item.state === 'srcdoc'"
+          :is-outter-draging="item.show && isOutterDraging"
+          :src-doc="item.id"
+          :vc-height="vcHeight2"
+          :mask-margin-top="maskMarginTop"
         ></VcIframe>
 
         <!-- third-party -->

@@ -91,6 +91,7 @@ import type {
 import liuApi from '~/utils/liu-api'
 import type { LiuTimeout } from '~/utils/basic/type-tool'
 import { editorCanInteractKey } from "~/utils/provide-keys"
+import { useRouteAndLiuRouter } from '~/routes/liu-router'
 
 export default {
   components: {
@@ -108,7 +109,7 @@ export default {
       isMobile,
       isSafari,
     } = liuApi.getCharacteristic()
-    
+    const rr = useRouteAndLiuRouter()
 
     const selectedLanguage = computed(() => {
       const _lang = props.node.attrs.language as CbcLang
@@ -160,6 +161,7 @@ export default {
     const onTapVisualize = () => {
       const text = _getCodePlainText()
       if(!text) return
+      liuUtil.open.visualizeCode(text, { rr })
     }
 
     const canInteract = inject(editorCanInteractKey, ref(true))
