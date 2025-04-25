@@ -16,6 +16,7 @@ defineEmits<{
   (event: "tapback"): void
   (event: "tapclose"): void
   (event: "tapopeninnew"): void
+  (event: "tapexpand"): void
 }>()
 
 const { isMobile } = liuApi.getCharacteristic()
@@ -54,7 +55,7 @@ const {
     <div v-if="vcState === 'srcdoc'" class="vcliu-navi-footer">
       <div v-if="!isMobile"
         class="liu-hover vcliu-navi-btn vcliu-nv-open" 
-        @click.stop="$emit('tapopeninnew')"
+        @click.stop="$emit('tapexpand')"
       >
         <svg-icon class="vcn-expand" 
           name="editor-open_fullscreen" :color="iconColor"

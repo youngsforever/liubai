@@ -8,6 +8,7 @@ import liuUtil from "~/utils/liu-util";
 import { useVvLinkStore } from "~/hooks/stores/useVvLinkStore";
 import { useVvFileStore } from "~/hooks/stores/useVvFileStore";
 import liuEnv from "~/utils/liu-env";
+import cui from "~/components/custom-ui"
 
 const _hasVal = valTool.isStringWithVal
 
@@ -77,11 +78,20 @@ export function useViceContent(
     window.open(tmp, "_blank")
   }
 
+  const onTapExpand = () => {
+    cui.showModal({ 
+      iconName: "emojis-construction_color", 
+      content_key: "common.under_construction",
+      showCancel: false,
+    })
+  }
+
   return {
     vcData,
     onTapBack,
     onTapClose,
     onTapOpenInNew,
+    onTapExpand,
   }
 }
 

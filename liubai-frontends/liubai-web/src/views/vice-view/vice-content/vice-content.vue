@@ -29,6 +29,7 @@ const {
   onTapBack,
   onTapClose,
   onTapOpenInNew,
+  onTapExpand,
 } = useViceContent(emits)
 
 const {
@@ -57,6 +58,7 @@ const {
     @tapback="onTapBack"
     @tapclose="onTapClose"
     @tapopeninnew="onTapOpenInNew"
+    @tapexpand="onTapExpand"
   ></VcNaviBar>
 
   <div class="vcliu-container" ref="containerRef">
