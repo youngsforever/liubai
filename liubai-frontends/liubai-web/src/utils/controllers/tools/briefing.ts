@@ -159,7 +159,7 @@ function _getBreakPoint(
   prevRowNum: number, 
   prevCharNum: number
 ) {
-  const { type, content } = node
+  const { type, content, attrs } = node
   if(!content) return node
   const newNode = valTool.copyObject(node)
 
@@ -174,29 +174,36 @@ function _getBreakPoint(
     newNode.content = tmp.content
   }
   else if(type === "codeBlock") {
-    newNode.content = _handleCodeBlock(content, prevRowNum, prevCharNum)
+    const tmp = _handleCodeBlock(content, prevRowNum, prevCharNum)
+    newNode.content = tmp.items
+    newNode.attrs = { ...attrs, originalText: tmp.originalText }
   }
 
   return newNode
+}
+
+interface HandleCodeBlockRes {
+  items: LiuContent[]
+  originalText?: string
 }
 
 function _handleCodeBlock(
   items: LiuContent[],
   prevRowNum: number, 
   prevCharNum: number,
-) {
+): HandleCodeBlockRes {
   const v = items[0]
   const codeText = v?.text
-  if(items.length !== 1 || !codeText) return items
+  if(items.length !== 1 || !codeText) return { items }
 
   let leftRowNum = MAX_ROW - prevRowNum
-  if(leftRowNum < 1) return items
+  if(leftRowNum < 1) return { items }
 
   // ensure codeBlock has at least 2 lines
   if(leftRowNum === 1) leftRowNum = 2
 
   const tmpList = codeText.split("\n")
-  if(tmpList.length <= leftRowNum) return items
+  if(tmpList.length <= leftRowNum) return { items }
 
   let text = ""
   for(let i=0; i<leftRowNum; i++) {
@@ -206,7 +213,7 @@ function _handleCodeBlock(
   }
 
   const newV = { ...v, text }
-  return [newV]
+  return { items: [newV], originalText: codeText }
 }
 
 

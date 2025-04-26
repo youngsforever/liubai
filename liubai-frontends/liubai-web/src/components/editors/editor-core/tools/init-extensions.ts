@@ -92,7 +92,16 @@ export function initExtensions(
   const CustomCodeBlockLowlight = CodeBlockLowlight.extend({
     addNodeView() {
       return VueNodeViewRenderer(CodeBlockComponent as any)
-    }
+    },
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        originalText: {
+          type: "string",
+          default: "",
+        }
+      }
+    },
   })
 
   const CustomHorizontalRule = HorizontalRule.extend({

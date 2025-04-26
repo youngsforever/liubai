@@ -140,6 +140,10 @@ export default {
     const showCopied = ref(false)
 
     const _getCodePlainText = () => {
+      const attrs = liuUtil.toRawData(props.node.attrs)
+      const originalText = attrs.originalText
+      if(originalText) return originalText
+
       //@ts-ignore
       const c = liuUtil.toRawData(props.node.content) as CbcFragment
       const text = c?.content?.[0].text
