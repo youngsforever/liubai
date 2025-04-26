@@ -23,7 +23,11 @@ export default defineConfig({
 
     nav: [
       { text: "指南", link: "/guide/what-is-liubai", activeMatch: "/guide/" },
-      { text: "文章", link: "/article/2025/system-two", activeMatch: "/article/" },
+      { 
+        text: "文章", 
+        link: "/article/2025/system-two", 
+        activeMatch: "/(tool-review|article)/"
+      },
       { text: "网页版", link: "https://my.liubai.cc" },
     ],
 
@@ -39,6 +43,10 @@ export default defineConfig({
               text: "亮点",
               link: "/guide/impressive",
               items: [
+                {
+                  text: "智能口袋",
+                  link: "/guide/intelligent-pocket",
+                },
                 {
                   text: "离线可用",
                   link: "/guide/offline",
@@ -132,7 +140,7 @@ export default defineConfig({
         }
       ],
 
-      "/article": [
+      "/article/": [
         {
           text: "系统二",
           link: "/article/2025/system-two"

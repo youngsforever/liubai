@@ -6,6 +6,7 @@
 
 于是就有了 `✨亮点介绍` 这份文档：
 
+- [智能口袋](/guide/intelligent-pocket)
 - [离线可用](/guide/offline)
 - [Markdown 支持](/guide/markdown-support)
 - [同步、备份](/guide/sync-and-backup)
