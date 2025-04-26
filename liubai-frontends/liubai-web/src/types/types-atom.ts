@@ -90,6 +90,7 @@ export interface LiuContent {
   // 一些附件信息
   // 比如 有序列表的 start: number 就会放在这里，表示起始的序号
   // 再比如 codeBlock 里的 language: string | null 也会放在这里，表示代码块的语言
+  // 250426 在 codeBlock 里，新增 originalText 字段，表示原始的代码块内容
   attrs?: Record<string, any>
 
   text?: string

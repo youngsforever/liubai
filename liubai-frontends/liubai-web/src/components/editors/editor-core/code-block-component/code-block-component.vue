@@ -92,6 +92,7 @@ import liuApi from '~/utils/liu-api'
 import type { LiuTimeout } from '~/utils/basic/type-tool'
 import { editorCanInteractKey } from "~/utils/provide-keys"
 import { useRouteAndLiuRouter } from '~/routes/liu-router'
+import { deviceChaKey } from '~/utils/provide-keys'
 
 export default {
   components: {
@@ -105,10 +106,7 @@ export default {
     const { t } = useI18n()
     const leaveTip = liuUtil.getHelpTip("Mod_Enter")
     const languages = showProgrammingLanguages()
-    const { 
-      isMobile,
-      isSafari,
-    } = liuApi.getCharacteristic()
+    const cha = inject(deviceChaKey)
     const rr = useRouteAndLiuRouter()
 
     const selectedLanguage = computed(() => {
@@ -132,6 +130,7 @@ export default {
     })
 
     const showVisualize = computed(() => {
+      if(cha?.isIOS && cha?.isInWebView) return false
       const lang = langDisplayed.value
       return Boolean(lang === "HTML")
     })
@@ -140,6 +139,10 @@ export default {
     const showCopied = ref(false)
 
     const _getCodePlainText = () => {
+      const attrs = liuUtil.toRawData(props.node.attrs)
+      const originalText = attrs.originalText
+      if(originalText) return originalText
+
       //@ts-ignore
       const c = liuUtil.toRawData(props.node.content) as CbcFragment
       const text = c?.content?.[0].text
@@ -169,8 +172,8 @@ export default {
     return { 
       t, 
       languages, 
-      isMobile,
-      isSafari,
+      isMobile: cha?.isMobile,
+      isSafari: cha?.isSafari,
       leaveTip, 
       selectedLanguage,
       langDisplayed,
