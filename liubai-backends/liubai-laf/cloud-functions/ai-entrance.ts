@@ -343,11 +343,18 @@ class AiDirective {
       return { theCommand: "kick", theBot: botKicked }
     }
 
-    // 3. is it an adding directive?
+    // 3.1 is it an adding directive?
     const botAdded = this.isAddBot(text2)
     if(botAdded) {
       this.toAddBot(entry, botAdded)
       return { theCommand: "add", theBot: botAdded }
+    }
+
+    // 3.2 is it a bot not available?
+    const botNotAvailable = this.isBotNotAvailable(text2)
+    if(botNotAvailable) {
+      this.toShowItIsNotAvailable(entry, botNotAvailable)
+      return { theCommand: "bot_not_available" }
     }
 
     // 4. is it clear directive?
@@ -417,6 +424,16 @@ class AiDirective {
     return res2
   }
 
+  private static toShowItIsNotAvailable(
+    entry: AiEntry,
+    botName: string,
+  ) {
+    const user = entry.user
+    const { t } = useI18n(aiLang, { user })
+    const msg = t("bot_not_available", { botName })
+    TellUser.text(entry, msg)
+  }
+
   private static isContinue(text: string): AiDirectiveCheckRes | undefined {
     const prefix = ["继续", "繼續", "Continue"]
     const res1 = this._areTheyMatched(prefix, text)
@@ -482,7 +499,7 @@ class AiDirective {
     const prefix2 = [
       "群聊状态", "查看群聊状态", "群聊有谁", "群聊还有谁", "群里还有谁",
       "群聊狀態", "檢視群聊狀態", "群組裡有誰", "群組還有誰", "群組中還有誰",
-      "Status", "Group Status",
+      "Status", "Group Status", "群状态", "状态"
     ]
     const res2 = this._areTheyMatched(prefix2, text, true)
     return res2
@@ -546,17 +563,6 @@ class AiDirective {
     return res3
   }
 
-  private static async _showThereAre3(
-    entry: AiEntry,
-    characters: AiCharacter[],
-  ) {
-    const { t } = useI18n(aiLang, { user: entry.user })
-    let prefixMessage = t("there_are_3") + `\n\n` + t("operation_title")
-    const menuList: LiuAi.MenuItem[] = []
-    characters.forEach(v => menuList.push({ operation: "kick", character: v }))
-    TellUser.menu(entry, prefixMessage, menuList, "")
-  }
-
   private static async toAddBot(entry: AiEntry, bot: AiBot) {
     const user = entry.user
 
@@ -584,8 +590,22 @@ class AiDirective {
 
     // 3. check out if the room has reached the max bots
     if(characters.length >= MAX_CHARACTERS) {
-      this._showThereAre3(entry, characters)
-      return
+      // get ai coming to retire
+      let idx3 = -1
+      for(let i=0; i<characters.length; i++) {
+        const v = characters[i]
+        const isRetired = ai_cfg.retired_ai.includes(v)
+        if(isRetired) {
+          idx3 = i
+          break
+        }
+      }
+      if(idx3 >= 0) {
+        characters.splice(idx3, 1)
+      }
+      else {
+        characters.shift()
+      }
     }
 
     // 4. add the bot to the room
@@ -623,16 +643,31 @@ class AiDirective {
     return botMatched 
   }
 
+  private static addPrefixs = [
+    "召唤", "召喚", "Summon", "summon",
+    "我要", "我要", "I want", "i want",
+    "添加", "新增", "Add", "add",
+    "呼叫", "Call", "call",
+    "@",
+  ]
+
+  private static isBotNotAvailable(text: string) {
+    const prefixMatched = this.addPrefixs.find(v => text.startsWith(v))
+    if(!prefixMatched) return
+
+    const txt1 = text.substring(prefixMatched.length).trim()
+    const txt2 = txt1.toLowerCase()
+    const botsNotAvailable = ["ChatGPT", "GPT", "豆包", "Claude"]
+    const botNameMatched = botsNotAvailable.find(v => {
+      const name = v.toLowerCase()
+      return Boolean(name === txt2)
+    })
+    return botNameMatched
+  }
+
   private static isAddBot(text: string) {
     // 1. use prefix
-    const prefix = [
-      "召唤", "召喚", "Summon", "summon",
-      "我要", "我要", "I want", "i want",
-      "添加", "新增", "Add", "add",
-      "呼叫", "Call", "call",
-      "@",
-    ]
-    const botMatched = this._getCommandedBot(prefix, text)
+    const botMatched = this._getCommandedBot(this.addPrefixs, text)
     if(botMatched) return botMatched
     
     // 2. text match completed
