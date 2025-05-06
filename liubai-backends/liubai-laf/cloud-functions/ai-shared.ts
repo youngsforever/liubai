@@ -40,6 +40,8 @@ import {
   type LiuRqReturn,
   type Table_AiRoom,
   Ns_MapTool,
+  type Ns_MiniMax,
+  type Wx_Res_GzhUploadMedia,
 } from "@/common-types"
 import { LiuReporter, WxGzhSender } from "@/service-send"
 import { 
@@ -930,24 +932,41 @@ export class AiShared {
 
 }
 
+
+interface TellUserAudioParam {
+  response?: Response
+  hex?: string
+}
+
 export class TellUser {
 
   static async audio(
     entry: AiEntry,
-    audioResponse: Response,
+    param: TellUserAudioParam,
     opt?: LiuAi.TellUserOpt,
   ) {
-
     const { wx_gzh_openid } = entry
+    let res0: Wx_Res_GzhUploadMedia | undefined
 
     // 1. for weixin
     if(wx_gzh_openid) {
       // 1.1 upload file to weixin server
-      const res1_1 = await WxGzhUploader.mediaByResponse(audioResponse, {
-        type: "voice",
-        filename: "upload.mp3"
-      })
-      const media_id = res1_1?.media_id
+
+      if(param.response) {
+        res0 = await WxGzhUploader.mediaByResponse(param.response, {
+          type: "voice",
+          filename: "upload.mp3"
+        })
+      }
+      else if(param.hex) {
+        res0 = await WxGzhUploader.mediaByHex(param.hex, {
+          type: "voice",
+          filename: "upload.mp3",
+          contentType: "audio/mpeg",
+        })
+      }
+      
+      const media_id = res0?.media_id
       console.log("let me see audio media_id: ", media_id)
       if(!media_id) return
 
@@ -2644,8 +2663,46 @@ export class TextToSpeech {
   async runByMiniMax(
     text: string,
   ) {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_MINIMAX_API_KEY
+    const groupId = _env.LIU_MINIMAX_GROUPID
+    if(!apiKey || !groupId) {
+      console.warn("there is no apiKey or groupId of minimax in tts")
+      return
+    }
 
+    // 2. generate headers
+    const url2 = new URL("https://api.minimax.chat/v1/t2a_v2")
+    url2.searchParams.set("GroupId", groupId)
+    const link2 = url2.toString()
+    const headers = {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    }
+    const body = {
+      model: "speech-02-hd",
+      text,
+      stream: false,
+      voice_setting: {
+        voice_id: "tianxin_xiaoling",
+        speed: 1,    // 生成声音的语速，范围是 0.5 到 2
+        vol: 2,      // 生成声音的音量，范围是 0 到 10
+        pitch: 0,    // 语调
+        english_normalization: true,
+      },
+    }
+    console.log("body: ", body)
 
+    // 3. to request
+    const res3 = await liuReq(link2, body, { headers })
+    const data3 = res3.data as Ns_MiniMax.TtsRes
+    if(res3.code !== "0000" || !data3) {
+      console.warn("fail to tts by minimax: ")
+      console.log(res3)
+      return
+    }
+    return data3
   }
 
   async runByStepfun(
@@ -2656,14 +2713,14 @@ export class TextToSpeech {
     const apiKey = _env.LIU_STEPFUN_API_KEY
     const baseUrl = _env.LIU_STEPFUN_BASE_URL
     if(!apiKey || !baseUrl) {
-      console.warn("there is no apiKey or baseUrl of stepfun in Palette")
+      console.warn("there is no apiKey or baseUrl of stepfun in tts")
       return
     }
 
     // 2. get voice
     const voicePreference = this._room?.voicePreference ?? "female"
-    // 深沉男音 vs. 温柔女声
-    const voice = voicePreference === "male" ? "shenchennanyin" : "wenrounvsheng"
+    // 深沉男音 vs. 爽快姐姐
+    const voice = voicePreference === "male" ? "shenchennanyin" : "shuangkuaijiejie"
     
     // 3. to request
     const client = new OpenAI({ apiKey, baseURL: baseUrl })
@@ -2672,7 +2729,7 @@ export class TextToSpeech {
       input: text,
       voice,
       extra_body: {
-        volume: 1.5,
+        volume: 2,
       },
     }
     const mp3 = await client.audio.speech.create(body)

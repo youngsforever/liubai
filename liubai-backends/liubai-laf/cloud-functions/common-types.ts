@@ -3864,6 +3864,31 @@ export namespace Ns_Stepfun {
 
 }
 
+export namespace Ns_MiniMax {
+  export interface TtsRes {
+    data: {
+      audio: string
+      subtitle_file: string
+      status: number
+    }
+    trace_id: string
+    extra_info: {
+      audio_length: number
+      audio_sample_rate: number
+      audio_size: number
+      bitrate: number
+      audio_format: string
+      audio_channel: number
+      invisible_character_ratio: number
+      usage_characters: number
+    }
+    base_resp: {
+      status_code: number
+      status_msg: string
+    }
+  }
+}
+
 export namespace Ns_FFmpeg {
   export interface Res_ArmToMp3 {
     mp3Path: string

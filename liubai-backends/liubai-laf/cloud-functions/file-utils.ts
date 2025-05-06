@@ -95,13 +95,13 @@ export function downloadFile(
 interface RTFD_Opt {
   formKey?: string      // default: "media"
   filename?: string     // default: `upload.${ext}`
+  contentType?: string
 }
 
 interface WxGzhMediaOpt extends RTFD_Opt {
   isMaterial?: boolean
   type?: "image" | "voice"
 }
-
 
 export async function blobToFormData(
   fileBlob: Blob,
@@ -114,10 +114,6 @@ export async function blobToFormData(
   const contentType = fileBlob.type
   const formKey = opt?.formKey ?? "media"
   let filename = opt?.filename
-
-  // console.log("contentType: ", contentType)
-  // console.log("formKey: ", formKey)
-  // console.log("filename: ", filename)
 
   if(!filename) {
     let suffix = getMimeTypeSuffix(contentType)
@@ -144,6 +140,36 @@ export async function responseToFormData(
   return res
 }
 
+export async function hexToFormData(
+  hex: string,
+  opt?: RTFD_Opt,
+) {
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex
+  const bytes = new Uint8Array(cleanHex.length / 2)
+  for (let i = 0; i < cleanHex.length; i += 2) {
+    bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16)
+  }
+  const buffer = Buffer.from(bytes)
+  const b64 = buffer.toString("base64")
+
+  const contentType = opt?.contentType ?? "audio/mpeg"
+  const formKey = opt?.formKey ?? "media"
+  let filename = opt?.filename
+
+  if(!filename) {
+    let suffix = getMimeTypeSuffix(contentType)
+    if(!suffix) suffix = "mp3"
+    filename = `upload.${suffix}`
+  }
+
+  const form = new FormData()
+  form.append(formKey, buffer, {
+    contentType,
+    filename,
+  })
+  
+  return { form, b64, contentType }
+}
 
 // download cloud_url and upload to our OSS
 export async function downloadAndUpload(
@@ -412,15 +438,10 @@ export class WxGzhUploader {
   static API_MEDIA_UPLOAD = "https://api.weixin.qq.com/cgi-bin/media/upload"
   static API_MATERIAL_ADD = "https://api.weixin.qq.com/cgi-bin/material/add_material"
 
-  static async mediaByResponse(
-    response: Response,
+  static async toUpload(
+    form: FormData,
     opt?: WxGzhMediaOpt,
   ) {
-    // 1. transform response to form data
-    const { form } = await responseToFormData(response, { 
-      filename: opt?.filename,
-    })
-
     // 2. get access token 
     const access_token = await checkAndGetWxGzhAccessToken()
     if(!access_token) {
@@ -454,6 +475,25 @@ export class WxGzhUploader {
       console.warn("failed to upload media......")
       console.log(err)
     }
+  }
+
+  static async mediaByHex(
+    hex: string,
+    opt?: WxGzhMediaOpt,
+  ) {
+    const res1 = await hexToFormData(hex, opt)
+    const res2 = await this.toUpload(res1.form, opt)
+    return res2
+  }
+
+  static async mediaByResponse(
+    response: Response,
+    opt?: WxGzhMediaOpt,
+  ) {
+    // 1. transform response to form data
+    const res1 = await responseToFormData(response, opt)
+    const res2 = await this.toUpload(res1.form, opt)
+    return res2
   }
 
   // temporary media

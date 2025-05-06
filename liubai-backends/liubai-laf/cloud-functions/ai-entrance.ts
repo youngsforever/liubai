@@ -91,6 +91,7 @@ const SEC_15 = SECONED * 15
 const MIN_3 = MINUTE * 3
 const HOUR_12 = HOUR * 12
 const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first INDEX_TO_PRESERVE_IMAGES will be preserved rather than compressed to text like [image]
+const MAX_WORDS_TTS = 180
 
 // characters which take a rest will not be filled whle users launch a new chat
 const charactersTakingARest: AiCharacter[] = [
@@ -1465,7 +1466,7 @@ class BaseBot {
     // 4. handle audio
     const audioCharacters: AiCharacter[] = ["hailuo", "yuewen"]
     const isAudioCharacter = audioCharacters.includes(character)
-    if(isAudioCharacter && !showCoT && text.length <= 60) {
+    if(isAudioCharacter && !showCoT && text.length <= MAX_WORDS_TTS) {
       this._replyWithAudio(param)
       return
     }
@@ -1483,24 +1484,31 @@ class BaseBot {
     const text = param.textToUser
 
     // 1. get audio
-    let res: Response | undefined
     const tts = new TextToSpeech({ room })
-    if(character === "yuewen") {
-      console.log("start to run by stepfun......")
-      res = await tts.runByStepfun(text)
-    }
-    else if(character === "hailuo") {
-      
-    }
 
-    // 2. text user if we cannot get audio
-    if(!res) {
-      TellUser.text(entry, text, { fromBot: bot })
+    // 2.1 yuewen
+    if(character === "yuewen") {
+      const res2_1 = await tts.runByStepfun(text)
+      if(!res2_1) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      TellUser.audio(entry, { response: res2_1 }, { fromBot: bot })
       return
     }
 
-    // 3. reply with audio
-    TellUser.audio(entry, res, { fromBot: bot })
+    // 2.2 minimax
+    if(character === "hailuo") {
+      const res2_2 = await tts.runByMiniMax(text)
+      const hex2_2 = res2_2?.data?.audio
+      if(!hex2_2) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      TellUser.audio(entry, { hex: hex2_2 }, { fromBot: bot })
+      return
+    }
+
   }
 
   /** remove the last line if we receive `finish_reason` with value `length` */

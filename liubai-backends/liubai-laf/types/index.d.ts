@@ -140,6 +140,7 @@ declare global {
       LIU_DEEPSEEK_API_KEY?: string          // DeepSeek AI 的 api key
       LIU_MINIMAX_BASE_URL?: string          // MiniMax AI 的 base url
       LIU_MINIMAX_API_KEY?: string           // MiniMax AI 的 api key
+      LIU_MINIMAX_GROUPID?: string           // MiniMax AI 账户管理的 groupID
       LIU_MOONSHOT_BASE_URL?: string         // Moonshot AI 的 base url
       LIU_MOONSHOT_API_KEY?: string          // Moonshot AI 的 api key
       LIU_STEPFUN_BASE_URL?: string          // Stepfun AI 的 base url
