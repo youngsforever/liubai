@@ -761,5 +761,12 @@
     "tencent-cloud-studio": "Cloud Studio",
     "cnb-cool": "云原生构建 (CNB)",
     "trae": "Trae"
+  },
+  "ai_console": {
+    "title": "AI 控制台",
+    "voice_preference": "语音偏好",
+    "voice_tip": "你希望 AI 用什么声线回复你",
+    "male": "男声",
+    "female": "女声"
   }
 }

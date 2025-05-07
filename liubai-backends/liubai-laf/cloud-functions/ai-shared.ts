@@ -2672,10 +2672,15 @@ export class TextToSpeech {
       return
     }
 
-    // 2. generate headers
-    const url2 = new URL("https://api.minimax.chat/v1/t2a_v2")
-    url2.searchParams.set("GroupId", groupId)
-    const link2 = url2.toString()
+    // 2. get voice
+    const voicePreference = this._room?.voicePreference ?? "female"
+    // 霸道少爷 vs. 甜心小玲
+    const voice_id = voicePreference === "male" ? "badao_shaoye" : "tianxin_xiaoling"
+
+    // 3. generate headers
+    const url3 = new URL("https://api.minimax.chat/v1/t2a_v2")
+    url3.searchParams.set("GroupId", groupId)
+    const link3 = url3.toString()
     const headers = {
       "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -2685,17 +2690,16 @@ export class TextToSpeech {
       text,
       stream: false,
       voice_setting: {
-        voice_id: "tianxin_xiaoling",
+        voice_id,
         speed: 1,    // 生成声音的语速，范围是 0.5 到 2
         vol: 2,      // 生成声音的音量，范围是 0 到 10
         pitch: 0,    // 语调
         english_normalization: true,
       },
     }
-    console.log("body: ", body)
 
     // 3. to request
-    const res3 = await liuReq(link2, body, { headers })
+    const res3 = await liuReq(link3, body, { headers })
     const data3 = res3.data as Ns_MiniMax.TtsRes
     if(res3.code !== "0000" || !data3) {
       console.warn("fail to tts by minimax: ")
