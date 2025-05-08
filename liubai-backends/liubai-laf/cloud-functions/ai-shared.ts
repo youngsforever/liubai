@@ -71,6 +71,8 @@ import {
 import OpenAI from "openai"
 import * as vbot from "valibot"
 import { addDays, set as date_fn_set } from "date-fns"
+import { WebSocket } from "ws"
+import { createRandom } from "@/common-ids"
 
 const db = cloud.database()
 const _ = db.command
@@ -83,6 +85,7 @@ export const charactersTakingARest: AiCharacter[] = [
 ]
 
 type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
+type BufferResolver = (res: Buffer | undefined) => void
 
 export class BaseLLM {
   protected _client: OpenAI | undefined
@@ -998,6 +1001,7 @@ export class AiShared {
 interface TellUserAudioParam {
   response?: Response
   hex?: string
+  buffer?: Buffer
 }
 
 export class TellUser {
@@ -1022,6 +1026,13 @@ export class TellUser {
       }
       else if(param.hex) {
         res0 = await WxGzhUploader.mediaByHex(param.hex, {
+          type: "voice",
+          filename: "upload.mp3",
+          contentType: "audio/mpeg",
+        })
+      }
+      else if(param.buffer) {
+        res0 = await WxGzhUploader.mediaByBuffer(param.buffer, {
           type: "voice",
           filename: "upload.mp3",
           contentType: "audio/mpeg",
@@ -2722,8 +2733,157 @@ export class TextToSpeech {
     this._room = opt?.room
   }
 
+  runByTongyi(text: string) {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_ALIYUN_BAILIAN_API_KEY
+    if(!apiKey) {
+      console.warn("there is no apiKey of tongyi in tts")
+      return
+    }
+
+    // 2. get voice
+    const voicePreference = this._room?.voicePreference ?? "female"
+    // 龙小诚 vs. 龙小夏
+    const voice_id = voicePreference === "male" ? "longxiaocheng" : "longxiaoxia_v2"
+    const model = voicePreference === "male" ? "cosyvoice-v1" : "cosyvoice-v2"
+
+    const task_id = createRandom()
+    const url = "wss://dashscope.aliyuncs.com/api-ws/v1/inference/"
+    const ws = new WebSocket(url, {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "X-DashScope-DataInspection": "enable",
+      }
+    })
+    const audioChunks: Buffer[] = []
+
+    const _wait = (a: BufferResolver) => {
+
+      ws.on("open", () => {
+        console.warn("we have connected to ws server from tongyi!")
+        const runTask = {
+          header: {
+            "action": "run-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "task_group": "audio",
+            "task": "tts",
+            "function": "SpeechSynthesizer",
+            "model": model,
+            "parameters": {
+              "text_type": "PlainText",
+              "voice": voice_id,
+              "format": "mp3",
+            },
+            "input": {}
+          }
+        }
+        const runTaskMsg = valTool.objToStr(runTask)
+        ws.send(runTaskMsg)
+        console.log("we have sent runTaskMsg: ", runTask)
+      })
+
+      const _handleBinaryData = (data: any) => {
+        if(Buffer.isBuffer(data)) {
+          audioChunks.push(data)
+          return
+        }
+        if(data instanceof ArrayBuffer) {
+          audioChunks.push(Buffer.from(data))
+          return
+        }
+
+        try {
+          const buffer = Buffer.from(data)
+          audioChunks.push(buffer)
+        }
+        catch(err) {
+          console.warn("fail to handle binary data")
+          console.log(err)
+        }
+      }
+
+      const _sendContinueTask = async () => {
+        // 1. send "continue"
+        const continueTask = {
+          header: {
+            "action": "continue-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "input": {
+              "text": text,
+            }
+          }
+        }
+        const continueTaskMsg = valTool.objToStr(continueTask)
+        ws.send(continueTaskMsg)
+        console.log("we have sent continueTask: ", continueTask)
+
+        await valTool.waitMilli(1000)
+
+        // 2. send "finish"
+        const finishTask = {
+          header: {
+            "action": "finish-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "input": {}
+          }
+        }
+        const finishTaskMsg = valTool.objToStr(finishTask)
+        ws.send(finishTaskMsg)
+        console.log("we have sent finishTask: ", finishTask)
+      }
+
+      ws.on("message", (data, isBinary) => {
+        if(isBinary) {
+          _handleBinaryData(data)
+          return
+        }
+        const message = valTool.strToObj(typeof data === 'string' ? data : data.toString())
+        const evt = message.header?.event
+
+        /**
+         * 来自百炼的事件:
+         *   task-started: 任务开始
+         *   result-generated: 生成结果（会返回多个，每个 chunk 见都有可能触发该事件）
+         *   task-finished: 任务结束
+         *   task-failed: 任务失败
+         */
+
+        if(evt === "task-started") {
+          _sendContinueTask()
+          return
+        }
+        if(evt === "task-finished") {
+          ws.close()
+          const audioBuffer = Buffer.concat(audioChunks)
+          a(audioBuffer)
+          return
+        }
+        if(evt === "task-failed") {
+          console.warn("fail to tts by tongyi")
+          console.log("message.header: ", message.header)
+          ws.close()
+          a(undefined)
+          return
+        }
+
+      })
+    }
+
+    return new Promise(_wait)
+  }
+
   async runByMiniMax(
-    text: string,
+    text: string
   ) {
     // 1. get api key and base url
     const _env = process.env

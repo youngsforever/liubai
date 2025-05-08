@@ -103,6 +103,31 @@ interface WxGzhMediaOpt extends RTFD_Opt {
   type?: "image" | "voice"
 }
 
+export function bufferToFormData(
+  buffer: Buffer,
+  opt?: RTFD_Opt,
+) {
+  const b64 = buffer.toString("base64")
+
+  const contentType = opt?.contentType ?? "audio/mpeg"
+  const formKey = opt?.formKey ?? "media"
+  let filename = opt?.filename
+
+  if(!filename) {
+    let suffix = getMimeTypeSuffix(contentType)
+    if(!suffix) suffix = "mp3"
+    filename = `upload.${suffix}`
+  }
+
+  const form = new FormData()
+  form.append(formKey, buffer, {
+    contentType,
+    filename,
+  })
+  
+  return { form, b64, contentType }
+}
+
 export async function blobToFormData(
   fileBlob: Blob,
   opt?: RTFD_Opt,
@@ -140,7 +165,7 @@ export async function responseToFormData(
   return res
 }
 
-export async function hexToFormData(
+export function hexToFormData(
   hex: string,
   opt?: RTFD_Opt,
 ) {
@@ -150,25 +175,8 @@ export async function hexToFormData(
     bytes[i / 2] = parseInt(cleanHex.slice(i, i + 2), 16)
   }
   const buffer = Buffer.from(bytes)
-  const b64 = buffer.toString("base64")
-
-  const contentType = opt?.contentType ?? "audio/mpeg"
-  const formKey = opt?.formKey ?? "media"
-  let filename = opt?.filename
-
-  if(!filename) {
-    let suffix = getMimeTypeSuffix(contentType)
-    if(!suffix) suffix = "mp3"
-    filename = `upload.${suffix}`
-  }
-
-  const form = new FormData()
-  form.append(formKey, buffer, {
-    contentType,
-    filename,
-  })
-  
-  return { form, b64, contentType }
+  const res = bufferToFormData(buffer, opt)
+  return res
 }
 
 // download cloud_url and upload to our OSS
@@ -481,8 +489,17 @@ export class WxGzhUploader {
     hex: string,
     opt?: WxGzhMediaOpt,
   ) {
-    const res1 = await hexToFormData(hex, opt)
+    const res1 = hexToFormData(hex, opt)
     const res2 = await this.toUpload(res1.form, opt)
+    return res2
+  }
+
+  static mediaByBuffer(
+    buffer: Buffer,
+    opt?: WxGzhMediaOpt,
+  ) {
+    const res1 = bufferToFormData(buffer, opt)
+    const res2 = this.toUpload(res1.form, opt)
     return res2
   }
 

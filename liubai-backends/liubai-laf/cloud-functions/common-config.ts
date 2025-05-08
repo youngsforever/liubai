@@ -67,4 +67,5 @@ export const ai_cfg = {
   i_got_it: "知道了",
 
   retired_ai: ["baixiaoying", "wanzhi"] as AiCharacter[],
+  speaking_characters: ["hailuo", "yuewen", "tongyi-qwen"] as AiCharacter[],
 }

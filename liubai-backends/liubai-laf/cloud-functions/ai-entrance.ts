@@ -1459,8 +1459,7 @@ class BaseBot {
     }
 
     // 4. handle audio
-    const audioCharacters: AiCharacter[] = ["hailuo", "yuewen"]
-    const isAudioCharacter = audioCharacters.includes(character)
+    const isAudioCharacter = ai_cfg.speaking_characters.includes(character)
     if(isAudioCharacter && !showCoT && text.length <= MAX_WORDS_TTS) {
       this._replyWithAudio(param)
       return
@@ -1501,6 +1500,17 @@ class BaseBot {
         return
       }
       TellUser.audio(entry, { hex: hex2_2 }, { fromBot: bot })
+      return
+    }
+
+    // 2.3 tongyi-qwen
+    if(character === "tongyi-qwen") {
+      const res2_3 = await tts.runByTongyi(text)
+      if(!res2_3) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      TellUser.audio(entry, { buffer: res2_3 }, { fromBot: bot })
       return
     }
 
