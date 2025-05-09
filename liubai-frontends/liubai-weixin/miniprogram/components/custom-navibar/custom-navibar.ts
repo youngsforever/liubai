@@ -1,8 +1,16 @@
 // custom-navibar.ts
 
+import { sharedBehavior } from "../../behaviors/shared-behavior";
+import { themeBehavior } from "../../behaviors/theme-behavior";
+
 Component({
 
   data: {},
+
+  behaviors: [
+    sharedBehavior(),
+    themeBehavior(),
+  ],
 
   properties: {
     height1: {
@@ -14,4 +22,12 @@ Component({
       value: 0
     }
   },
+
+  methods: {
+    onTapBack() {
+      console.log("onTapBack.......")
+    }
+  }
+
+
 })

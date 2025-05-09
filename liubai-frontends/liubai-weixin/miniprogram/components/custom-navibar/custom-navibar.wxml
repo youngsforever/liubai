@@ -13,7 +13,13 @@
     wx:if="{{ height2 > 0 }}"
     style="height: {{height2}}px"
   >
-
+    <view class="liu-hover cn-close-box" 
+      hover-class="cn-close-box_active"
+      style="width: {{height2}}px; height: {{height2}}px;"
+      catchtap="onTapBack"
+    >
+      <image src="{{imagePath}}arrow-down.png" class="cn-close-image"></image>
+    </view>
   </view>
 
 </view>

@@ -6,10 +6,13 @@
   "usingComponents": {
     "placeholder-view": "/components/placeholder-view/placeholder-view"
   },
-  "style": "v2",
   "window": {
-    "navigationStyle": "custom",
-    "backgroundColor": "#232323"
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#000000",
+    "navigationBarTitleText": "Liubai Note",
+    "navigationBarTextStyle": "white",
+    "navigationStyle": "custom"
   },
   "singlePage": {
     "navigationBarFit": "float"

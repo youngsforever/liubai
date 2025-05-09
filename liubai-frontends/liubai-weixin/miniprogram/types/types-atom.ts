@@ -18,3 +18,6 @@ export type PageStateKey = "OK"
   | "NETWORK_ERR"
   | "NEED_BACKEND"
 
+export type SupportedTheme = "light" | "dark"
+export type LocalTheme = SupportedTheme | "system" | "auto"   // auto 就是日夜切换
+  

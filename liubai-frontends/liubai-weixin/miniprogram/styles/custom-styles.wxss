@@ -1,0 +1,34 @@
+
+
+.liu-hover {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+}
+
+.liu-hover::before {
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  content: "";
+  transition: .1s;
+  opacity: 0;
+  background-color: var(--primary-color);
+}
+
+@media(hover: hover) {
+  .liu-hover:focus-visible {
+    outline: 2px solid var(--main-normal);
+  }
+
+  .liu-hover:hover::before {
+    opacity: .06;
+  }
+}
+
+.liu-hover:active::before {
+  opacity: .1;
+}
