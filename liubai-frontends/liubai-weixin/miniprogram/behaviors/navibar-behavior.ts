@@ -2,7 +2,6 @@ import { LiuApi } from "../utils/LiuApi"
 import valTool from "../utils/val-tool"
 import type { BoundingClientRectResolver } from "../types"
 import type { NbData } from "./tools/types"
-import { LiuUtil } from "../utils/liu-util/index"
 
 const defaultHeight3 = 600
 
@@ -48,20 +47,18 @@ export const navibarBehavior = Behavior({
         const menuButtonInfo = LiuApi.getMenuButtonBoundingClientRect()
         // console.log("menuButtonInfo: ", menuButtonInfo)
 
-        // 3.1 get enter options
+        // 3. get enter options
         const enterData = LiuApi.getEnterOptionsSync()
         const apiCategory = enterData.apiCategory
         const mode = enterData.mode
         // console.log("enterData: ", enterData)
-
-        // 3.2 get our characteristic
-        const cha = LiuUtil.getCharacteristic()
 
         // 4. get scroll view info
         const pageInfo = await this.getSvBoundingClientRect()
         // console.log("pageInfo: ", pageInfo)
 
         // 5. get default heigh1 & height2
+        const statusBarHeight = sizeInfo.statusBarHeight ?? 0
         const safeArea = sizeInfo.safeArea ?? {}
         const safeTop = safeArea?.top ?? 0
         const mbTop = menuButtonInfo?.top ?? 0
@@ -75,7 +72,7 @@ export const navibarBehavior = Behavior({
         const windowHeight = sizeInfo.windowHeight
         const screenHeight = sizeInfo.screenHeight
         const scrollViewHeight = pageInfo?.height ?? windowHeight
-        let considerStatusBar = Boolean(cha.isMobile)
+        let considerStatusBar = Boolean(statusBarHeight)
         if(apiCategory !== "browseOnly") {
           if(scrollViewHeight + 60 < windowHeight) {
             considerStatusBar = false

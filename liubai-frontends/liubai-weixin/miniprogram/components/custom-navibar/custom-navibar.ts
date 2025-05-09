@@ -20,6 +20,10 @@ Component({
     height2: {
       type: Number,
       value: 0
+    },
+    showTitle: {
+      type: Boolean,
+      value: true,
     }
   },
 
