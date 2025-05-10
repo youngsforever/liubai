@@ -1,3 +1,4 @@
+import { defaultData } from "../config/default-data"
 import { 
   isSupportedLocale,
   type SupportedLocale,
@@ -24,7 +25,7 @@ export function normalizeLanguage(val: string): SupportedLocale {
 
 export function getLocale(): SupportedLocale {
   const appBaseInfo = LiuApi.getAppBaseInfo()
-  const lang = appBaseInfo.language
+  const lang = appBaseInfo?.language ?? defaultData.language
   if(isSupportedLocale(lang)) return lang
   return normalizeLanguage(lang)
 }

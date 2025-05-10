@@ -2,6 +2,7 @@
 
 import { sharedBehavior } from "../../behaviors/shared-behavior";
 import { themeBehavior } from "../../behaviors/theme-behavior";
+import { LiuApi } from "../../utils/LiuApi";
 
 Component({
 
@@ -21,15 +22,27 @@ Component({
       type: Number,
       value: 0
     },
-    showTitle: {
+    visible: {
       type: Boolean,
       value: true,
+    },
+    title: {
+      type: String,
     }
   },
 
   methods: {
     onTapBack() {
-      console.log("onTapBack.......")
+      LiuApi.vibrateShort({ type: "light" })
+
+      const pages = LiuApi.getPages()
+      const pLength = pages.length
+      if(pLength <= 1) {
+        LiuApi.exitMiniProgram()
+      }
+      else {
+        LiuApi.navigateBack()
+      }
     }
   }
 

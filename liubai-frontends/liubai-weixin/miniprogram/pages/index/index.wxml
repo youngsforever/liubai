@@ -26,7 +26,10 @@
 
     <!-- Buttons -->
     <view class="index-btns">
-      <view class="index-btn" hover-class="index-btn_hover">
+      <view class="index-btn" 
+        hover-class="index-btn_hover"
+        catchtap="goToShowcase"
+      >
         <text class="liu-pointer">{{t1.add_my_wechat}}</text>
       </view>
 

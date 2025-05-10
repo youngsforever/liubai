@@ -5,5 +5,5 @@ export interface NbData {
   height2: number
   height3: number
   lastResizeTimeout: LiuTimeout
-  showTitle: boolean
+  visible: boolean
 }

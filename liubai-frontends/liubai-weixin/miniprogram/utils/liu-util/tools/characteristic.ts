@@ -1,3 +1,4 @@
+import { defaultData } from "../../../config/default-data";
 import { LiuApi } from "../../LiuApi";
 import type { CharacteristicsRes } from "./types";
 
@@ -8,12 +9,12 @@ export const handleCharacteristic = () => {
 
   // 1.1 get device info
   const deviceInfo = LiuApi.getDeviceInfo()
-  const { platform, system } = deviceInfo
-  console.log("deviceInfo: ", deviceInfo)
+  const platform = deviceInfo?.platform ?? ""
+  const system = deviceInfo?.system ?? ""
 
   // 1.2 get app base info
   const appBaseInfo = LiuApi.getAppBaseInfo()
-  const { SDKVersion } = appBaseInfo
+  const SDKVersion = appBaseInfo?.SDKVersion ?? defaultData.minSDKVersion
 
   // 2. define default platform
   result = {

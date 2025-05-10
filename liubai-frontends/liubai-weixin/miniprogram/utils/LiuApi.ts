@@ -22,7 +22,25 @@ export class LiuApi {
   }
 
   static getWindowInfo() {
-    return wx.getWindowInfo()
+    // 在快照模式 browseOnly 的情况下，可能返回 undefined
+    const res = wx.getWindowInfo()
+    if(res) return res
+
+    const res2 = wx.getSystemInfoSync()
+    if(!res2) return
+
+    // mock
+    const res3: WechatMiniprogram.WindowInfo = {
+      pixelRatio: res2.pixelRatio,
+      screenWidth: res2.screenWidth,
+      screenHeight: res2.screenHeight,
+      windowWidth: res2.windowWidth,
+      windowHeight: res2.windowHeight,
+      statusBarHeight: res2.statusBarHeight,
+      safeArea: res2.safeArea,
+      screenTop: 0,
+    }
+    return res3
   }
 
   static getMenuButtonBoundingClientRect() {
@@ -38,11 +56,48 @@ export class LiuApi {
   }
 
   static getDeviceInfo() {
-    return wx.getDeviceInfo()
+    // 在快照模式 browseOnly 的情况下，可能返回 undefined
+    const res = wx.getDeviceInfo()
+    if(res) return res
+
+    const res2 = wx.getSystemInfoSync()
+    if(!res2) return
+
+    // mock
+    const res3: WechatMiniprogram.DeviceInfo = {
+      abi: "",
+      deviceAbi: "",
+      benchmarkLevel: res2.benchmarkLevel,
+      brand: res2.brand,
+      model: res2.model,
+      system: res2.system,
+      platform: res2.platform,
+      cpuType: "",
+      memorySize: "",
+    }
+    return res3
   }
 
   static getAppBaseInfo() {
-    return wx.getAppBaseInfo()
+    // 在快照模式 browseOnly 的情况下，可能返回 undefined
+    const res = wx.getAppBaseInfo()
+    if(res) return res
+
+    const res2 = wx.getSystemInfoSync()
+    if(!res2) return
+
+    // mock
+    const res3: WechatMiniprogram.AppBaseInfo = {
+      SDKVersion: res2.SDKVersion,
+      enableDebug: res2.enableDebug,
+      host: res2.host,
+      language: res2.language,
+      version: res2.version,
+      theme: res2.theme,
+      fontSizeScaleFactor: 1,
+      fontSizeSetting: res2.fontSizeSetting,
+    }
+    return res3
   }
 
   static request(opt: WechatMiniprogram.RequestOption) {

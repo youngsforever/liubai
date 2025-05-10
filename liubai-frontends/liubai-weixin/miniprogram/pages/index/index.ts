@@ -106,7 +106,7 @@ Component({
 
     onShareAppMessage() {
       const { t } = useI18n()
-      const title = t("index.desc")
+      const title = t("index.slogan")
       return {
         title,
       }

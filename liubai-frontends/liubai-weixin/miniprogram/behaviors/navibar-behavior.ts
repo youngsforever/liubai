@@ -2,6 +2,7 @@ import { LiuApi } from "../utils/LiuApi"
 import valTool from "../utils/val-tool"
 import type { BoundingClientRectResolver } from "../types"
 import type { NbData } from "./tools/types"
+import { defaultData } from "../config/default-data"
 
 const defaultHeight3 = 600
 
@@ -12,7 +13,7 @@ export const navibarBehavior = Behavior({
     height2: 33,     // 通常指胶囊的高度
     height3: defaultHeight3,    // 通常指 页面高度 - 状态栏高度 - 胶囊高度
     lastResizeTimeout: 0,
-    showTitle: true,
+    visible: true,
   },
 
   lifetimes: {
@@ -41,25 +42,25 @@ export const navibarBehavior = Behavior({
   
         // 1. get window and screen info
         const sizeInfo = LiuApi.getWindowInfo()
-        // console.log("sizeInfo: ", sizeInfo)
+        console.log("sizeInfo: ", sizeInfo)
   
         // 2. get menu button info
         const menuButtonInfo = LiuApi.getMenuButtonBoundingClientRect()
-        // console.log("menuButtonInfo: ", menuButtonInfo)
+        console.log("menuButtonInfo: ", menuButtonInfo)
 
         // 3. get enter options
         const enterData = LiuApi.getEnterOptionsSync()
         const apiCategory = enterData.apiCategory
         const mode = enterData.mode
-        // console.log("enterData: ", enterData)
+        console.log("enterData: ", enterData)
 
         // 4. get scroll view info
         const pageInfo = await this.getSvBoundingClientRect()
-        // console.log("pageInfo: ", pageInfo)
+        console.log("pageInfo: ", pageInfo)
 
         // 5. get default heigh1 & height2
-        const statusBarHeight = sizeInfo.statusBarHeight ?? 0
-        const safeArea = sizeInfo.safeArea ?? {}
+        const statusBarHeight = sizeInfo?.statusBarHeight ?? 0
+        const safeArea = sizeInfo?.safeArea
         const safeTop = safeArea?.top ?? 0
         const mbTop = menuButtonInfo?.top ?? 0
         const mbHeight = menuButtonInfo.height ?? 0
@@ -69,8 +70,8 @@ export const navibarBehavior = Behavior({
 
 
         // 6. check if we need to consider status bar
-        const windowHeight = sizeInfo.windowHeight
-        const screenHeight = sizeInfo.screenHeight
+        const windowHeight = sizeInfo?.windowHeight ?? defaultData.windowHeight
+        const screenHeight = sizeInfo?.screenHeight ?? defaultData.screenHeight
         const scrollViewHeight = pageInfo?.height ?? windowHeight
         let considerStatusBar = Boolean(statusBarHeight)
         if(apiCategory !== "browseOnly") {
@@ -93,12 +94,22 @@ export const navibarBehavior = Behavior({
           }
         }
         else {
+          height2 = mbTop + mbHeight
           height2 = Math.max(height1, height2)
+          if(mbTop <= 12) height2 += mbTop
           height1 = 0
+        }
+
+        // 7.2 consider visibility
+        const newData: Partial<NbData> = {}
+        if(apiCategory === "browseOnly") {
+          newData.visible = false
+        }
+        if(apiCategory === "nativeFunctionalized" && mode === "halfPage") {
+          newData.visible = false
         }
   
         // 8. get to set data
-        const newData: Partial<NbData> = {}
         if(height1 >= 0) {
           newData.height1 = height1
           height3 -= height1
@@ -110,12 +121,7 @@ export const navibarBehavior = Behavior({
         height3 = Math.max(0, height3)
         newData.height3 = height3
 
-        if(apiCategory === "browseOnly") {
-          newData.showTitle = false
-        }
-        if(apiCategory === "nativeFunctionalized" && mode === "halfPage") {
-          newData.showTitle = false
-        }
+        console.log("see new data: ", newData)
 
         if(valTool.objHasAnyKey(newData)) {
           this.setData(newData)

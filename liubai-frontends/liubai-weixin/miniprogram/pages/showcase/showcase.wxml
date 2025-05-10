@@ -8,8 +8,16 @@
 >
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
   <placeholder-view height3="{{height3}}" p-state="{{pState}}"></placeholder-view>
-  <button catchtap="onTapBack">Back</button>
+
+  <view class="showcase-container" style="min-height: {{height3}}px">
+
+    <view class="showcase-view"></view>
+
+  </view>
+  
 </scroll-view>
 <custom-navibar 
-  height1="{{height1}}" height2="{{height2}}" showTitle="{{showTitle}}"
+  height1="{{height1}}" height2="{{height2}}" 
+  visible="{{visible}}"
+  title="橱窗"
 ></custom-navibar>

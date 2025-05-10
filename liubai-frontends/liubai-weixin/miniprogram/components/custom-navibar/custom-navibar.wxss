@@ -17,6 +17,12 @@
 .cn-box {
   width: 100%;
   background-color: var(--bg-color);
+  display: flex;
+  align-items: center;
+}
+
+.cn-box_hidden {
+  visibility: hidden;
 }
 
 .cn-close-box {
@@ -37,4 +43,17 @@
 .cn-close-image {
   width: 50%;
   height: 50%;
+}
+
+.cn-back-image {
+  width: 60%;
+  height: 60%;
+}
+
+.cn-title {
+  flex: 1;
+  text-align: center;
+  font-size: var(--desc-font);
+  font-weight: 700;
+  color: var(--main-normal);
 }

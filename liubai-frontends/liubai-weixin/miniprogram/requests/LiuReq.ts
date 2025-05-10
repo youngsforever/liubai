@@ -3,6 +3,7 @@ import { LiuTime } from "../utils/LiuTime"
 import { LiuApi } from "../utils/LiuApi"
 import { cfg } from "../config/index"
 import { LiuUtil } from "../utils/liu-util/index"
+import { defaultData } from "../config/default-data"
 
 export type NetworkResolver<T> = (res: LiuRqReturn<T>) => void
 
@@ -17,8 +18,8 @@ function _getBody<U extends Record<string, any>>(
 
   // 1.2 get language
   const appBaseInfo = LiuApi.getAppBaseInfo()
-  const language = appBaseInfo.language
-  const theme = appBaseInfo.theme ?? "light"
+  const language = appBaseInfo?.language ?? defaultData.language
+  const theme = appBaseInfo?.theme ?? defaultData.theme
 
   // 2. add some common data
   const b: Record<string, any> = {

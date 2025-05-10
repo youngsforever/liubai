@@ -2,5 +2,5 @@
 
 .vn-container {
   width: 100%;
-  background-color: thistle;
+  background-color: transparent;
 }
