@@ -1,4 +1,4 @@
-import { defaultData } from "../../../config/default-data";
+import { defaultData } from "~/config/default-data";
 import { LiuApi } from "../../LiuApi";
 import type { CharacteristicsRes } from "./types";
 

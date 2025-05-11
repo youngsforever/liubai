@@ -1,4 +1,4 @@
-import { defaultData } from "../../config/default-data";
+import { defaultData } from "~/config/default-data";
 import { LiuApi } from "../LiuApi";
 import { handleCharacteristic, handleDeviceString } from "./tools/characteristic";
 
@@ -38,6 +38,30 @@ export class LiuUtil {
     }
 
     return Boolean(delta > 0)
+  }
+
+  static navigateWithPopup(url: string) {
+    const apiCategory = LiuApi.getApiCategory()
+    if(apiCategory === "embedded" || apiCategory === "nativeFunctionalized") {
+      LiuApi.navigateTo({ url })
+      return
+    }
+    const opt: WechatMiniprogram.NavigateToOption = {
+      url,
+      // wx://bottom-sheet  wx://modal  wx://cupertino-modal  wx://upwards
+      routeType: "wx://cupertino-modal",        
+      routeConfig: {
+        barrierColor: "rgba(0, 0, 0, 0.5)",
+        barrierDismissible: true,
+        popGestureDirection: "multi",
+        fullscreenDrag: false,
+      },
+      routeOptions: {
+        round: true,
+        height: 75,
+      },
+    }
+    LiuApi.navigateTo(opt) 
   }
 
 }

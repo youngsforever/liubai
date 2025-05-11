@@ -5,7 +5,10 @@
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "rootDir": ".",
-    "types": ["miniprogram-api-typings"]
+    "types": ["miniprogram-api-typings"],
+    "paths": {
+      "~/*": ["./*"]
+    }
   },
   "include": [
     "./**/*.ts"

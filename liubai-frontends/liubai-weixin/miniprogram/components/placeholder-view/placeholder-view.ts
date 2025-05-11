@@ -1,6 +1,6 @@
 
-import { pageStates } from "../../utils/atom-util"
-import { cfg } from "../../config/index"
+import { pageStates } from "~/utils/atom-util"
+import { cfg } from "~/config/index"
 
 const TRANSITION_MS = 300
 

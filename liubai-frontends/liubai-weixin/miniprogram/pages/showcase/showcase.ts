@@ -1,9 +1,9 @@
 // showcase.ts
 
-import { navibarBehavior } from "../../behaviors/navibar-behavior"
-import { sharedBehavior } from "../../behaviors/shared-behavior"
-import { pageStates } from "../../utils/atom-util"
-import type { HappySystemAPI } from "../../requests/req-types"
+import { navibarBehavior } from "~/behaviors/navibar-behavior"
+import { sharedBehavior } from "~/behaviors/shared-behavior"
+import { pageStates } from "~/utils/atom-util"
+import type { HappySystemAPI } from "~/requests/req-types"
 
 Component({
 

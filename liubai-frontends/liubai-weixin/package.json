@@ -1,6 +1,6 @@
 {
   "name": "liubai-weixin",
-  "version": "0.0.1",
+  "version": "0.13.0",
   "description": "",
   "scripts": {
     "pre-build": "tsx build/pre-build.ts"

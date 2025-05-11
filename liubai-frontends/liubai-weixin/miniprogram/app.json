@@ -9,7 +9,7 @@
   "window": {
     "backgroundTextStyle": "dark",
     "backgroundColor": "#ffffff",
-    "navigationBarBackgroundColor": "#000000",
+    "navigationBarBackgroundColor": "#2a6885",
     "navigationBarTitleText": "Liubai Note",
     "navigationBarTextStyle": "white",
     "navigationStyle": "custom"
@@ -24,6 +24,9 @@
   "resizable": true,
   "componentFramework": "glass-easel",
   "lazyCodeLoading": "requiredComponents",
+  "resolveAlias": {
+    "~/*": "/*"
+  },
   "rendererOptions": {
     "skyline": {
       "disableABTest": true,

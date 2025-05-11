@@ -1,9 +1,9 @@
 // custom-navibar.ts
 
-import { sharedBehavior } from "../../behaviors/shared-behavior";
-import { themeBehavior } from "../../behaviors/theme-behavior";
-import { LiuUtil } from "../../utils/liu-util/index";
-import { LiuApi } from "../../utils/LiuApi";
+import { sharedBehavior } from "~/behaviors/shared-behavior";
+import { themeBehavior } from "~/behaviors/theme-behavior";
+import { LiuUtil } from "~/utils/liu-util/index";
+import { LiuApi } from "~/utils/LiuApi";
 
 Component({
 

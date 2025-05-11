@@ -1,13 +1,14 @@
 // index.ts
 
-import { i18nBehavior } from "../../behaviors/i18n-behavior"
-import { navibarBehavior } from "../../behaviors/navibar-behavior"
-import { sharedBehavior } from "../../behaviors/shared-behavior"
-import { cfg } from "../../config/index"
-import { useI18n } from "../../locales/index"
-import { LiuUtil } from "../../utils/liu-util/index"
-import { LiuApi } from "../../utils/LiuApi"
-import valTool from "../../utils/val-tool"
+import { i18nBehavior } from "~/behaviors/i18n-behavior"
+import { navibarBehavior } from "~/behaviors/navibar-behavior"
+import { sharedBehavior } from "~/behaviors/shared-behavior"
+import { defaultData } from "~/config/default-data"
+import { cfg } from "~/config/index"
+import { useI18n } from "~/locales/index"
+import { LiuUtil } from "~/utils/liu-util/index"
+import { LiuApi } from "~/utils/LiuApi"
+import valTool from "~/utils/val-tool"
 
 Component({
 
@@ -39,21 +40,8 @@ Component({
   methods: {
 
     goToShowcase() {
-      wx.navigateTo({
-        url: '/pages/showcase/showcase',
-        // wx://bottom-sheet  wx://modal  wx://cupertino-modal  wx://upwards
-        routeType: "wx://cupertino-modal",        
-        routeConfig: {
-          barrierColor: "rgba(0, 0, 0, 0.5)",
-          barrierDismissible: true,
-          popGestureDirection: "multi",
-          fullscreenDrag: false,
-        },
-        routeOptions: {
-          round: true,
-          height: 75,
-        },
-      })
+      LiuApi.vibrateShort({ type: "medium" })
+      LiuUtil.navigateWithPopup("/pages/showcase/showcase")
     },
 
     onTapFollowUs() {
@@ -83,9 +71,8 @@ Component({
     },
 
     toOpenArticle() {
-      const followLink = "https://mp.weixin.qq.com/s/Nd3q4LKT_rJoMNo-AU-uuw"
       LiuApi.openOfficialAccountArticle({
-        url: followLink,
+        url: defaultData.fellowArticleLink,
         success(res) {
           console.log("openOfficialAccountArticle success", res)
         },
