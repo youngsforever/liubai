@@ -9,9 +9,33 @@
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
   <placeholder-view height3="{{height3}}" p-state="{{pState}}"></placeholder-view>
 
-  <view class="showcase-container" style="min-height: {{height3}}px">
+  <view class="showcase-container" style="min-height: {{height3}}px"
+    wx:if="{{pState !== 0 && showcase}}"
+  >
 
-    <view class="showcase-view"></view>
+    <view class="showcase-virtual" style="height: 30px;"></view>
+
+    <!-- image --> 
+    <view wx:if="{{showcase.imageUrl}}"
+      class="showcase-image-container"
+    >
+      <view class="showcase-image-box"
+        hover-class="showcase-image-box_hover"
+      >
+        <image 
+          src="{{showcase.imageUrl}}" 
+          mode="aspectFit" class="showcase-image" 
+          show-menu-by-longpress
+        />
+      </view>
+    </view>
+
+    <!-- footer -->
+    <view class="showcase-footer-box" wx:if="{{showcase.footer}}">
+      <text>{{showcase.footer}}</text>
+    </view>
+
+    <view class="showcase-virtual"></view>
 
   </view>
   
@@ -19,5 +43,5 @@
 <custom-navibar 
   height1="{{height1}}" height2="{{height2}}" 
   visible="{{visible}}"
-  title="橱窗"
+  title="{{showcase.title}}"
 ></custom-navibar>

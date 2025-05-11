@@ -2420,6 +2420,16 @@ export interface Res_SyncGet_Cloud {
   plz_enc_results?: SyncGetAtomRes[]
 }
 
+/****************** Happy System api ***************/
+export namespace HappySystemAPI {
+  export interface Res_GetShowcase {
+    operateType: "get-showcase"
+    title: string
+    imageUrl?: string
+    imageH2W?: number
+    footer?: string
+  }
+}
 
 /****************** sync-operate api ***************/
 
