@@ -12,7 +12,8 @@
     "navigationBarBackgroundColor": "#2a6885",
     "navigationBarTitleText": "Liubai Note",
     "navigationBarTextStyle": "white",
-    "navigationStyle": "custom"
+    "navigationStyle": "custom",
+    "initialRenderingCache": "static"
   },
   "singlePage": {
     "navigationBarFit": "float"
