@@ -8,7 +8,7 @@
           "pathName": "pages/showcase/showcase",
           "query": "",
           "scene": null,
-          "launchMode": "singlePage"
+          "launchMode": "embedded"
         },
         {
           "name": "index",
@@ -25,7 +25,7 @@
     "urlCheck": false,
     "coverView": false,
     "lazyloadPlaceholderEnable": false,
-    "skylineRenderEnable": false,
+    "skylineRenderEnable": true,
     "preloadBackgroundData": false,
     "autoAudits": false,
     "useApiHook": true,

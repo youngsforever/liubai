@@ -13,6 +13,7 @@ Component({
 
   data: {
     showFollowUs: true,
+    pageName: "index",
   },
 
   behaviors: [

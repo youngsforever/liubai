@@ -5,5 +5,5 @@ export const defaultData = {
   minSDKVersion: "3.0.1",
   windowHeight: 650,
   screenHeight: 650,
-
+  homePath: "/pages/index/index",
 }

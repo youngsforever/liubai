@@ -13,6 +13,7 @@ Component({
 
   data: {
     pState: pageStates.LOADING,
+    pageName: "showcase",
   },
 
   lifetimes: {

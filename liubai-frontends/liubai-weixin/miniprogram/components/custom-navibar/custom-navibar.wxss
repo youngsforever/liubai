@@ -50,6 +50,11 @@
   height: 60%;
 }
 
+.cn-home-image {
+  width: 66%;
+  height: 66%;
+}
+
 .cn-title {
   flex: 1;
   text-align: center;

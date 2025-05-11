@@ -2,11 +2,14 @@
 
 import { sharedBehavior } from "../../behaviors/shared-behavior";
 import { themeBehavior } from "../../behaviors/theme-behavior";
+import { LiuUtil } from "../../utils/liu-util/index";
 import { LiuApi } from "../../utils/LiuApi";
 
 Component({
 
-  data: {},
+  data: {
+    isEmbedded: false,
+  },
 
   behaviors: [
     sharedBehavior(),
@@ -31,6 +34,16 @@ Component({
     }
   },
 
+  lifetimes: {
+    attached() {
+      const apiCategory = LiuApi.getApiCategory()
+      const isEmbedded = Boolean(apiCategory === "embedded")
+      if(isEmbedded) {
+        this.setData({ isEmbedded })
+      }
+    }
+  },
+
   methods: {
     onTapBack() {
       LiuApi.vibrateShort({ type: "light" })
@@ -43,7 +56,17 @@ Component({
       else {
         LiuApi.navigateBack()
       }
-    }
+    },
+
+    onTapHome() {
+      LiuApi.vibrateShort({ type: "light" })
+      LiuUtil.goHome()
+    },
+
+    
+
+
+
   }
 
 

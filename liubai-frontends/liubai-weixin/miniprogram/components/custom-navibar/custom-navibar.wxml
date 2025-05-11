@@ -13,7 +13,19 @@
     wx:if="{{ height2 > 0 }}"
     style="height: {{height2}}px"
   >
-    <view class="liu-hover cn-close-box" 
+    <!-- redirect to home -->
+    <view wx:if="{{isEmbedded && pageLength <= 1}}"
+      class="liu-hover cn-close-box" 
+      hover-class="cn-close-box_active"
+      style="width: {{height2}}px; height: {{height2}}px;"
+      catchtap="onTapHome"
+    >
+      <image src="{{imagePath}}home.png" class="cn-home-image"></image>
+    </view>
+
+    <!-- exit or back -->
+    <view wx:else
+      class="liu-hover cn-close-box" 
       hover-class="cn-close-box_active"
       style="width: {{height2}}px; height: {{height2}}px;"
       catchtap="onTapBack"

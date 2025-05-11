@@ -48,11 +48,11 @@ export const navibarBehavior = Behavior({
         const menuButtonInfo = LiuApi.getMenuButtonBoundingClientRect()
         console.log("menuButtonInfo: ", menuButtonInfo)
 
-        // 3. get enter options
+        // 3. get enter options & api category
         const enterData = LiuApi.getEnterOptionsSync()
-        const apiCategory = enterData.apiCategory
+        const apiCategory = LiuApi.getApiCategory()
         const mode = enterData.mode
-        console.log("enterData: ", enterData)
+        console.log("apiCategory: ", apiCategory)
 
         // 4. get scroll view info
         const pageInfo = await this.getSvBoundingClientRect()
@@ -75,10 +75,10 @@ export const navibarBehavior = Behavior({
         const scrollViewHeight = pageInfo?.height ?? windowHeight
         let considerStatusBar = Boolean(statusBarHeight)
         if(apiCategory !== "browseOnly") {
-          if(scrollViewHeight + 60 < windowHeight) {
+          if(scrollViewHeight + 48 < windowHeight) {
             considerStatusBar = false
           }
-          if(windowHeight + 100 < screenHeight) {
+          if(windowHeight + 88 < screenHeight) {
             considerStatusBar = false
           }
         }
@@ -97,6 +97,7 @@ export const navibarBehavior = Behavior({
           height2 = mbTop + mbHeight
           height2 = Math.max(height1, height2)
           if(mbTop <= 12) height2 += mbTop
+          height2 = Math.min(50, height2)
           height1 = 0
         }
 

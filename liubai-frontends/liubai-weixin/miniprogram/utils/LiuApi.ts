@@ -17,6 +17,10 @@ export class LiuApi {
     wx.navigateBack(opt)
   }
 
+  static redirectTo(opt: WechatMiniprogram.RedirectToOption) {
+    wx.redirectTo(opt)
+  }
+
   static reLaunch(opt: WechatMiniprogram.ReLaunchOption) {
     wx.reLaunch(opt)
   }
@@ -49,6 +53,13 @@ export class LiuApi {
 
   static getEnterOptionsSync() {
     return wx.getEnterOptionsSync()
+  }
+
+  static getApiCategory(): WechatMiniprogram.ApiCategory {
+    // 在快照模式 browseOnly 的情况下，可能返回 undefined
+    const res = wx.getApiCategory()
+    if(!res) return "browseOnly"
+    return res as WechatMiniprogram.ApiCategory
   }
 
   static getSkylineInfoSync() {
