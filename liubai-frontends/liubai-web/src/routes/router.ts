@@ -6,6 +6,7 @@ import {
 import { routes } from "./init-routes"
 import liuEnv from "~/utils/liu-env"
 import localCache from "~/utils/system/local-cache"
+import valTool from "~/utils/basic/val-tool"
 
 // 扩展 vue-router 下的 RouteMeta 接口
 // inApp 为 false 表示不在应用内（可能在落地页 / share 分享内等等）
@@ -38,7 +39,9 @@ const _getGoTo = (to: RouteLocationNormalizedGeneric) => {
   }
 
   const toQ = to.query
-  if(toQ.goto) return
+  if(valTool.isStringWithVal(toQ.goto)) {
+    return toQ.goto
+  }
 
   const p1 = to.fullPath
   return p1
