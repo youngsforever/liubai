@@ -1351,7 +1351,7 @@ class BaseBot {
 
     // 2. reply to user without CoT
     if(!showCoT) {
-      this._replyToUser({
+      await this._replyToUser({
         chatCompletion,
         entry,
         bot,
@@ -1378,7 +1378,7 @@ class BaseBot {
 
     // 4. reply to user with CoT
     if(showCoT) {
-      this._replyToUser({
+      await this._replyToUser({
         chatCompletion,
         entry,
         bot,
@@ -1420,7 +1420,7 @@ class BaseBot {
     return newText
   }
 
-  private _replyToUser(param: ReplyToUserParam) {
+  private async _replyToUser(param: ReplyToUserParam) {
     // 1. get params
     const {
       chatCompletion,
@@ -1462,7 +1462,7 @@ class BaseBot {
     // 4. handle audio
     const isAudioCharacter = ai_cfg.speaking_characters.includes(character)
     if(isAudioCharacter && !showCoT && text.length <= MAX_WORDS_TTS) {
-      this._replyWithAudio(param)
+      await this._replyWithAudio(param)
       return
     }
 
@@ -1513,6 +1513,7 @@ class BaseBot {
         TellUser.text(entry, text, { fromBot: bot })
         return
       }
+      console.log("我去设置 _hasVoiceReplied 为 true 了！")
       this._hasVoiceReplied = true
       TellUser.audio(entry, { buffer: res2_3 }, { fromBot: bot })
       return
@@ -2345,19 +2346,20 @@ class AiController {
   ) {
     const { room, entry } = aiParam
 
-    // 1. send text to user
-    const user = entry.user
-    const { t } = useI18n(aiLang, { user })
-    const msg = t("hello_ai_voice")
-    TellUser.text(entry, msg)
-
-    // 2. update room for ai voice preference
+    // 1. update room for ai voice preference
     const rCol = db.collection("AiRoom")
     const u2: Partial<Table_AiRoom> = {
       voicePreference: ai_cfg.default_voice,
       updatedStamp: getNowStamp(),
     }
-    rCol.doc(room._id).update(u2)
+    await rCol.doc(room._id).update(u2)
+
+    // 2. send text to user
+    const user = entry.user
+    const { t } = useI18n(aiLang, { user })
+    const msg = t("hello_ai_voice")
+    await valTool.waitMilli(2500)
+    TellUser.text(entry, msg)
   }
 
   private async sendFallbackMenu(

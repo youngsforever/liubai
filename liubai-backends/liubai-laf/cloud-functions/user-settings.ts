@@ -163,7 +163,6 @@ async function ai_console_set(
     updatedStamp: getNowStamp(),
   }
   const res3 = await rCol.doc(room._id).update(u3)
-  console.log("res3: ", res3)
   return { code: "0000" }
 }
 
