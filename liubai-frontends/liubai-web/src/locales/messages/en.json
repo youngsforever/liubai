@@ -761,5 +761,12 @@
     "tencent-cloud-studio": "Cloud Studio",
     "cnb-cool": "Cloud Native Build (CNB)",
     "trae": "Trae"
+  },
+  "ai_console": {
+    "title": "AI Console",
+    "voice_preference": "Voice",
+    "voice_tip": "Which voice would you like?",
+    "male": "Male",
+    "female": "Female"
   }
 }

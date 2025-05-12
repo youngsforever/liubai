@@ -1,0 +1,64 @@
+/** custom-navibar.wxss */
+
+@import "../../styles/custom-styles.wxss";
+
+.cn-container {
+  width: 100%;
+  top: 0;
+  left: 0;
+  position: fixed;
+}
+
+.cn-status-bar {
+  width: 100%;
+  background-color: var(--bg-color);
+}
+
+.cn-box {
+  width: 100%;
+  background-color: var(--bg-color);
+  display: flex;
+  align-items: center;
+}
+
+.cn-box_hidden {
+  visibility: hidden;
+}
+
+.cn-close-box {
+  padding-left: 10px;
+  width: 30px;
+  height: 30px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .15s;
+}
+
+.cn-close-box_active {
+  opacity: .75;
+}
+
+.cn-close-image {
+  width: 50%;
+  height: 50%;
+}
+
+.cn-back-image {
+  width: 60%;
+  height: 60%;
+}
+
+.cn-home-image {
+  width: 66%;
+  height: 66%;
+}
+
+.cn-title {
+  flex: 1;
+  text-align: center;
+  font-size: var(--desc-font);
+  font-weight: 700;
+  color: var(--main-normal);
+}

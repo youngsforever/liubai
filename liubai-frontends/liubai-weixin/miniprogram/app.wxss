@@ -1,0 +1,68 @@
+/** app.wxss */
+
+
+page {
+  --liu-red: #f13333;
+  --liu-green: #39d739;
+  --liu-blue: #2270f1;
+
+  --primary-color: #2a6885;   /** 皇家蓝 #00416A */
+  --on-primary: #fafafa;
+  --primary-hover: #1c5671;
+  --primary-active: #15455e;
+  --inverse-primary: #88d1ff;
+
+  --card-bg: #eaecef;
+  --bg-color: #fff;
+  --main-text: #1f2429;
+  --main-normal: #3f4549;
+  --main-code: #686868;
+  --main-note: #ababab;
+  --main-tip: #bfbfbf;
+
+  --head-font: 28px;
+  --title-font: 22px;
+  --desc-font: 20px;
+  --inline-code-font: 18px;
+  --btn-font: 17px;
+
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--main-normal);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.liu-scroll-view {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+}
+
+.liu-virtual {
+  width: 100%;
+  height: 16px;
+}
+
+.liu-pointer {
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  page {
+    --primary-color: #88d1ff;   /**  88c4e3 */
+    --on-primary: #003354;
+    --primary-hover: #68c4f3;
+    --primary-active: #48abdd;
+    --inverse-primary: #2a6885;
+
+    --card-bg: #2a2c2e;
+    --bg-color: #232323;
+    --main-text: #e7e9ea;
+    --main-normal: #c7c9ca;
+    --main-code: #ababab;
+    --main-note: #686868;
+    --main-tip: #4e4e4e;
+  }
+}

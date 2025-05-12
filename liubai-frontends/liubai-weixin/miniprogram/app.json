@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/showcase/showcase"
+  ],
+  "usingComponents": {
+    "placeholder-view": "/components/placeholder-view/placeholder-view"
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "backgroundColor": "#ffffff",
+    "navigationBarBackgroundColor": "#2a6885",
+    "navigationBarTitleText": "Liubai Note",
+    "navigationBarTextStyle": "white",
+    "navigationStyle": "custom",
+    "initialRenderingCache": "static"
+  },
+  "singlePage": {
+    "navigationBarFit": "float"
+  },
+  "halfPage": {
+    "firstPageNavigationStyle": "custom"
+  },
+  "darkmode": true,
+  "resizable": true,
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents",
+  "resolveAlias": {
+    "~/*": "/*"
+  },
+  "rendererOptions": {
+    "skyline": {
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.1",
+      "sdkVersionEnd": "15.255.255",
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true
+    }
+  },
+  "renderer": "skyline"
+}

@@ -66,6 +66,9 @@ import {
   LogHelper,
   Translator,
   TransformContent,
+  TextToSpeech,
+  MAX_CHARACTERS,
+  charactersTakingARest,
 } from "@/ai-shared"
 import { ai_cfg } from "@/common-config"
 
@@ -73,7 +76,6 @@ const db = cloud.database()
 const _ = db.command
 
 /********************* constants ***********************/
-const MAX_CHARACTERS = 3
 const MIN_RESERVED_TOKENS = 1600
 const TOKEN_NEED_COMPRESS = 6000
 const MAX_WX_TOKEN = 360  // wx gzh will send 45002 error if we send too many words once
@@ -90,12 +92,7 @@ const SEC_15 = SECONED * 15
 const MIN_3 = MINUTE * 3
 const HOUR_12 = HOUR * 12
 const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first INDEX_TO_PRESERVE_IMAGES will be preserved rather than compressed to text like [image]
-
-// characters which take a rest will not be filled whle users launch a new chat
-const charactersTakingARest: AiCharacter[] = [
-  "ds-reasoner",
-  "deepseek",
-]
+const MAX_WORDS_TTS = 180
 
 /************************** types ************************/
 
@@ -133,6 +130,7 @@ interface ReplyToUserParam {
   textToUser: string
   assistantChatId?: string
   showCoT: boolean
+  room: Table_AiRoom
 }
 
 
@@ -329,7 +327,7 @@ class AiDirective {
   static check(
     entry: AiEntry
   ): AiDirectiveCheckRes | undefined {
-    this._bots = AiHelper.getAvailableBots()
+    this._bots = AiShared.getAvailableBots()
 
     // 1. get text
     const text = entry.text
@@ -754,6 +752,7 @@ class BaseBot {
   protected _aiLogs: LiuAi.RunLog[] = []
   protected _chatTimes = 0
   protected MAX_CHAT_TIMES = 3
+  protected _hasVoiceReplied = false
   private _fromUser: Table_User | undefined
 
   constructor(
@@ -1352,12 +1351,13 @@ class BaseBot {
 
     // 2. reply to user without CoT
     if(!showCoT) {
-      this._replyToUser({
+      await this._replyToUser({
         chatCompletion,
         entry,
         bot,
         textToUser,
         showCoT,
+        room: aiParam.room,
       })
     }
     
@@ -1378,13 +1378,14 @@ class BaseBot {
 
     // 4. reply to user with CoT
     if(showCoT) {
-      this._replyToUser({
+      await this._replyToUser({
         chatCompletion,
         entry,
         bot,
         textToUser,
         assistantChatId,
         showCoT,
+        room: aiParam.room,
       })
     }
 
@@ -1419,7 +1420,8 @@ class BaseBot {
     return newText
   }
 
-  private _replyToUser(param: ReplyToUserParam) {
+  private async _replyToUser(param: ReplyToUserParam) {
+    // 1. get params
     const {
       chatCompletion,
       entry,
@@ -1434,6 +1436,8 @@ class BaseBot {
     const gzhType = AiShared.getGzhType()
 
     let text = textToUser
+
+    // 2. handle CoT
     if(assistantChatId && showCoT) {
       const user = entry.user
       const { t } = useI18n(aiLang, { user })
@@ -1443,6 +1447,7 @@ class BaseBot {
       text += `\n\n` + view_thinking
     }
 
+    // 3. handle length
     if(finishReason === "length" && gzhType === "service_account") {
       TellUser.menu(
         entry, 
@@ -1451,10 +1456,69 @@ class BaseBot {
         "",
         character,
       )
+      return
     }
-    else {
-      TellUser.text(entry, text, { fromBot: bot })
+
+    // 4. handle audio
+    const isAudioCharacter = ai_cfg.speaking_characters.includes(character)
+    if(isAudioCharacter && !showCoT && text.length <= MAX_WORDS_TTS) {
+      await this._replyWithAudio(param)
+      return
     }
+
+    // n. fallback, reply with text
+    TellUser.text(entry, text, { fromBot: bot })
+  }
+
+
+  private async _replyWithAudio(
+    param: ReplyToUserParam,
+  ) {
+    const { entry, room, bot } = param
+    const character = bot.character
+    const text = param.textToUser
+
+    // 1. get audio
+    const tts = new TextToSpeech({ room })
+
+    // 2.1 yuewen
+    if(character === "yuewen") {
+      const res2_1 = await tts.runByStepfun(text)
+      if(!res2_1) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      this._hasVoiceReplied = true
+      TellUser.audio(entry, { response: res2_1 }, { fromBot: bot })
+      return
+    }
+
+    // 2.2 minimax
+    if(character === "hailuo") {
+      const res2_2 = await tts.runByMiniMax(text)
+      const hex2_2 = res2_2?.data?.audio
+      if(!hex2_2) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      this._hasVoiceReplied = true
+      TellUser.audio(entry, { hex: hex2_2 }, { fromBot: bot })
+      return
+    }
+
+    // 2.3 tongyi-qwen
+    if(character === "tongyi-qwen") {
+      const res2_3 = await tts.runByTongyi(text)
+      if(!res2_3) {
+        TellUser.text(entry, text, { fromBot: bot })
+        return
+      }
+      console.log("我去设置 _hasVoiceReplied 为 true 了！")
+      this._hasVoiceReplied = true
+      TellUser.audio(entry, { buffer: res2_3 }, { fromBot: bot })
+      return
+    }
+
   }
 
   /** remove the last line if we receive `finish_reason` with value `length` */
@@ -1540,6 +1604,7 @@ class BaseBot {
       chatCompletion, 
       assistantChatId,
       logs: [...this._aiLogs],
+      hasVoiceReplied: this._hasVoiceReplied,
     }
   }
 
@@ -2239,30 +2304,62 @@ class AiController {
     const res4 = await Promise.all(promises)
     let hasEverSucceeded = false
     let hasEverUsedTool = false
+    let hasEverUsedVoice = false
     const aiLogs: LiuAi.RunLog[] = []
     for(let i=0; i<res4.length; i++) {
       const v = res4[i]
       if(v && v.replyStatus === "yes") {
         hasEverSucceeded = true
         if(v.toolName) hasEverUsedTool = true
+        if(v.hasVoiceReplied) hasEverUsedVoice = true
         if(v.logs) {
-          console.log("see logs in ai controller:::")
-          LogHelper.printLastItems(v.logs)
+          // console.log("see logs in ai controller:::")
+          // LogHelper.printLastItems(v.logs)
           aiLogs.push(...v.logs)
         }
       }
     }
     if(!hasEverSucceeded) return
 
-    // 5. add quota for user
+    // 5. add quota
     const num5 = AiHelper.addQuotaForUser(entry, room)
+
+    // 5.1 popup tip for ai voice
+    if(hasEverUsedVoice) {
+      if(!room.voicePreference) {
+        this.popupTipForAiVoice(aiParam)
+        return
+      }
+    }
+
+    // 5.2 add quota for user    
     if(aiLogs.length > 0) {
       this.sendFallbackMenu(aiParam, res4, aiLogs) 
     }
     else if((num5 % 3) === 2 && !hasEverUsedTool) {
       this.sendFallbackMenu(aiParam, res4, aiLogs)
     }
+  }
 
+  private async popupTipForAiVoice(
+    aiParam: LiuAi.RunParam,
+  ) {
+    const { room, entry } = aiParam
+
+    // 1. update room for ai voice preference
+    const rCol = db.collection("AiRoom")
+    const u2: Partial<Table_AiRoom> = {
+      voicePreference: ai_cfg.default_voice,
+      updatedStamp: getNowStamp(),
+    }
+    await rCol.doc(room._id).update(u2)
+
+    // 2. send text to user
+    const user = entry.user
+    const { t } = useI18n(aiLang, { user })
+    const msg = t("hello_ai_voice")
+    await valTool.waitMilli(2500)
+    TellUser.text(entry, msg)
   }
 
   private async sendFallbackMenu(
@@ -3155,7 +3252,7 @@ class AiHelper {
   
     // 2.1 get available characters
     const b2 = getBasicStampWhileAdding()
-    const characters = this.fillCharacters()
+    const characters = AiShared.fillCharacters()
 
     // 2.2 try to add bot user wants
     if(botUserWannaAdd) {
@@ -3186,62 +3283,6 @@ class AiHelper {
     // 3. return room
     const newRoom: Table_AiRoom = { _id: roomId, ...room2 }
     return newRoom
-  }
-
-  private static fillCharacters() {
-    const all_characters = this.getAvailableCharacters()
-    if(all_characters.length <= MAX_CHARACTERS) {
-      return all_characters
-    }
-    const copied_characters = [...all_characters].splice(0, MAX_CHARACTERS)
-
-    let tryTimes = 0
-    const my_characters: AiCharacter[] = []
-    for(let i=0; i<MAX_CHARACTERS; i++) {
-      // 1. to avoid dead loop
-      tryTimes++
-      if(tryTimes > 10) break
-
-      // 2. get a random character
-      const r = Math.floor(Math.random() * all_characters.length)
-      const c = all_characters[r]
-
-      // 3. to skip a bot taking a rest
-      if(charactersTakingARest.includes(c)) {
-        i--
-        continue
-      }
-
-      my_characters.push(c)
-      all_characters.splice(r, 1)
-    }
-
-    // return copied characters if my_characters is empty
-    if(my_characters.length < 1) {
-      return copied_characters
-    }
-
-    return my_characters
-  }
-
-  private static getAvailableCharacters() {
-    const bots = AiHelper.getAvailableBots()
-    const characters = bots.map(v => v.character)
-    return characters
-  }
-
-  static getAvailableBots() {
-    const bots: AiBot[] = []
-    for(let i=0; i<aiBots.length; i++) {
-      const bot = aiBots[i]
-      const existedBot = bots.find(v => v.character === bot.character)
-      if(existedBot) continue
-      const apiData = AiShared.getApiEndpointFromBot(bot)
-      if(apiData) {
-        bots.push(bot)
-      }
-    }
-    return bots
   }
 
   static async addUserMsg(
@@ -3629,7 +3670,7 @@ class AiHelper {
     if(cLength >= MAX_CHARACTERS) return []
     
     // 1. get available characters
-    const availableCharacters = this.getAvailableCharacters()
+    const availableCharacters = AiShared.getAvailableCharacters()
     for(let i=0; i<availableCharacters.length; i++) {
       const v = availableCharacters[i]
       if(characters.includes(v)) {
@@ -3781,7 +3822,7 @@ class AiHelper {
     })
 
     // 2. get availableCharacters
-    const availableCharacters = this.getAvailableCharacters()
+    const availableCharacters = AiShared.getAvailableCharacters()
     for(let i=0; i<availableCharacters.length; i++) {
       const v = availableCharacters[i]
       if(everExistedCharacters.includes(v)) {
@@ -3997,7 +4038,7 @@ class ChatIntoPrompter {
         content += `\n${text}`
       }
     }
-    else if(text) {
+    else if(valTool.isStringWithVal(text)) {
       content = text
     }
     else if(reasoning_content) {
@@ -4078,7 +4119,7 @@ class ChatIntoPrompter {
       }
     }
 
-    if(text) {
+    if(valTool.isStringWithVal(text)) {
       return {
         role: "user",
         content: text,

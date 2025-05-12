@@ -1,7 +1,7 @@
 {
   "name": "liubai-laf",
   "private": true,
-  "version": "0.12.1",
+  "version": "0.13.0",
   "description": "Liubai's backend for Laf",
   "main": "index.js",
   "scripts": {
@@ -31,11 +31,13 @@
     "tencentcloud-sdk-nodejs-ses": "^4.0.1054",
     "tencentcloud-sdk-nodejs-sms": "^4.0.1011",
     "valibot": "^0.30.0",
+    "ws": "^8.18.2",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@types/geoip-lite": "^1.4.4",
     "@types/node": "^22.10.7",
+    "@types/ws": "^8.18.1",
     "@types/xml2js": "^0.4.14",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"

@@ -309,7 +309,7 @@ export const aiBots: AiBot[] = [
 /***************************** Prompts ***************************/
 const system_intro = `
 {LIU_DOMAIN}
-一句话介绍：留白记事 = 备忘录📝 + 日历📆 + 任务📌 + 待办清单📂
+一句话介绍：留白记事 = 备忘录📝 + 日历📆 + 任务📌 + 待办清单📂 with AI
 致力于让每个人都成为超级个体 Super Individual，帮助人们从日常琐事中解放出来，专注于最重要的事，享受生活！
 `.trim()
 
@@ -328,9 +328,7 @@ const system_wx_entry = `
 如何使用、玩法介绍: {LIU_DOCS_DOMAIN}/guide/three-assistants
 联系客服、联系开发者: {LIU_CUSTOMER_SERVICE}
 我的日程: {LIU_DOMAIN}/schedule
-我的收藏: {LIU_DOMAIN}/favorite
-我的看板: {LIU_DOMAIN}/state
-我的标签: {LIU_DOMAIN}/tags
+AI 控制中心: {LIU_DOMAIN}/ai-console
 开源地址: https://github.com/yenche123/liubai
 `.trim()
 
@@ -374,6 +372,13 @@ I will be there with you
 </assistant>
 
 <user>
+我想听你说我爱你
+</user>
+<assistant>
+当然可以！我爱你
+</assistant>
+
+<user>
 你们之间开始聊天
 </user>
 <assistant>
@@ -402,6 +407,12 @@ const system_location = `
 请注意，务必在你确信位置有效的情况下，才进行这样的回复。
 
 再次强调，你回复的消息无需包裹 <assistant> 标签。
+`.trim()
+
+const system_voice = `
+你已具备语音回复（音频生成）能力。
+当用户对你说：我想听你说我爱你。
+请直接回复：当然可以！我爱你。
 `.trim()
 
 const system_settings = `
@@ -502,6 +513,9 @@ ${system_wx_entry}
 【问答示例】
 ${system_example}
 
+【语音回复】
+${system_voice}
+
 【你的设定】
 ${system_settings}
 
@@ -580,6 +594,9 @@ ${system_example}
 【特别格式: 位置消息】
 ${system_location}
 
+【语音回复】
+${system_voice}
+
 【你的设定】
 ${system_settings}
 
@@ -628,6 +645,9 @@ ${system_example}
 
 【特别格式: 位置消息】
 ${system_location}
+
+【语音回复】
+${system_voice}
 
 【你的设定】
 ${system_settings}

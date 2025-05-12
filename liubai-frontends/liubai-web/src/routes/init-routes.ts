@@ -39,6 +39,7 @@ const ComposePage = () => import("../pages/level2/compose-page/compose-page.vue"
 const SettingMore = () => import("../pages/level3/setting-page/setting-more/setting-more.vue")
 const AuthorizePage = () => import("../pages/level3/authorize-page/authorize-page.vue")
 const CotPage = () => import("../pages/level4/cot-page/cot-page.vue")
+const AiConsolePage = () => import("../pages/level4/ai-console-page/ai-console-page.vue")
 
 export const routes: Array<RouteRecordRaw> = [
   /*************** 公共页面（不区分工作区） ***************/
@@ -175,6 +176,14 @@ export const routes: Array<RouteRecordRaw> = [
     path: "/CoT",
     component: CotPage,
     name: "cot",
+    meta: {
+      checkWorkspace: false,
+    }
+  },
+  {
+    path: "/ai-console",
+    component: AiConsolePage,
+    name: "ai-console",
     meta: {
       checkWorkspace: false,
     }

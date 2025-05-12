@@ -177,6 +177,11 @@ export const localThemes = [...supportedThemes, "system", "auto"] as const
 export type LocalTheme = typeof localThemes[number]
 export const Sch_LocalTheme = vbot.picklist(localThemes)
 
+// type of gender
+export const genderTypes = ["male", "female"] as const
+export type GenderType = typeof genderTypes[number]
+export const Sch_GenderType = vbot.picklist(genderTypes)
+
 export const threadListViewTypes = [
   "TRASH", 
   "TAG", 
@@ -194,6 +199,7 @@ export const Sch_ThreadListViewType = vbot.picklist(threadListViewTypes)
 export const supportedClients = [
   "web",
   "ide-extension",
+  "weixin-miniprogram",
 ] as const
 export type SupportedClient = typeof supportedClients[number]
 export const Sch_SupportedClient = vbot.picklist(supportedClients)
@@ -202,6 +208,7 @@ export const Sch_SupportedClient = vbot.picklist(supportedClients)
 export const clientMaximum: Record<SupportedClient, number> = {
   "web": 9,
   "ide-extension": 5,
+  "weixin-miniprogram": 3,
 }
 
 export const liuIDETypes = [
@@ -1722,6 +1729,7 @@ export interface Table_AiRoom extends BaseTable {
   owner: string           // corresponds to userId
   characters: AiCharacter[]
   needSystem2Stamp?: number
+  voicePreference?: GenderType
 }
 
 /********* AI Chat *********/
@@ -2033,6 +2041,11 @@ export namespace UserSettingsAPI {
     operateType: "auth-agree"
     code: string
     redirectUri: string
+  }
+
+  export interface Res_AiConsoleGet {
+    operateType: "ai-console-get"
+    voicePreference?: GenderType
   }
 
 }
@@ -2418,6 +2431,16 @@ export interface Res_SyncGet_Cloud {
   plz_enc_results?: SyncGetAtomRes[]
 }
 
+/****************** Happy System api ***************/
+export namespace HappySystemAPI {
+  export interface Res_GetShowcase {
+    operateType: "get-showcase"
+    title: string
+    imageUrl?: string
+    imageH2W?: number
+    footer?: string
+  }
+}
 
 /****************** sync-operate api ***************/
 
@@ -3642,6 +3665,7 @@ export namespace LiuAi {
     chatCompletion?: OaiChatCompletion
     toolName?: string
     logs?: LiuAi.RunLog[]
+    hasVoiceReplied?: boolean
   }
 
   export type RunResults = Array<RunSuccess | undefined>
@@ -3732,6 +3756,11 @@ export namespace LiuAi {
     computingProvider: ComputingProvider
     model: string
     character?: AiCharacter
+  }
+
+
+  export interface TextToSpeechOpt {
+    room?: Table_AiRoom
   }
 
 }
@@ -3844,6 +3873,31 @@ export namespace Ns_Stepfun {
     }>
   }
 
+}
+
+export namespace Ns_MiniMax {
+  export interface TtsRes {
+    data: {
+      audio: string
+      subtitle_file: string
+      status: number
+    }
+    trace_id: string
+    extra_info: {
+      audio_length: number
+      audio_sample_rate: number
+      audio_size: number
+      bitrate: number
+      audio_format: string
+      audio_channel: number
+      invisible_character_ratio: number
+      usage_characters: number
+    }
+    base_resp: {
+      status_code: number
+      status_msg: string
+    }
+  }
 }
 
 export namespace Ns_FFmpeg {

@@ -38,7 +38,10 @@ import {
   type OaiStreamChoiceDelta,
   type OaiChatCompletionChunk,
   type LiuRqReturn,
+  type Table_AiRoom,
   Ns_MapTool,
+  type Ns_MiniMax,
+  type Wx_Res_GzhUploadMedia,
 } from "@/common-types"
 import { LiuReporter, WxGzhSender } from "@/service-send"
 import { 
@@ -68,12 +71,22 @@ import {
 import OpenAI from "openai"
 import * as vbot from "valibot"
 import { addDays, set as date_fn_set } from "date-fns"
+import { WebSocket } from "ws"
+import { createRandom } from "@/common-ids"
+import { ai_cfg } from "@/common-config"
 
 const db = cloud.database()
 const _ = db.command
 
+// characters which take a rest will not be filled whle users launch a new chat
+export const MAX_CHARACTERS = 3
+export const charactersTakingARest: AiCharacter[] = [
+  "ds-reasoner",
+  "deepseek",
+]
 
 type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
+type BufferResolver = (res: Buffer | undefined) => void
 
 export class BaseLLM {
   protected _client: OpenAI | undefined
@@ -456,6 +469,62 @@ export class AiShared {
       return { apiKey, baseURL }
     }
 
+  }
+
+  static fillCharacters() {
+      const all_characters = AiShared.getAvailableCharacters()
+      if(all_characters.length <= MAX_CHARACTERS) {
+        return all_characters
+      }
+      const copied_characters = [...all_characters].splice(0, MAX_CHARACTERS)
+  
+      let tryTimes = 0
+      const my_characters: AiCharacter[] = []
+      for(let i=0; i<MAX_CHARACTERS; i++) {
+        // 1. to avoid dead loop
+        tryTimes++
+        if(tryTimes > 10) break
+  
+        // 2. get a random character
+        const r = Math.floor(Math.random() * all_characters.length)
+        const c = all_characters[r]
+  
+        // 3. to skip a bot taking a rest
+        if(charactersTakingARest.includes(c)) {
+          i--
+          continue
+        }
+  
+        my_characters.push(c)
+        all_characters.splice(r, 1)
+      }
+  
+      // return copied characters if my_characters is empty
+      if(my_characters.length < 1) {
+        return copied_characters
+      }
+  
+      return my_characters
+    }
+
+  static getAvailableCharacters() {
+    const bots = AiShared.getAvailableBots()
+    const characters = bots.map(v => v.character)
+    return characters
+  }
+
+  static getAvailableBots() {
+    const bots: AiBot[] = []
+    for(let i=0; i<aiBots.length; i++) {
+      const bot = aiBots[i]
+      const existedBot = bots.find(v => v.character === bot.character)
+      if(existedBot) continue
+      const apiData = AiShared.getApiEndpointFromBot(bot)
+      if(apiData) {
+        bots.push(bot)
+      }
+    }
+    return bots
   }
 
 
@@ -929,7 +998,62 @@ export class AiShared {
 
 }
 
+
+interface TellUserAudioParam {
+  response?: Response
+  hex?: string
+  buffer?: Buffer
+}
+
 export class TellUser {
+
+  static async audio(
+    entry: AiEntry,
+    param: TellUserAudioParam,
+    opt?: LiuAi.TellUserOpt,
+  ) {
+    const { wx_gzh_openid } = entry
+    let res0: Wx_Res_GzhUploadMedia | undefined
+
+    // 1. for weixin
+    if(wx_gzh_openid) {
+      // 1.1 upload file to weixin server
+
+      if(param.response) {
+        res0 = await WxGzhUploader.mediaByResponse(param.response, {
+          type: "voice",
+          filename: "upload.mp3"
+        })
+      }
+      else if(param.hex) {
+        res0 = await WxGzhUploader.mediaByHex(param.hex, {
+          type: "voice",
+          filename: "upload.mp3",
+          contentType: "audio/mpeg",
+        })
+      }
+      else if(param.buffer) {
+        res0 = await WxGzhUploader.mediaByBuffer(param.buffer, {
+          type: "voice",
+          filename: "upload.mp3",
+          contentType: "audio/mpeg",
+        })
+      }
+      
+      const media_id = res0?.media_id
+      console.log("let me see audio media_id: ", media_id)
+      if(!media_id) return
+
+      const obj1: Wx_Gzh_Send_Msg = {
+        msgtype: "voice",
+        voice: { media_id },
+      }
+      this._fillWxGzhKf(obj1, opt)
+      const res1 = await this._sendToWxGzh(wx_gzh_openid, obj1)
+      return res1
+    }
+    
+  }
 
   static async text(
     entry: AiEntry, 
@@ -2594,6 +2718,274 @@ export class Palette {
   }
 
 }
+
+
+/******************** tool for text-to-speech ************************/
+
+export class TextToSpeech {
+
+  private _room: Table_AiRoom | undefined
+
+  constructor(
+    opt?: LiuAi.TextToSpeechOpt
+  ) {
+    this._room = opt?.room
+  }
+
+  runByTongyi(text: string) {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_ALIYUN_BAILIAN_API_KEY
+    if(!apiKey) {
+      console.warn("there is no apiKey of tongyi in tts")
+      return
+    }
+
+    // 2. get voice
+    const voicePreference = this._room?.voicePreference ?? ai_cfg.default_voice
+    // 龙小诚 vs. 龙小夏
+    const voice_id = voicePreference === "male" ? "longxiaocheng" : "longxiaoxia"
+    const model = voicePreference === "male" ? "cosyvoice-v1" : "cosyvoice-v1"
+
+    const task_id = createRandom()
+    const url = "wss://dashscope.aliyuncs.com/api-ws/v1/inference/"
+    const ws = new WebSocket(url, {
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "X-DashScope-DataInspection": "enable",
+      }
+    })
+    const audioChunks: Buffer[] = []
+
+    const _wait = (a: BufferResolver) => {
+
+      ws.on("open", () => {
+        const runTask = {
+          header: {
+            "action": "run-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "task_group": "audio",
+            "task": "tts",
+            "function": "SpeechSynthesizer",
+            "model": model,
+            "parameters": {
+              "text_type": "PlainText",
+              "voice": voice_id,
+              "format": "mp3",
+              "sample_rate": 48000,
+            },
+            "input": {}
+          }
+        }
+        const runTaskMsg = valTool.objToStr(runTask)
+        ws.send(runTaskMsg)
+      })
+
+      ws.on("error", (err) => {
+        console.warn("fail to tts by tongyi using web-socket!")
+        console.log(err)
+        ws.close()
+        a(undefined)
+      })
+
+      const _handleBinaryData = (data: any) => {
+        if(Buffer.isBuffer(data)) {
+          audioChunks.push(data)
+          return
+        }
+        if(data instanceof ArrayBuffer) {
+          audioChunks.push(Buffer.from(data))
+          return
+        }
+
+        try {
+          const buffer = Buffer.from(data)
+          audioChunks.push(buffer)
+        }
+        catch(err) {
+          console.warn("fail to handle binary data")
+          console.log(err)
+        }
+      }
+
+      const _sendContinueTask = async () => {
+        // 1. send "continue"
+        const continueTask = {
+          header: {
+            "action": "continue-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "input": {
+              "text": text,
+            }
+          }
+        }
+        const continueTaskMsg = valTool.objToStr(continueTask)
+        ws.send(continueTaskMsg)
+
+        await valTool.waitMilli(1000)
+
+        // 2. send "finish"
+        const finishTask = {
+          header: {
+            "action": "finish-task",
+            "task_id": task_id,
+            "streaming": "duplex",
+          },
+          payload: {
+            "input": {}
+          }
+        }
+        const finishTaskMsg = valTool.objToStr(finishTask)
+        ws.send(finishTaskMsg)
+      }
+
+      ws.on("message", (data, isBinary) => {
+        if(isBinary) {
+          _handleBinaryData(data)
+          return
+        }
+        const message = valTool.strToObj(typeof data === 'string' ? data : data.toString())
+        const evt = message.header?.event
+
+        /**
+         * 来自百炼的事件:
+         *   task-started: 任务开始
+         *   result-generated: 生成结果（会返回多个，每个 chunk 见都有可能触发该事件）
+         *   task-finished: 任务结束
+         *   task-failed: 任务失败
+         */
+
+        if(evt === "task-started") {
+          _sendContinueTask()
+          return
+        }
+        if(evt === "task-finished") {
+          ws.close()
+          const audioBuffer = Buffer.concat(audioChunks)
+          a(audioBuffer)
+          return
+        }
+        if(evt === "task-failed") {
+          console.warn("fail to tts by tongyi")
+          console.log("message.header: ", message.header)
+          ws.close()
+          a(undefined)
+          return
+        }
+
+      })
+    }
+
+    return new Promise(_wait)
+  }
+
+  async runByMiniMax(
+    text: string
+  ) {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_MINIMAX_API_KEY
+    const groupId = _env.LIU_MINIMAX_GROUPID
+    if(!apiKey || !groupId) {
+      console.warn("there is no apiKey or groupId of minimax in tts")
+      return
+    }
+
+    // 2. get voice
+    const voicePreference = this._room?.voicePreference ?? ai_cfg.default_voice
+    // 霸道少爷 vs. 甜心小玲
+    const voice_id = voicePreference === "male" ? "badao_shaoye" : "tianxin_xiaoling"
+
+    // 3. generate headers
+    const url3 = new URL("https://api.minimax.chat/v1/t2a_v2")
+    url3.searchParams.set("GroupId", groupId)
+    const link3 = url3.toString()
+    const headers = {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    }
+    const body = {
+      model: "speech-02-hd",
+      text,
+      stream: false,
+      voice_setting: {
+        voice_id,
+        speed: 1,    // 生成声音的语速，范围是 0.5 到 2
+        vol: 2,      // 生成声音的音量，范围是 0 到 10
+        pitch: 0,    // 语调
+        english_normalization: true,
+      },
+      audio_setting: {
+        sample_rate: 44100,
+        bitrate: 256000,
+        format: "mp3",
+      }
+    }
+
+    // 3. to request
+    const res3 = await liuReq(link3, body, { headers })
+    const data3 = res3.data as Ns_MiniMax.TtsRes
+    if(res3.code !== "0000" || !data3) {
+      console.warn("fail to tts by minimax: ")
+      console.log(res3)
+      return
+    }
+    if(!data3.data.audio) {
+      console.warn("no audio in tts by minimax")
+      console.log(data3)
+    }
+    return data3
+  }
+
+  async runByStepfun(
+    text: string,
+  ) {
+    // 1. get api key and base url
+    const _env = process.env
+    const apiKey = _env.LIU_STEPFUN_API_KEY
+    const baseUrl = _env.LIU_STEPFUN_BASE_URL
+    if(!apiKey || !baseUrl) {
+      console.warn("there is no apiKey or baseUrl of stepfun in tts")
+      return
+    }
+
+    // 2. get voice
+    const voicePreference = this._room?.voicePreference ?? ai_cfg.default_voice
+    // 深沉男音 vs. 爽快姐姐
+    const voice = voicePreference === "male" ? "shenchennanyin" : "shuangkuaijiejie"
+    
+    // 3. to request
+    const client = new OpenAI({ apiKey, baseURL: baseUrl })
+    const body = {
+      model: "step-tts-mini",
+      input: text,
+      voice,
+      extra_body: {
+        volume: 2,
+      },
+    }
+
+    try {
+      const mp3 = await client.audio.speech.create(body)
+      return mp3
+    }
+    catch(err) {
+      console.warn("fail to run client.audio.speech.create by stepfun")
+      console.log(err)
+    }
+    return undefined
+  }
+
+}
+
+
+/******************** tool for translation ************************/
 
 export class Translator {
 
