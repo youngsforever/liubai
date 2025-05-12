@@ -118,8 +118,8 @@ export const domainAllowed = [
   "thinkany.ai",
   "n.cn",
   "onionai.so",
-  "felo.ai",
   "memfree.me",
+  "datong.info",
 
   // about podcast
   "podcastogether.com",

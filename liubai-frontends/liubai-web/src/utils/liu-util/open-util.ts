@@ -122,9 +122,10 @@ function openExternalBing(keyword: string) {
   window.open(url.toString(), "_blank")
 }
 
-/************* Felo ************/
-function getFeloSearchLink(keyword: string) {
-  const url = new URL(thirdLink.FELO_SEARCH)
+
+/************* 大同搜索 ************/
+function getDatongSearchLink(keyword: string) {
+  const url = new URL(thirdLink.DATONG_SEARCH)
   url.searchParams.append("q", keyword)
   return url.toString()
 }
@@ -239,7 +240,7 @@ export default {
   openBing,
   getBingSearchLink,
   openExternalBing,
-  getFeloSearchLink,
+  getDatongSearchLink,
   openXhs,
   getXhsSearchLink,
   openExternalXhs,
