@@ -1251,10 +1251,27 @@ class SystemTwo {
     reporter.send(markdown, title)
   }
 
+
+  /**
+   * 曾遇到一种情况 text 为
+   * {
+   *    "_": "xxx，我的比特率已经调到最高......",
+   *    "I": "love you"
+   * }
+   */
   private async toReply(
-    text: string,
+    text: any,
     reasoning_content?: string,
   ) {
+    if(!text) return
+    if(text?._ && typeof text._ === "string") {
+      text = text._
+    }
+    if(!valTool.isStringWithVal(text)) {
+      console.warn("text is not string with value: ", text)
+      return
+    }
+
     // 1. add message to chats
     this._addSystem2Chat("assistant", "1", {
       text,

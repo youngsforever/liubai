@@ -4036,7 +4036,7 @@ class ChatIntoPrompter {
         content += `\n${text}`
       }
     }
-    else if(text) {
+    else if(valTool.isStringWithVal(text)) {
       content = text
     }
     else if(reasoning_content) {
@@ -4117,7 +4117,7 @@ class ChatIntoPrompter {
       }
     }
 
-    if(text) {
+    if(valTool.isStringWithVal(text)) {
       return {
         role: "user",
         content: text,

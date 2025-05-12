@@ -2760,7 +2760,6 @@ export class TextToSpeech {
     const _wait = (a: BufferResolver) => {
 
       ws.on("open", () => {
-        console.warn("we have connected to ws server from tongyi!")
         const runTask = {
           header: {
             "action": "run-task",
@@ -2783,6 +2782,13 @@ export class TextToSpeech {
         }
         const runTaskMsg = valTool.objToStr(runTask)
         ws.send(runTaskMsg)
+      })
+
+      ws.on("error", (err) => {
+        console.warn("fail to tts by tongyi using web-socket!")
+        console.log(err)
+        ws.close()
+        a(undefined)
       })
 
       const _handleBinaryData = (data: any) => {
