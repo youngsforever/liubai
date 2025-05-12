@@ -2936,6 +2936,10 @@ export class TextToSpeech {
       console.log(res3)
       return
     }
+    if(!data3.data.audio) {
+      console.warn("no audio in tts by minimax")
+      console.log(data3)
+    }
     return data3
   }
 
@@ -2966,8 +2970,16 @@ export class TextToSpeech {
         volume: 2,
       },
     }
-    const mp3 = await client.audio.speech.create(body)
-    return mp3
+
+    try {
+      const mp3 = await client.audio.speech.create(body)
+      return mp3
+    }
+    catch(err) {
+      console.warn("fail to run client.audio.speech.create by stepfun")
+      console.log(err)
+    }
+    return undefined
   }
 
 }
