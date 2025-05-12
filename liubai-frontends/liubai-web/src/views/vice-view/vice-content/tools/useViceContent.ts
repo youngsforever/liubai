@@ -126,9 +126,9 @@ function listenRouteChange(
     setNewIframeSrc(url)
   }
 
-  const openFeloSearch = (q: string) => {
-    const url = liuUtil.open.getFeloSearchLink(q)
-    setNewIframeSrc(url) 
+  const openDatongSearch = (q: string) => {
+    const url = liuUtil.open.getDatongSearchLink(q)
+    setNewIframeSrc(url)
   }
 
   const openGoogleSerach = (q: string) => {
@@ -217,7 +217,7 @@ function listenRouteChange(
     } = newQuery
 
     if(_hasVal(outq)) {
-      openFeloSearch(outq)
+      openDatongSearch(outq)
     }
     else if(_hasVal(cid)) {
       showView(ctx, "thread", cid)

@@ -14,9 +14,9 @@ export default {
 
   // about search
   BING_SEARCH: "https://www.bing.com/search",
-  FELO_SEARCH: "https://felo.ai/search",
   SOUGO_SEARCH: "https://m.sogou.com/web/searchList.jsp",
   XHS_SEARCH: "https://www.xiaohongshu.com/search_result",
+  DATONG_SEARCH: "https://datong.info/ui/search.html",
 
   // 果壳
   GUOKR_COM: "https://guokr.com/",
