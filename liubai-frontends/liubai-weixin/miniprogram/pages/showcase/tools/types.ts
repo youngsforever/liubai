@@ -3,6 +3,6 @@
 export interface ShowcaseData {
   title: string
   imageUrl?: string
-  h2w?: number
+  percentH2W?: string    // like "150%"
   footer?: string
 }

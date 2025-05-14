@@ -68,11 +68,13 @@ Component({
       let showcase: ShowcaseData = {
         title: res.title,
         imageUrl: res.imageUrl,
+        percentH2W: undefined,
         footer: res.footer,
       }
       const imageH2W = res.imageH2W
       if(imageH2W && valTool.isStringAsNumber(imageH2W)) {
-        showcase.h2w = Number(imageH2W)
+        const h2w = Math.round(Number(imageH2W) * 100)
+        showcase.percentH2W = `${h2w}%` 
       }
       this.setData({ showcase, pState: pageStates.OK })
     },
