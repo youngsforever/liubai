@@ -2,6 +2,7 @@ import { defaultData } from "~/config/default-data";
 import { LiuApi } from "../LiuApi";
 import { handleCharacteristic, handleDeviceString } from "./tools/characteristic";
 import { useI18n } from "~/locales/index";
+import type { SupportedTheme } from "~/types/types-atom";
 
 
 export interface CustomModalOpt extends WechatMiniprogram.ShowModalOption {
@@ -77,8 +78,7 @@ export class LiuUtil {
   static async showCustomModal(opt: CustomModalOpt) {
     // 1. handle confirm color
     if(!opt.confirmColor) {
-      const appBaseInfo = LiuApi.getAppBaseInfo()
-      const theme = appBaseInfo?.theme ?? defaultData.theme
+      const theme = LiuUtil.getCurrentTheme()
       let confirmColor = defaultData.light_primary_color
       if(theme === "dark") {
         confirmColor = defaultData.dark_primary_color
@@ -127,6 +127,12 @@ export class LiuUtil {
     
     const res = await LiuApi.showModal(opt)
     return res
+  }
+
+  static getCurrentTheme(): SupportedTheme {
+    const appBaseInfo = LiuApi.getAppBaseInfo()
+    const theme = appBaseInfo?.theme ?? defaultData.theme as SupportedTheme
+    return theme
   }
 
 }
