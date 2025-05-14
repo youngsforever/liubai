@@ -39,9 +39,6 @@ Component({
       if(!key) return
 
       const res = await fetchShowcaseByKey(key)
-      console.log("getShowcaseByKey res: ")
-      console.log(res)
-      
       const code = res.code
       if(code === "E4004") {
         this.setData({ pState: pageStates.NO_DATA })

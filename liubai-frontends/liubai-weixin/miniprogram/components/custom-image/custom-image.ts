@@ -1,8 +1,14 @@
+import { i18nBehavior } from "~/behaviors/i18n-behavior"
+import { themeBehavior } from "~/behaviors/theme-behavior"
 import { defaultData } from "~/config/default-data"
 import valTool from "~/utils/val-tool"
 
-
 Component({
+
+  behaviors: [
+    i18nBehavior("err"),
+    themeBehavior(),
+  ],
 
   properties: {
     imageUrl: {
@@ -26,6 +32,9 @@ Component({
 
   data: {
     percentH2W: defaultData.imageRatio,
+    enable: true,
+    loaded: false,
+    isErr: false,
   },
 
   methods: {
@@ -43,7 +52,21 @@ Component({
       }
       const h2wNum = Math.round(Number(h2w) * 100)
       this.setData({ percentH2W: `${h2wNum}%` })
-    }
+    },
+
+    onImageLoaded() {
+      this.setData({ loaded: true })
+    },
+
+    onImageError() {
+      this.setData({ isErr: true })
+    },
+
+    async onTapRefresh() {
+      this.setData({ enable: false, loaded: false, isErr: false })
+      await valTool.waitMilli(defaultData.duration_ms_1)
+      this.setData({ enable: true })
+    },
 
   },
 

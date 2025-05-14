@@ -1,7 +1,7 @@
 
 import { pageStates } from "~/utils/atom-util"
-import { cfg } from "~/config/index"
 import { i18nBehavior } from "~/behaviors/i18n-behavior"
+import { defaultData } from "~/config/default-data"
 
 const TRANSITION_MS = 300
 
@@ -71,7 +71,7 @@ Component({
       this.data._toggleTimeout = setTimeout(() => {
         _this.data._toggleTimeout = 0
         _this.setData({ show: true })
-      }, cfg.frame_duration)
+      }, defaultData.frame_duration)
     }
 
   }
