@@ -12,4 +12,12 @@ export default {
   "shared": {
     "copied": "已复制",
   },
+  "err": {
+    "no_data": "找不到耶",
+    "no_auth": "没有访问权限",
+    "network": "网络异常",
+    "unknown_err": "未知的异常",
+    "too_hot": "太火爆了",
+    "come_later": "请稍后再来",
+  },
 }

@@ -14,4 +14,12 @@ export default {
   "shared": {
     "copied": "Copied",
   },
+  "err": {
+    "no_data": "Nothing Here",
+    "no_auth": "No Access",
+    "network": "Network Error",
+    "unknown_err": "Unknown Error",
+    "too_hot": "Too Hot",
+    "come_later": "Come later please~",
+  }
 }

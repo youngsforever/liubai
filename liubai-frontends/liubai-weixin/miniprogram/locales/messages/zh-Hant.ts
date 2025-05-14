@@ -12,4 +12,12 @@ export default {
   "shared": {
     "copied": "已複製",
   },
+  "err": {
+    "no_data": "找不到耶",
+    "no_auth": "沒有訪問權限",
+    "network": "網路異常",
+    "unknown_err": "未知的異常",
+    "too_hot": "太火爆了",
+    "come_later": "請稍候再來",
+  }
 }

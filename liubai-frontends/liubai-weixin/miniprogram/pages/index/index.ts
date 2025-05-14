@@ -41,7 +41,8 @@ Component({
 
     goToShowcase() {
       LiuApi.vibrateShort({ type: "medium" })
-      LiuUtil.navigateWithPopup("/pages/showcase/showcase")
+      const url = "/pages/showcase/showcase?key=cuiyanzhe"
+      LiuUtil.navigateWithPopup(url)
     },
 
     onTapFollowUs() {
