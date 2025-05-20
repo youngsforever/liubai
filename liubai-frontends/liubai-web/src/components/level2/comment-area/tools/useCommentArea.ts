@@ -1,4 +1,4 @@
-import { reactive, watch, inject, toRef } from "vue"
+import { reactive, watch, inject, toRef, ref } from "vue"
 import type {
   CommentAreaProps,
   CommentAreaEmits,
@@ -9,7 +9,7 @@ import type { LoadByThreadOpt } from "~/utils/controllers/comment-controller/too
 import { useCommentStore } from "~/hooks/stores/useCommentStore"
 import usefulTool from "~/utils/basic/useful-tool"
 import { whenCommentUpdated } from "./whenCommentUpdated"
-import { scrollViewKey } from "~/utils/provide-keys"
+import { scrollViewKey, svPullRefreshKey } from "~/utils/provide-keys"
 import type { SvProvideInject } from "~/types/components/types-scroll-view"
 import type { CommentShow } from "~/types/types-content"
 import type { ValueComment } from "~/utils/other/comment-related"
@@ -56,17 +56,8 @@ export function useCommentArea(
     whenCommentUpdated(caData, state)
   })
 
-  // 监听 props 的 threadId 改变
-  watch(() => props.threadId, (newV) => {
-    const reload = newV !== caData.threadId
-    if(reload) caData.comments = []
-    // console.log("newV: ", newV)
-    // console.log("caData.threadId: ", caData.threadId)
-    // console.log(" ")
-    caData.threadId = newV
-    caData.hasReachedBottom = false
-    preloadComments(caData, reload)
-  }, { immediate: true })
+  // 监听 threadId & isShowing
+  listenProps(props, caData)
 
   // 监听滚动
   listenScoll(props, caData)
@@ -76,6 +67,19 @@ export function useCommentArea(
   }
 }
 
+
+function listenProps(
+  props: CommentAreaProps,
+  caData: CommentAreaData,
+) {
+  watch(() => props.threadId, (newV) => {
+    const reload = Boolean(newV !== caData.threadId)
+    if(reload) caData.comments = []
+    caData.threadId = newV
+    caData.hasReachedBottom = false
+    preloadComments(caData, reload)
+  }, { immediate: true })
+}
 
 async function preloadComments(
   caData: CommentAreaData,
@@ -202,10 +206,10 @@ function listenScoll(
   const svTrigger = toRef(svData, "triggerNum")
 
   let lastRefreshStamp = time.getLocalTime()
-  const _pullDownRefresh = () => {
+  const _pullDownRefresh = (forceRefresh = false) => {
     const cLength = caData.comments.length
     const within30s = time.isWithinMillis(lastRefreshStamp, SEC_30, true)
-    if(cLength > 9 || !within30s) {
+    if(forceRefresh || cLength > 9 || !within30s) {
       lastRefreshStamp = time.getLocalTime()
       caData.hasReachedBottom = false
       preloadComments(caData, true)
@@ -226,7 +230,12 @@ function listenScoll(
       _pullDownRefresh()
       return
     }
+  })
 
+  const pullRefreshNum = inject(svPullRefreshKey, ref(0))
+  watch(pullRefreshNum, (newV) => {
+    if(!newV) return
+    _pullDownRefresh(true)
   })
 
 }
