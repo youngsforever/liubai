@@ -1,71 +1,73 @@
-import { ref, toRef, watch } from "vue"
+import { reactive, toRef, watch } from "vue"
 import type { PageState } from "~/types/types-atom"
-import type { PvProps } from "./types"
-import type { Ref } from "vue"
+import type { PvData, PvProps } from "./types"
 import { pageStates } from "~/utils/atom"
 import liuUtil from "~/utils/liu-util"
-import type { LiuTimeout } from "~/utils/basic/type-tool"
 import cfg from "~/config"
 
 
 export const TRANSITION_MS = 300
 
 export function usePlaceholderView(props: PvProps) {
-  const enable = ref(true)
-  const show = ref(true)
+  const pvData = reactive<PvData>({
+    enable: true,
+    show: true,
+    toggleTimeout: undefined,
+  })
   const pState = toRef(props, "pState")
   watch(pState, (newV) => {
-    whenPStateChange(newV, enable, show)
+    whenPStateChange(newV, pvData)
   }, { immediate: true })
 
   return {
-    enable,
-    show,
+    pvData,
   }
 }
 
 function whenPStateChange(
   newV: PageState,
-  enable: Ref<boolean>,
-  show: Ref<boolean>,
+  pvData: PvData,
 ) {
-  const needOpen = newV === pageStates.LOADING || newV >= pageStates.NO_DATA
-  const { isOpening, isClosing } = liuUtil.view.getOpeningClosing(enable, show)
+  const isLoading = Boolean(newV === pageStates.LOADING)
+  const isNoData = Boolean(newV >= pageStates.NO_DATA)
+  const needOpen = Boolean(isLoading || isNoData)
+  const { isOpening, isClosing } = liuUtil.view.getOpeningClosing(
+    pvData.enable, pvData.show
+  )
   
   if(needOpen && !isOpening) {
-    open(enable, show)
+    open(pvData)
   }
   else if(!needOpen && !isClosing) {
-    close(enable, show)
+    close(pvData)
   }
 }
 
 
-let toggleTimeout: LiuTimeout
 async function open(
-  enable: Ref<boolean>,
-  show: Ref<boolean>,
+  pvData: PvData,
 ) {
-  if(show.value) return
-  if(toggleTimeout) {
-    clearTimeout(toggleTimeout)
+  if(pvData.show) return
+  if(pvData.toggleTimeout) {
+    clearTimeout(pvData.toggleTimeout)
   }
-  enable.value = true
-  toggleTimeout = setTimeout(() => {
-    show.value = true
+  pvData.enable = true
+  pvData.toggleTimeout = setTimeout(() => {
+    pvData.toggleTimeout = undefined
+    pvData.show = true
   }, cfg.frame_duration)
 }
 
 async function close(
-  enable: Ref<boolean>,
-  show: Ref<boolean>,
+  pvData: PvData,
 ) {
-  if(!enable.value) return
-  if(toggleTimeout) {
-    clearTimeout(toggleTimeout)
+  if(!pvData.enable) return
+  if(pvData.toggleTimeout) {
+    clearTimeout(pvData.toggleTimeout)
   }
-  show.value = false
-  toggleTimeout = setTimeout(() => {
-    enable.value = false
+  pvData.show = false
+  pvData.toggleTimeout = setTimeout(() => {
+    pvData.toggleTimeout = undefined
+    pvData.enable = false
   }, TRANSITION_MS)
 }

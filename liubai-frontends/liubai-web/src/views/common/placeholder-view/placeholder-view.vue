@@ -2,21 +2,21 @@
 import { pvProps } from "./tools/types"
 import { useI18n } from 'vue-i18n';
 import PulsarLoader from '~/components/loaders/pulsar-loader/pulsar-loader.vue';
-import { usePlaceholderView, TRANSITION_MS } from "./tools/usePlaceholderView"
+import { usePlaceholderView, TRANSITION_MS } from "./tools/usePlaceholderView";
 import { pageStates } from "~/utils/atom";
 
 const { t } = useI18n()
 
 const props = defineProps(pvProps)
-const { enable, show } = usePlaceholderView(props)
+const { pvData } = usePlaceholderView(props)
 
 </script>
 <template>
 
-<div v-if="enable" class="pv-shell">
+<div v-if="pvData.enable" class="pv-shell">
 
   <div class="pv-container"
-    :class="{ 'pv-container_hidden': !show }"
+    :class="{ 'pv-container_hidden': !pvData.show }"
   >
 
     <div v-if="pState <= 0" class="pv-loading">
