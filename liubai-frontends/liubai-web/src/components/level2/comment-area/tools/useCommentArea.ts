@@ -1,4 +1,4 @@
-import { reactive, watch, inject, toRef } from "vue"
+import { reactive, watch, inject, toRef, ref } from "vue"
 import type {
   CommentAreaProps,
   CommentAreaEmits,
@@ -9,9 +9,9 @@ import type { LoadByThreadOpt } from "~/utils/controllers/comment-controller/too
 import { useCommentStore } from "~/hooks/stores/useCommentStore"
 import usefulTool from "~/utils/basic/useful-tool"
 import { whenCommentUpdated } from "./whenCommentUpdated"
-import { scrollViewKey } from "~/utils/provide-keys"
+import { scrollViewKey, svPullRefreshKey } from "~/utils/provide-keys"
 import type { SvProvideInject } from "~/types/components/types-scroll-view"
-import type { CommentShow } from "~/types/types-content";
+import type { CommentShow } from "~/types/types-content"
 import type { ValueComment } from "~/utils/other/comment-related"
 import liuEnv from "~/utils/liu-env"
 import type { 
@@ -26,6 +26,9 @@ import {
   addChildrenIntoValueComments, 
   fetchChildrenComments,
 } from "../../utils/tackle-comments"
+import time from "~/utils/basic/time"
+
+const SEC_30 = time.SECONED * 30
 
 export function useCommentArea(
   props: CommentAreaProps,
@@ -53,17 +56,8 @@ export function useCommentArea(
     whenCommentUpdated(caData, state)
   })
 
-  // 监听 props 的 threadId 改变
-  watch(() => props.threadId, (newV) => {
-    const reload = newV !== caData.threadId
-    if(reload) caData.comments = []
-    // console.log("newV: ", newV)
-    // console.log("caData.threadId: ", caData.threadId)
-    // console.log(" ")
-    caData.threadId = newV
-    caData.hasReachedBottom = false
-    preloadComments(caData, reload)
-  }, { immediate: true })
+  // 监听 threadId & isShowing
+  listenProps(props, caData)
 
   // 监听滚动
   listenScoll(props, caData)
@@ -74,6 +68,19 @@ export function useCommentArea(
 }
 
 
+function listenProps(
+  props: CommentAreaProps,
+  caData: CommentAreaData,
+) {
+  watch(() => props.threadId, (newV) => {
+    const reload = Boolean(newV !== caData.threadId)
+    if(reload) caData.comments = []
+    caData.threadId = newV
+    caData.hasReachedBottom = false
+    preloadComments(caData, reload)
+  }, { immediate: true })
+}
+
 async function preloadComments(
   caData: CommentAreaData,
   reload?: boolean,
@@ -81,7 +88,6 @@ async function preloadComments(
 
   // 1. if it's reached bottom
   if(!reload && caData.hasReachedBottom) {
-    console.log("已经触底........")
     return
   }
 
@@ -198,6 +204,18 @@ function listenScoll(
 ) {
   const svData = inject(scrollViewKey, { type: "", triggerNum: 0 }) as SvProvideInject
   const svTrigger = toRef(svData, "triggerNum")
+
+  let lastRefreshStamp = time.getLocalTime()
+  const _pullDownRefresh = (forceRefresh = false) => {
+    const cLength = caData.comments.length
+    const within30s = time.isWithinMillis(lastRefreshStamp, SEC_30, true)
+    if(forceRefresh || cLength > 9 || !within30s) {
+      lastRefreshStamp = time.getLocalTime()
+      caData.hasReachedBottom = false
+      preloadComments(caData, true)
+    }
+  }
+
   watch(svTrigger, (newV) => {
     const svType = svData.type
 
@@ -207,16 +225,17 @@ function listenScoll(
       return
     }
 
-    // 触顶时，若个数大于 19 （一轮9个，所以至少触底 3 次过）
-    // 允许重新加载
+    // 重新加载
     if(svType === "to_start") {
-      if(caData.comments.length > 19) {
-        caData.hasReachedBottom = false
-        preloadComments(caData, true)
-        return
-      }
+      _pullDownRefresh()
+      return
     }
+  })
 
+  const pullRefreshNum = inject(svPullRefreshKey, ref(0))
+  watch(pullRefreshNum, (newV) => {
+    if(!newV) return
+    _pullDownRefresh(true)
   })
 
 }
