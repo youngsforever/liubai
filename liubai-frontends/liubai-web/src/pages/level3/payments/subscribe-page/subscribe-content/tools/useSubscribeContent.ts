@@ -303,6 +303,11 @@ async function getSubscriptionPlan(
   }
 
   if(code !== "0000") {
+    if(code === "C0001" || code?.startsWith("F0")) {
+      setDataState(scData, pageStates.NETWORK_ERR)
+      return
+    }
+
     const nStore = useNetworkStore()
     if(nStore.level < 1) {
       setDataState(scData, pageStates.NETWORK_ERR)
