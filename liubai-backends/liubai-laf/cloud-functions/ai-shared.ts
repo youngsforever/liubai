@@ -3321,3 +3321,51 @@ export class LogHelper {
   }
 
 }
+
+
+export class LiuEmbedding {
+
+  private _jina_base_url = "https://api.jina.ai/v1/embeddings"
+  private _jina_model = "jina-clip-v2"
+
+  async run(input: LiuAi.EmbeddingInput[]) {
+
+    // 1. get api key
+    const _env = process.env
+    const jinaApiKey = _env.LIU_JINA_APIKEY
+    if(jinaApiKey) {
+      const res = await this.runByJina(input, jinaApiKey)
+      return res
+    }
+
+  }
+
+  private async runByJina(
+    input: LiuAi.EmbeddingInput[],
+    apiKey: string,
+  ) {
+    const url = this._jina_base_url
+    const headers = {
+      "Authorization": `Bearer ${apiKey}`,
+    }
+    const body = {
+      model: this._jina_model,
+      input,
+    }
+
+    const t1 = getNowStamp()
+    const res1 = await liuReq(url, body, { headers })
+    const t2 = getNowStamp()
+    const durationStamp = t2 - t1
+    console.log(`jina embedding cost ${durationStamp} ms`)
+    const rData = res1.data as LiuAi.EmbeddingResult
+    if(res1.code !== "0000" || !rData) {
+      console.warn("fail to get embedding by jina")
+      console.log(res1)
+      return
+    }
+    
+    return rData
+  }
+
+}

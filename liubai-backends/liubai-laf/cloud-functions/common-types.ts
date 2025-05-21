@@ -3815,6 +3815,32 @@ export namespace LiuAi {
     room?: Table_AiRoom
   }
 
+  export interface EmbeddingInputText {
+    text: string
+  }
+
+  export interface EmbeddingInputImage {
+    image: string
+  }
+
+  export type EmbeddingInput = EmbeddingInputText | EmbeddingInputImage
+
+  export interface EmbeddingOutput {
+    object: "embedding"
+    index: number
+    embedding: number[]
+  }
+
+  export interface EmbeddingResult {
+    model: string
+    object: "list"
+    usage: {
+      total_tokens: number
+      prompt_tokens: number
+    }
+    data?: LiuAi.EmbeddingOutput[]
+  }
+
 }
 
 

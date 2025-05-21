@@ -221,6 +221,9 @@ declare global {
       /** Amap */
       LIU_AMAP_WEB_KEY?: string              // Web Key of Amap
 
+      /** Jina */ 
+      LIU_JINA_APIKEY?: string
+
     }
   }
 }
