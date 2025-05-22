@@ -1,14 +1,21 @@
 // Function Name: happy-system
 
 import cloud from "@lafjs/cloud"
-import { valTool } from "@/common-util"
+import { getDocAddId, valTool } from "@/common-util"
 import type { 
   HappySystemAPI,
   LiuRqReturn,
+  Partial_Id,
+  Table_AiRoom,
+  Table_Credential,
   Table_Showcase,
+  Table_User,
 } from "@/common-types"
+import { getBasicStampWhileAdding, getNowStamp, MINUTE } from "@/common-time"
+import { createAdCredential } from "@/common-ids"
 
 const db = cloud.database()
+const _ = db.command
 
 export async function main(ctx: FunctionContext) {
 
@@ -21,8 +28,92 @@ export async function main(ctx: FunctionContext) {
   if(oT === "get-showcase") {
     res = await get_showcase(body)
   }
+  else if(oT === "get-weixin-ad") {
+    res = await get_weixin_ad(body)
+  }
   
   return res
+}
+
+
+async function get_weixin_ad(
+  body: Record<string, any>,
+): Promise<LiuRqReturn<HappySystemAPI.Res_GetWeixinAd>> {
+  // 1. check out params
+  const roomId = body.room
+  if(!valTool.isStringWithVal(roomId)) {
+    return { code: "E4000", errMsg: "Invalid room" }
+  }
+  const _env = process.env
+  const adUnitId = _env.LIU_WX_REWARDED_VIDEO_AD
+  if(!adUnitId) {
+    return { code: "E5001", errMsg: "adUnitId is not configured" }
+  }
+
+  // 2. get room
+  const rCol = db.collection("AiRoom")
+  const res2 = await rCol.doc(roomId).get<Table_AiRoom>()
+  const room = res2.data
+  if(!room) {
+    return { code: "E4004", errMsg: "no ai room found" }
+  }
+
+  // 3. get user
+  const userId = room.owner
+  const uCol = db.collection("User")
+  const res3 = await uCol.doc(userId).get<Table_User>()
+  const user = res3.data
+  if(!user) {
+    return { code: "E4004", errMsg: "no user found" }
+  }
+  if(user.oState !== "NORMAL") {
+    return { code: "E4003", errMsg: "user is not normal" }
+  }
+  const conversationCountFromAd = user.quota?.conversationCountFromAd ?? 0
+
+  // 4. get credential
+  const MIN_10_LATER = getNowStamp() + MINUTE * 10
+  const w4 = {
+    userId,
+    infoType: "weixin-ad",
+    expireStamp: _.gt(MIN_10_LATER),
+  }
+  const cCol = db.collection("Credential")
+  const res4 = await cCol.where(w4).getOne<Table_Credential>()
+  console.log("get_weixin_ad res4: ", res4)
+  let cred = res4.data
+
+  // 5. create credential
+  if(!cred) {
+    const MIN_25_LATER = getNowStamp() + MINUTE * 25
+    const b5 = getBasicStampWhileAdding()
+    const newCred: Partial_Id<Table_Credential> = {
+      ...b5,
+      userId,
+      infoType: "weixin-ad",
+      expireStamp: MIN_25_LATER,
+      verifyNum: 0,
+      credential: createAdCredential(),
+    }
+    const res5 = await cCol.add(newCred)
+    const credId = getDocAddId(res5)
+    if(!credId) {
+      return { code: "E5001", errMsg: "fail to create credential" }
+    }
+    cred = {
+      _id: credId,
+      ...newCred,
+    }
+  }
+
+  // 6. package result
+  const res6: HappySystemAPI.Res_GetWeixinAd = {
+    operateType: "get-weixin-ad",
+    adUnitId,
+    conversationCountFromAd,
+    credential: cred.credential,
+  }
+  return { code: "0000", data: res6 }
 }
 
 

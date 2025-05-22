@@ -936,6 +936,7 @@ export interface UserQuota {
   lastWxGzhChatStamp?: number
   aiClusterCount?: number
   lastAiClusterStamp?: number
+  conversationCountFromAd?: number  // 由广告兑换来的可聊天次数
 }
 
 export interface LiuSpaceAndMember {
@@ -1580,7 +1581,7 @@ export interface Table_Config extends BaseTable {
 /** 临时凭证表的类型 */
 export type Table_Credential_Type =  "sms-code" | "email-code" | "wx-gzh-scan"
   | "users-select" | "stripe-checkout-session" | "bind-wecom" | "bind-wechat" 
-  | "bind-phone" | "auth-code"
+  | "bind-phone" | "auth-code" | "weixin-ad"
 
 /** 临时凭证表 */
 export interface Table_Credential extends BaseTable {
@@ -2455,6 +2456,13 @@ export namespace HappySystemAPI {
     imageUrl?: string
     imageH2W?: string
     footer?: string
+  }
+
+  export interface Res_GetWeixinAd {
+    operateType: "get-weixin-ad"
+    adUnitId: string
+    conversationCountFromAd: number
+    credential: string
   }
 }
 
