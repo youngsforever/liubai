@@ -2464,6 +2464,11 @@ export namespace HappySystemAPI {
     conversationCountFromAd: number
     credential: string
   }
+
+  export interface Res_PostWeixinAd {
+    operateType: "post-weixin-ad"
+    conversationCountFromAd: number
+  }
 }
 
 /****************** sync-operate api ***************/

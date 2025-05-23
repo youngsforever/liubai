@@ -11,8 +11,9 @@ import type {
   Table_Showcase,
   Table_User,
 } from "@/common-types"
-import { getBasicStampWhileAdding, getNowStamp, MINUTE } from "@/common-time"
+import { getBasicStampWhileAdding, getNowStamp, isWithinMillis, MINUTE, SECONED } from "@/common-time"
 import { createAdCredential } from "@/common-ids"
+import { ai_cfg } from "@/common-config"
 
 const db = cloud.database()
 const _ = db.command
@@ -31,10 +32,91 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "get-weixin-ad") {
     res = await get_weixin_ad(body)
   }
+  else if(oT === "post-weixin-ad") {
+    res = await post_weixin_ad(body)
+  }
   
   return res
 }
 
+async function post_weixin_ad(
+  body: Record<string, any>,
+) {
+  // 1. check out params
+  const cred_id = body.credential
+  if(!valTool.isStringWithVal(cred_id)) {
+    return { code: "E4000", errMsg: "Invalid credential" }
+  }
+
+  // 2. get credential
+  const cCol = db.collection("Credential")
+  const res2 = await cCol.doc(cred_id).get<Table_Credential>()
+  const cred = res2.data
+  if(!cred) {
+    return { code: "E4004", errMsg: "no credential found" }
+  }
+
+  // 3. verify credential
+  if(cred.infoType !== "weixin-ad") {
+    return { code: "E4003", errMsg: "credential is not weixin-ad" }
+  }
+  const now3 = getNowStamp()
+  if(now3 > cred.expireStamp) {
+    return { code: "E4003", errMsg: "credential has expired" }
+  }
+  const oldVerifyNum = cred.verifyNum ?? 0
+  if(oldVerifyNum >= 30) {
+    return { code: "E4003", errMsg: "the credential has been used too many times" }
+  }
+  const updatedStamp = cred.updatedStamp
+  const within15s = isWithinMillis(updatedStamp, SECONED * 15)
+  if(within15s) {
+    return { code: "E4003", errMsg: "too frequently" }
+  }
+  const userId = cred.userId
+  if(!userId) {
+    return { code: "E4004", errMsg: "no userId in credential" }
+  }
+
+  // 4. get user
+  const uCol = db.collection("User")
+  const res4 = await uCol.doc(userId).get<Table_User>()
+  const user = res4.data
+  if(!user) {
+    return { code: "E4004", errMsg: "no user found" }
+  }
+
+  // 5. check out user
+  const countFromAd = user.quota?.conversationCountFromAd ?? 0
+  if(countFromAd > ai_cfg.max_conversation_count_from_ad) {
+    return { code: "E4003", errMsg: "watches too many videos" }
+  }
+
+  // 6. update credential
+  const u6: Partial<Table_Credential> = {
+    verifyNum: oldVerifyNum + 1,
+    updatedStamp: getNowStamp(),
+  }
+  const res6 = await cCol.doc(cred_id).update(u6)
+  console.log("post_weixin_ad res6: ", res6)
+
+  // 7. update user
+  const newCountFromAd = countFromAd + 1
+  const u7 = {
+    "quota.conversationCountFromAd": newCountFromAd,
+    updatedStamp: getNowStamp(),
+  }
+  const res7 = await uCol.doc(userId).update(u7)
+  console.log("post_weixin_ad res7: ", res7)
+
+  // 8. package result
+  const res8: HappySystemAPI.Res_PostWeixinAd = {
+    operateType: "post-weixin-ad",
+    conversationCountFromAd: newCountFromAd,
+  }
+
+  return { code: "0000", data: res8 }
+}
 
 async function get_weixin_ad(
   body: Record<string, any>,
