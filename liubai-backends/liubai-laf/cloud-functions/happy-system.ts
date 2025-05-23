@@ -88,6 +88,7 @@ async function post_weixin_ad(
 
   // 5. check out user
   const countFromAd = user.quota?.conversationCountFromAd ?? 0
+  const videoWatchedTimes = user.quota?.videoWatchedTimes ?? 0
   if(countFromAd > ai_cfg.max_conversation_count_from_ad) {
     return { code: "E4003", errMsg: "watches too many videos" }
   }
@@ -101,9 +102,11 @@ async function post_weixin_ad(
   console.log("post_weixin_ad res6: ", res6)
 
   // 7. update user
-  const newCountFromAd = countFromAd + 1
+  const newCountFromAd = countFromAd + ai_cfg.conversation_to_ad
+  const newVideoWatchedTimes = videoWatchedTimes + 1
   const u7 = {
     "quota.conversationCountFromAd": newCountFromAd,
+    "quota.videoWatchedTimes": newVideoWatchedTimes,
     updatedStamp: getNowStamp(),
   }
   const res7 = await uCol.doc(userId).update(u7)
@@ -193,6 +196,7 @@ async function get_weixin_ad(
     operateType: "get-weixin-ad",
     adUnitId,
     conversationCountFromAd,
+    conversationToAd: ai_cfg.conversation_to_ad,
     credential: cred.credential,
   }
   return { code: "0000", data: res6 }

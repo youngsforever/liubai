@@ -937,6 +937,7 @@ export interface UserQuota {
   aiClusterCount?: number
   lastAiClusterStamp?: number
   conversationCountFromAd?: number  // 由广告兑换来的可聊天次数
+  videoWatchedTimes?: number        // 共观看了多少次视频激励广告
 }
 
 export interface LiuSpaceAndMember {
@@ -2462,6 +2463,7 @@ export namespace HappySystemAPI {
     operateType: "get-weixin-ad"
     adUnitId: string
     conversationCountFromAd: number
+    conversationToAd: number
     credential: string
   }
 

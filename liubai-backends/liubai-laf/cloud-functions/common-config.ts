@@ -71,5 +71,6 @@ export const ai_cfg = {
   default_voice: "female" as GenderType,
 
   max_conversation_count_from_ad: 10,
+  conversation_to_ad: 2,
 
 }

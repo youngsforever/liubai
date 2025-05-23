@@ -23,7 +23,7 @@ Component({
   data: {
     pState: pageStates.LOADING,
     pageName: "showcase",
-    showcase: undefined as ShowcaseData | undefined,
+    showcase: null as ShowcaseData | null,
     _key: "",
   },
 
