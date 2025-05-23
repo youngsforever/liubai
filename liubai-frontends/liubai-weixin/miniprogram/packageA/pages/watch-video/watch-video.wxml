@@ -1,3 +1,27 @@
-<view class="wv-container">
-  <text>{{t1.watch}}</text>
-</view>
+<!-- watch-video.wxml -->
+
+<scroll-view 
+  scroll-y
+  class="liu-scroll-view"
+  type="custom"
+  associative-container="pop-gesture"
+>
+  <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
+  <placeholder-view height3="{{height3}}" p-state="{{pState}}"
+    err-tip="{{errTip}}"
+  ></placeholder-view>
+
+  <view class="wv-container" style="min-height: {{height3}}px"
+    wx:if="{{pState !== 0 && conversationCountFromAd >= 0}}"
+  >
+
+    
+
+  </view>
+  
+</scroll-view>
+<custom-navibar 
+  height1="{{height1}}" height2="{{height2}}" 
+  visible="{{visible}}"
+  title="{{t1.title}}"
+></custom-navibar>

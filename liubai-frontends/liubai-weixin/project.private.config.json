@@ -6,7 +6,7 @@
         {
           "name": "video",
           "pathName": "packageA/pages/watch-video/watch-video",
-          "query": "",
+          "query": "r=abc",
           "scene": null,
           "launchMode": "default"
         },
