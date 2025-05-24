@@ -32,11 +32,11 @@
     </view>
 
     <view class="wv-btns">
-      <custom-button>
+      <custom-button catchtap="onTapShowVideo">
         <text class="liu-pointer">{{t1.start_watching}}</text>
       </custom-button>
 
-      <custom-button btn-type="transparent">
+      <custom-button btn-type="transparent" catchtap="onTapExit">
         <text class="liu-pointer">{{t1.back}}</text>
       </custom-button>
 

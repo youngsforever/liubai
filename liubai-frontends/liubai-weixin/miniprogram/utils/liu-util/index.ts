@@ -13,6 +13,10 @@ export interface CustomModalOpt extends WechatMiniprogram.ShowModalOption {
   cancel_key?: string
 }
 
+export interface CustomToastOpt extends Partial<WechatMiniprogram.ShowToastOption> {
+  title?: string
+  title_key?: string
+}
 
 export class LiuUtil {
 
@@ -129,6 +133,20 @@ export class LiuUtil {
     
     const res = await LiuApi.showModal(opt)
     return res
+  }
+
+  static async showCustomToast(opt: CustomToastOpt) {
+    if(opt.title_key) {
+      const { t } = useI18n()
+      if(!opt.title) {
+        opt.title = t(opt.title_key)
+      }
+      delete opt.title_key
+    }
+    if(!opt.icon && !opt.image) {
+      opt.icon = "none"
+    }
+    await LiuApi.showToast(opt as WechatMiniprogram.ShowToastOption)
   }
 
   static getCurrentTheme(): SupportedTheme {

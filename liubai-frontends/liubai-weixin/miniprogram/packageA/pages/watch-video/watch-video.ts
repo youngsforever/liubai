@@ -6,6 +6,12 @@ import { LiuTime } from "~/utils/LiuTime";
 import valTool from "~/utils/val-tool";
 import { themeBehavior } from "~/packageA/behaviors/theme-behavior";
 import { LiuUtil } from "~/utils/liu-util/index";
+import { LiuApi } from "~/utils/LiuApi";
+import {
+  initRewardedVideoAd,
+  destroyRewardedVideoAd,
+  showRewardedVideoAd,
+} from "./tools/handleRewardedVideo";
 
 Component({
 
@@ -88,16 +94,13 @@ Component({
         _credential: data1.credential,
       }
       this.setData(bind)
-    },
-
-    toPost() {
-
+      initRewardedVideoAd(this)
     },
 
     onTapLearnMore() {
+      LiuApi.vibrateShort({ type: "light" })
       const { conversationToAd } = this.data
       if(!conversationToAd) return
-      
       LiuUtil.showCustomModal({
         title: "📺",
         content_key: "watch-video.rule",
@@ -106,8 +109,21 @@ Component({
         confirm_key: "shared.got_it"
       })
       
-    }
+    },
 
+    onTapShowVideo() {
+      LiuApi.vibrateShort({ type: "medium" })
+      showRewardedVideoAd()
+    },
+
+    onTapExit() {
+      LiuApi.vibrateShort({ type: "medium" })
+      LiuApi.exitMiniProgram()
+    },
+
+    onUnload() {
+      destroyRewardedVideoAd()
+    },
 
 
   },

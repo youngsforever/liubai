@@ -22,6 +22,8 @@ export default {
     "confirm": "Confirm",
     "cancel": "Cancel",
     "got_it": "Got it",
+    "contact_us": "Contact us",
+    "try_again_later": "Try again later",
   },
   "err": {
     "no_data": "Nothing Here",
@@ -30,8 +32,11 @@ export default {
     "unknown_err": "Unknown Error",
     "too_hot": "Too Hot",
     "come_later": "Come later please~",
+    "video_err": "Video load failed",
+    "err_reason": "Reason: {msg}; Status code: {code}",
   },
   "watch-video": {
     "rule": "You can earn {conversationToAd} conversation times by watching a video.",
+    "tip_1": "You haven't watched the video yet",
   },
 }

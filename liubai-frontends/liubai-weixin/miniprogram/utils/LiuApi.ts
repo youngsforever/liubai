@@ -178,4 +178,11 @@ export class LiuApi {
     return res
   }
 
+  static createRewardedVideoAd(
+    opt: WechatMiniprogram.CreateRewardedVideoAdOption,
+  ) {
+    const res = wx.createRewardedVideoAd(opt)
+    return res
+  }
+
 }
