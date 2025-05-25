@@ -86,9 +86,9 @@ Component({
       }
 
       // 3. bind data
-      this.data._lastGetStamp = LiuTime.getLocalTime()
       const bind = {
         pState: pageStates.OK,
+        _lastGetStamp: LiuTime.getLocalTime(),
         _adUnitId: data1.adUnitId,
         conversationCountFromAd: data1.conversationCountFromAd,
         conversationToAd: data1.conversationToAd,
