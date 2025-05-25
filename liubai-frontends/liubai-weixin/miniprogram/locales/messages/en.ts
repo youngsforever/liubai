@@ -40,5 +40,7 @@ export default {
     "tip_1": "You haven't watched the video yet",
     "tip_2": "No video to watch",
     "tip_3": "Let's take a break 🧘",
+    "tip_4": "Watch too much 🤯",
+    "tip_5": "Go back to chat!",
   },
 }

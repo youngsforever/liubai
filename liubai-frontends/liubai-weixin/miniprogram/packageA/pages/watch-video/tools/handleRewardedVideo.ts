@@ -34,25 +34,29 @@ export async function initRewardedVideoAd(
   // 1. destroy first and get adUnitId
   destroyRewardedVideoAd()
   const adUnitId = ctx.data._adUnitId
-  console.log("adUnitId: ", adUnitId)
   
-  // 2. init and define callbacks
+  // 2.1 define some callbacks
+  const _finishVideo = async () => {
+    // 2.1.1 fetch
+    const res2 = await fetchPost(ctx.data._credential)
+    console.log("_finishVideo res2: ", res2)
+    const code2 = res2.code
+    const data2 = res2.data
+    if(code2 !== "0000" || !data2) return
+
+    // 2.1.2 add num
+    const bind = {
+      conversationCountFromAd: data2.conversationCountFromAd,
+    }
+    ctx.setData(bind)
+  }
+
+  // 2.2 get RewardedVideoAd instance
   rewardedVideoAd = LiuApi.createRewardedVideoAd({ adUnitId })
   rewardedVideoAd.onClose((res) => {
     console.log("rewardedVideoAd onClose: ", res)
     if(res.isEnded) {
-      // 1. fetch
-      fetchPost(ctx.data._credential)
-
-      // 2. add num
-      const {
-        conversationToAd,
-        conversationCountFromAd,
-      } = ctx.data
-      const bind = {
-        conversationCountFromAd: conversationToAd + conversationCountFromAd,
-      }
-      ctx.setData(bind)
+      _finishVideo()
     }
     else {
       LiuUtil.showCustomModal({

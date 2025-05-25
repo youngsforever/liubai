@@ -43,14 +43,15 @@ async function post_weixin_ad(
   body: Record<string, any>,
 ) {
   // 1. check out params
-  const cred_id = body.credential
-  if(!valTool.isStringWithVal(cred_id)) {
+  const credential = body.credential
+  if(!valTool.isStringWithVal(credential)) {
     return { code: "E4000", errMsg: "Invalid credential" }
   }
 
   // 2. get credential
   const cCol = db.collection("Credential")
-  const res2 = await cCol.doc(cred_id).get<Table_Credential>()
+  const w2: Partial<Table_Credential> = { credential }
+  const res2 = await cCol.where(w2).getOne<Table_Credential>()
   const cred = res2.data
   if(!cred) {
     return { code: "E4004", errMsg: "no credential found" }
@@ -89,7 +90,7 @@ async function post_weixin_ad(
   // 5. check out user
   const countFromAd = user.quota?.conversationCountFromAd ?? 0
   const videoWatchedTimes = user.quota?.videoWatchedTimes ?? 0
-  if(countFromAd > ai_cfg.max_conversation_count_from_ad) {
+  if(countFromAd >= ai_cfg.max_conversation_count_from_ad) {
     return { code: "E4003", errMsg: "watches too many videos" }
   }
 
@@ -98,8 +99,8 @@ async function post_weixin_ad(
     verifyNum: oldVerifyNum + 1,
     updatedStamp: getNowStamp(),
   }
+  const cred_id = cred._id
   const res6 = await cCol.doc(cred_id).update(u6)
-  console.log("post_weixin_ad res6: ", res6)
 
   // 7. update user
   const newCountFromAd = countFromAd + ai_cfg.conversation_to_ad
@@ -110,7 +111,6 @@ async function post_weixin_ad(
     updatedStamp: getNowStamp(),
   }
   const res7 = await uCol.doc(userId).update(u7)
-  console.log("post_weixin_ad res7: ", res7)
 
   // 8. package result
   const res8: HappySystemAPI.Res_PostWeixinAd = {
@@ -165,7 +165,6 @@ async function get_weixin_ad(
   }
   const cCol = db.collection("Credential")
   const res4 = await cCol.where(w4).getOne<Table_Credential>()
-  console.log("get_weixin_ad res4: ", res4)
   let cred = res4.data
 
   // 5. create credential

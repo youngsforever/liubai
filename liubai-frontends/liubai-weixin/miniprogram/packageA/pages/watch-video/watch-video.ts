@@ -12,6 +12,7 @@ import {
   destroyRewardedVideoAd,
   showRewardedVideoAd,
 } from "./tools/handleRewardedVideo";
+import { defaultData } from "~/config/default-data";
 
 Component({
 
@@ -113,6 +114,22 @@ Component({
 
     onTapShowVideo() {
       LiuApi.vibrateShort({ type: "medium" })
+
+      const num = this.data.conversationCountFromAd
+      const max = defaultData.max_conversation_count_from_ad
+      if(num >= max) {
+        const _this = this
+        LiuUtil.showCustomModal({
+          title_key: "watch-video.tip_4",
+          content_key: "watch-video.tip_5",
+          showCancel: false,
+          success() {
+            _this.onTapExit()
+          }
+        })
+        return
+      }
+
       showRewardedVideoAd()
     },
 
