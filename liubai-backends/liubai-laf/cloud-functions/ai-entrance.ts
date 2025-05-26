@@ -163,18 +163,19 @@ export async function get_into_ai(
 
   // 2. check out directive
   const theDirective = AiDirective.check(entry)
+  // interrupt non-continue command
   if(theDirective && theDirective.theCommand !== "continue") {
     return
   }
 
-  // 3. check out quota
-  const isQuotaEnough = await UserHelper.checkQuota(entry)
-  if(!isQuotaEnough) return
-
-  // 4. get my ai room
+  // 3. get my ai room
   const room = await AiHelper.getMyAiRoom(entry)
   if(!room) return
   const roomId = room._id
+
+  // 4. check out quota
+  const isQuotaEnough = await UserHelper.checkQuota(entry, room)
+  if(!isQuotaEnough) return
 
   // 4.1 check out if no assistants
   const res4_1 = await AiHelper.checkIfNobodyHere(entry, room)
@@ -2324,7 +2325,12 @@ class AiController {
     // 5. add quota
     const num5 = AiHelper.addQuotaForUser(entry, room)
 
-    // 5.1 popup tip for ai voice
+    // 5.1 if num5 === 10 && !isSubscribed, send tip
+    const available = UserHelper.checkQuota(entry, room)
+    console.log("available: ", available)
+    if(!available) return
+
+    // 5.2 popup tip for ai voice
     if(hasEverUsedVoice) {
       if(!room.voicePreference) {
         this.popupTipForAiVoice(aiParam)
@@ -2332,7 +2338,7 @@ class AiController {
       }
     }
 
-    // 5.2 add quota for user    
+    // 5.3 send fallback message
     if(aiLogs.length > 0) {
       this.sendFallbackMenu(aiParam, res4, aiLogs) 
     }
@@ -3599,6 +3605,11 @@ class AiHelper {
     if(quota.aiConversationCount >= minRecordNum) {
       this._updateNeedSystem2Stamp(room)
     }
+
+    // 4. update user in runtime
+    user.quota = quota
+    user.activeStamp = now2
+    user.updatedStamp = now2
     
     return quota.aiConversationCount
   }
@@ -4135,6 +4146,7 @@ class UserHelper {
 
   static async checkQuota(
     entry: AiEntry,
+    room: Table_AiRoom,
   ) {
     const user = entry.user
     const quota = user.quota
@@ -4147,44 +4159,46 @@ class UserHelper {
 
     const available = count < MAX_TIMES
     if(!available) {
-      const expireStamp = subscriptionManager.getExpireStamp()
-
-      if(expireStamp) {
-        this.sendQuotaWarning3(entry, expireStamp)
-      }
-      else if(MAX_TIMES === MAX_TIMES_FREE) {
-        this.sendQuotaWarning(entry)
+      if(isSubscribed) {
+        this.sendQuotaWarning2(entry)
       }
       else {
-        this.sendQuotaWarning2(entry)
+        this.sendQuotaWarning4(entry, room)
       }
     }
     return available
   }
 
-  static async sendQuotaWarning3(
+  static async sendQuotaWarning4(
     entry: AiEntry,
-    expireStamp: number,
+    room: Table_AiRoom,
   ) {
-    // 1. get payment link
+    // 1. get some required data
+    const _env = process.env
+    const appid = _env.LIU_WX_MINI_APPID
+    if(!appid) {
+      console.warn("fail to get appid")
+      return false
+    }
+    const roomId = room._id
+    const path = `packageA/pages/watch-video/watch-video?r=${roomId}`
+
+    // 2. get payment link
     const paymentLink = await this._getPaymentLink(entry)
-    if(!paymentLink) return
+    if(!paymentLink) return false
 
-    // 2. calculate expired date
+    // 3. send
     const { user } = entry
-    const locale = getCurrentLocale({ user })
-    const expiredStr = LiuDateUtil.displayTime(expireStamp, locale, user.timezone)
-
-    // 3. construct message to send
     const { t } = useI18n(aiLang, { user })
-    let msg = t("quota_warning_3", {
-      expiredStr,
+    let msg = t("quota_warning_4", { 
       membershipTimes: MAX_TIMES_MEMBERSHIP,
-      link: paymentLink,
+      link1: paymentLink,
+      link2: "https://my.liubai.cc",
+      appid,
+      path,
     })
-
-    // 4. send
     TellUser.text(entry, msg)
+    return true
   }
 
   static async sendQuotaWarning2(entry: AiEntry) {
@@ -4200,26 +4214,6 @@ class UserHelper {
       link: paymentLink,
     })
 
-    TellUser.text(entry, msg)
-  }
-
-  static async sendQuotaWarning(entry: AiEntry) {
-    // 1. get payment link
-    const paymentLink = await this._getPaymentLink(entry)
-    if(!paymentLink) return
-
-    // 2. i18n
-    const { user } = entry
-    const { t } = useI18n(aiLang, { user })
-    let msg = t("quota_warning", { 
-      freeTimes: MAX_TIMES_FREE,
-      membershipTimes: MAX_TIMES_MEMBERSHIP,
-      link: paymentLink,
-    })
-    msg += "\n\n"
-    msg += t("see_question_box")
-
-    // 3. tell user
     TellUser.text(entry, msg)
   }
 
