@@ -942,6 +942,17 @@ export const wxTextRepliesItems: WxTextReplyItem[] = [
         }
       }
     ]
+  },
+  {
+    keywords: ["晏哲的简历"],
+    replies: [
+      {
+        msgtype: "text",
+        text: {
+          content: "https://musetransfer.com/s/n79p1uiuu 请点击链接获取《yanzhe's resume》, 有效期至6月3日"
+        }
+      }
+    ]
   }
 ]
 
