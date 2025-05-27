@@ -53,7 +53,7 @@ import {
   aiTools,
 } from "@/ai-prompt"
 import cloud from "@lafjs/cloud"
-import { useI18n, aiLang, getCurrentLocale } from "@/common-i18n"
+import { useI18n, aiLang } from "@/common-i18n"
 import { downloadFile, responseToFormData } from "@/file-utils"
 import { createRandom } from "@/common-ids"
 import axios from "axios"
@@ -469,6 +469,7 @@ class AiDirective {
     const quota = user.quota
     const usedTimes_1 = quota?.aiConversationCount ?? 0
     const usedTimes_2 = quota?.aiClusterCount ?? 0
+    const restTimes_1 = quota?.conversationCountFromAd ?? 0
     const isSubscribed = checkIfUserSubscribed(user)
     const maxTimes = isSubscribed ? MAX_TIMES_MEMBERSHIP : MAX_TIMES_FREE
     const msg3_1 = t("status_conversation", {
@@ -479,12 +480,30 @@ class AiDirective {
       usedTimes: usedTimes_2,
       maxTimes,
     })
+    const msg3_3 = t("conversation_ad", { restTimes: restTimes_1 })
     msg += `${msg3_1}\n`
-    msg += msg3_2
+
+    let hasCluster = false
+    // 3.1 add cluster quota if aiClusterCount > 0
+    if(usedTimes_2 > 0) {
+      hasCluster = true
+      msg += `${msg3_2}\n`
+    }
+
+    // 3.2 add ad quota if aiConversationCount >= MAX_TIMES_FREE && !isSubscribed
+    if(usedTimes_1 >= MAX_TIMES_FREE && !isSubscribed) {
+      msg += `${msg3_3}\n`
+    }
+    else if(!hasCluster) {
+      hasCluster = true
+      msg += `${msg3_2}\n`
+    }
 
     // 4. add subscription link
-    let msg4 = isSubscribed ? t("renew_premium") : t("buy_premium")
-    msg += `\n\n${msg4}`
+    if(isSubscribed) {
+      const msg4 = t("renew_premium")
+      msg += `\n\n${msg4}`
+    }
 
     // 5. text user
     TellUser.text(entry, msg)
@@ -2327,7 +2346,6 @@ class AiController {
 
     // 5.1 if num5 === 10 && !isSubscribed, send tip
     const available = UserHelper.checkQuota(entry, room)
-    console.log("available: ", available)
     if(!available) return
 
     // 5.2 popup tip for ai voice
@@ -3581,16 +3599,28 @@ class AiHelper {
     entry: AiEntry,
     room: Table_AiRoom,
   ) {
-    // 1. add
+    // 1. handle aiConversationCount & lastWxGzhChatStamp
     const user = entry.user
     const userId = user._id
     const quota = user.quota ?? { aiConversationCount: 0 }
-    quota.aiConversationCount += 1
+    const count1 = quota.aiConversationCount + 1
+    quota.aiConversationCount = count1
     if(entry.wx_gzh_openid) {
       quota.lastWxGzhChatStamp = getNowStamp()
     }
 
-    // 2. update user
+    // 2. minus conversationCountFromAd if exceed MAX_TIMES_FREE
+    if(count1 > MAX_TIMES_FREE) {
+      const isSubscribed = checkIfUserSubscribed(user)
+      if(!isSubscribed) {
+        const count2 = quota.conversationCountFromAd ?? 0
+        if(count2 > 0) {
+          quota.conversationCountFromAd = count2 - 1
+        }
+      }
+    }
+
+    // 3. update user
     const now2 = getNowStamp()
     const u2: Partial<Table_User> = {
       quota,
@@ -3600,13 +3630,13 @@ class AiHelper {
     const uCol = db.collection("User")
     uCol.doc(userId).update(u2)
 
-    // 3. update room for needSystem2Stamp
+    // 4. update room for needSystem2Stamp
     const minRecordNum = ai_cfg.minCoversationsToRecordForSystemTwo
     if(quota.aiConversationCount >= minRecordNum) {
       this._updateNeedSystem2Stamp(room)
     }
 
-    // 4. update user in runtime
+    // 5. update user in runtime
     user.quota = quota
     user.activeStamp = now2
     user.updatedStamp = now2
@@ -4153,11 +4183,16 @@ class UserHelper {
     if(!quota) return true
 
     const count = quota.aiConversationCount
+    const count2 = quota.conversationCountFromAd ?? 0
     const subscriptionManager = new SubscriptionManager(user)
     const isSubscribed = subscriptionManager.getSubscribed()
     const MAX_TIMES = isSubscribed ? MAX_TIMES_MEMBERSHIP : MAX_TIMES_FREE
 
-    const available = count < MAX_TIMES
+    let available = count < MAX_TIMES
+    if(!available) {
+      available = count2 > 0
+    }
+
     if(!available) {
       if(isSubscribed) {
         this.sendQuotaWarning2(entry)
@@ -4181,7 +4216,9 @@ class UserHelper {
       return false
     }
     const roomId = room._id
-    const path = `packageA/pages/watch-video/watch-video?r=${roomId}`
+    const path = `${ai_cfg.watch_video_path}?r=${roomId}`
+    const gzhType = AiShared.getGzhType()
+    const msgKey = gzhType === "subscription_account" ? "quota_warning_4_mock" : "quota_warning_4"
 
     // 2. get payment link
     const paymentLink = await this._getPaymentLink(entry)
@@ -4190,10 +4227,9 @@ class UserHelper {
     // 3. send
     const { user } = entry
     const { t } = useI18n(aiLang, { user })
-    let msg = t("quota_warning_4", { 
+    let msg = t(msgKey, { 
       membershipTimes: MAX_TIMES_MEMBERSHIP,
       link1: paymentLink,
-      link2: "https://my.liubai.cc",
       appid,
       path,
     })
