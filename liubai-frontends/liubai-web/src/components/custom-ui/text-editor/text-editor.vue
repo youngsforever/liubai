@@ -52,7 +52,8 @@ const {
           :class="{ 'cui-btn_disabled': !canTextEditorSubmit }"
           @click="onTapTeConfirm"
         >
-          <span>{{ t("common.confirm") }}</span>
+          <span v-if="teData.confirm_key">{{ t(teData.confirm_key) }}</span>
+          <span v-else>{{ t("common.confirm") }}</span>
         </div>
       </div>
     </div>

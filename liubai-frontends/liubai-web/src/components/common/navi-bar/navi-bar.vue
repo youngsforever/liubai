@@ -5,7 +5,7 @@ import { useI18n } from "vue-i18n";
 import { naviBarProps, type NaviBarEmit } from "./tools/types"
 
 const { router } = useRouteAndLiuRouter()
-const props = defineProps(naviBarProps)
+defineProps(naviBarProps)
 defineEmits<NaviBarEmit>()
 
 const onTapBack = (e: MouseEvent) => {

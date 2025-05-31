@@ -2,7 +2,6 @@
 import ThreadList from '~/components/level1/thread-list/thread-list.vue';
 import CalendarEmpty from '~/pages/shared/calender-empty/calendar-empty.vue';
 import { useScheduleContent } from './tools/useScheduleContent';
-import { useI18n } from 'vue-i18n';
 import HighlightBox from './highlight-box/highlight-box.vue';
 
 const { 
@@ -10,8 +9,6 @@ const {
   onNodata,
   onHasdata,
 } = useScheduleContent()
-
-const { t } = useI18n()
 
 </script>
 <template>

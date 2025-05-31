@@ -5,6 +5,7 @@ export interface TeData {
   title_key: string
   placeholder: string
   placeholder_key: string
+  confirm_key: string
   inputTxt: string
   nativeInputTxt: string
   minLength: number
@@ -24,6 +25,7 @@ export interface TextEditorParam {
   placeholder?: string
   placeholder_key?: string   // t(placeholder_key)
   value?: string          // 用户已输入的文字
+  confirm_key?: string
   minLength?: number
   maxLength?: number
   trim?: boolean         // 默认为 true

@@ -6,6 +6,7 @@ import ScheduleContent from "./schedule-content/schedule-content.vue";
 import { useMainVice } from "~/hooks/useMainVice";
 import { useI18n } from "vue-i18n";
 import { usePageEnabled } from "~/hooks/useOpenClose";
+import { useSchedulePage } from "./tools/useSchedulePage";
 
 const { 
   hiddenScrollBar, 
@@ -16,6 +17,7 @@ const {
   onScroll,
 } = useMainVice()
 const { t } = useI18n()
+const { onTapAdd } = useSchedulePage()
 
 const { pageEnabled } = usePageEnabled("schedule")
 
@@ -30,7 +32,7 @@ const { pageEnabled } = usePageEnabled("schedule")
       <navi-virtual></navi-virtual>
       <ScheduleContent></ScheduleContent>
     </scroll-view>
-    <navi-bar :title="t('calendar.schedule')"></navi-bar>
+    <navi-bar :title="t('calendar.schedule')" show-add @tapadd="onTapAdd"></navi-bar>
 
     <FloatingActionButton :scroll-position="scrollPosition"
       @tapfab="onTapFab"
