@@ -665,7 +665,8 @@
     "schedule": "Schedule",
     "empty_1": "No Schedule Yet",
     "empty_2": "Take a rest and enjoy your life!",
-    "midnight_tip": "It's {clock} o'clock\nToday is {today}"
+    "midnight_tip": "It's {clock} o'clock\nToday is {today}",
+    "what_to_add": "What to do?"
   },
   "ai_character": {
     "baixiaoying": "Ying",

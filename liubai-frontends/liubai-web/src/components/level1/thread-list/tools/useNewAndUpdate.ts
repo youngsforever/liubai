@@ -5,13 +5,14 @@ import type { CommentStoreState } from "~/hooks/stores/useCommentStore";
 import type { ThreadShow } from "~/types/types-content";
 import type { KanbanStateChange } from "~/hooks/stores/useGlobalStateStore";
 import valTool from "~/utils/basic/val-tool";
-import type { TlData, TlEmits, TlProps } from "./types";
+import type { TlAtom, TlData, TlEmits, TlProps } from "./types";
 import type { ThreadChangedFrom, WhyThreadChange } from "~/types/types-atom";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { filterForCalendar } from "./handle-calendar";
 import tlUtil from "./tl-util";
 import cfg from "~/config";
+import time from "~/utils/basic/time";
 
 interface TlNuCtx {
   props: TlProps,
@@ -145,6 +146,7 @@ function handleNewList(
   // console.log(newList)
   // console.log(" ")
 
+  const now = time.getTime()
   const myList = newList.filter(v => {
     const { tagSearched = [], oState } = v
     // 垃圾桶时
@@ -167,6 +169,10 @@ function handleNewList(
     }
 
     if(vT === "CALENDAR") return Boolean(v.calendarStamp)
+    if(vT === "TODAY_FUTURE") {
+      if(!v.calendarStamp) return false
+      return v.calendarStamp >= now
+    }
     if(vT === "STATE") {
       if(!v.stateId) return false
       return stateId === v.stateId
@@ -181,6 +187,10 @@ function handleNewList(
     handleNewListForCalendar(ctx, myList)
     return
   }
+  if(vT === "TODAY_FUTURE") {
+    handleNewListForTodayAndFuture(ctx, myList)
+    return
+  }
 
   const _myList = tlUtil.threadShowsToList(myList, vT)
   tlData.list.splice(0, 0, ..._myList)
@@ -188,6 +198,26 @@ function handleNewList(
   if(tlData.lastItemStamp) return
   // 处理 lastItemStamp 为 0 的情况
   tlUtil.handleLastItemStamp(vT, tlData)
+}
+
+
+function handleNewListForTodayAndFuture(
+  ctx: TlNuCtx,
+  results: ThreadShow[],
+) {
+  const { tlData, emit } = ctx
+  const oldList = tlData.list
+  const newList = tlUtil.threadShowsToList(results, "TODAY_FUTURE")
+
+  if(oldList.length < 1) {
+    tlData.list = newList
+    tlUtil.handleLastItemStamp("TODAY_FUTURE", tlData)
+    emit("hasdata")
+    return
+  }
+
+  insertListUsingCalendarStamp(newList, oldList)
+  tlUtil.handleLastItemStamp("TODAY_FUTURE", tlData)
 }
 
 
@@ -204,7 +234,7 @@ function handleNewListForCalendar(
   } = filterForCalendar(results)
 
   if(tmpList.length < 1) return
-  const newList = tlUtil.threadShowsToList(tmpList, ctx.props.viewType)
+  const newList = tlUtil.threadShowsToList(tmpList, "CALENDAR")
 
   if(oldList.length < 1) {
     tlData.list = newList
@@ -212,6 +242,16 @@ function handleNewListForCalendar(
     return
   }
 
+  insertListUsingCalendarStamp(
+    newList,
+    oldList,
+  )
+}
+
+function insertListUsingCalendarStamp(
+  newList: TlAtom[],
+  oldList: TlAtom[],
+) {
   for(let i=0; i<newList.length; i++) {
     const v0 = newList[i]
     const v1 = v0.thread

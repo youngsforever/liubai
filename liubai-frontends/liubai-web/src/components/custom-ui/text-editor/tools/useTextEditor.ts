@@ -29,6 +29,7 @@ const teData = reactive<TeData>({
   title_key: "",
   placeholder: "",
   placeholder_key: "",
+  confirm_key: "",
   inputTxt: "",
   nativeInputTxt: "",
   minLength: DEFAULT_MIN_LENGTH,
@@ -126,6 +127,7 @@ export async function showTextEditor(
   teData.title_key = opt.title_key ?? ""
   teData.placeholder = opt.placeholder ?? ""
   teData.placeholder_key = opt.placeholder_key ?? ""
+  teData.confirm_key = opt.confirm_key ?? ""
   setInputTxt(opt.value ?? "")
 
   if(typeof opt.minLength === "number") teData.minLength = opt.minLength
