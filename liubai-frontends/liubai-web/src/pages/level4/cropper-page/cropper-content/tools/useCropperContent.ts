@@ -30,6 +30,7 @@ export function useCropperContent(
   })
 
   onDeactivated(() => {
+    hideCropperLoading()
     tempStore.imageUrlForCropper = ""
   })
 
