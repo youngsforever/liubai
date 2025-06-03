@@ -111,7 +111,7 @@ async function toLogin(
   // and then compare space and member
   setTimeout(() => {
     compareSpaceAndMember(spaceMemberList, rr)
-  }, time.SECONED * 3)
+  }, time.SECOND * 3)
   
   return true
 }
