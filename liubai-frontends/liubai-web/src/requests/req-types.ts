@@ -220,11 +220,17 @@ export interface Res_PO_AlipayWap {
 
 
 /************************ Uploading File ********************/
+export namespace FileSetAPI {
+  export interface Param {
+    operateType: "get-upload-token"
+    purpose?: "avatar"
+  }
 
-export interface Res_FileSet_UploadToken {
-  cloudService: CloudStorageService
-  uploadToken: string
-  prefix: string
+  export interface Res_UploadToken {
+    cloudService: CloudStorageService
+    uploadToken: string
+    prefix: string
+  }
 }
 
 /************************ Webhook ********************/

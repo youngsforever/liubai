@@ -634,7 +634,8 @@ export class LiuDateUtil {
     return `${yyyy}-${mm}-${dd}T${hr}:${min}:${sec}`
   }
 
-  static getYYYYMMDD(stamp: number) {
+  static getYYYYMMDD(stamp?: number) {
+    if(!stamp) stamp = getNowStamp()
     const str = this.transformStampIntoStr(stamp)
     return str.substring(0, 10)
   }

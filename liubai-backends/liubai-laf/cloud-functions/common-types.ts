@@ -2090,10 +2090,18 @@ export interface Res_SubPlan_StripeCheckout {
   checkout_url: string   // stripe 托管的结账地址
 }
 
-export interface Res_FileSet_UploadToken {
-  cloudService: CloudStorageService
-  uploadToken: string
-  prefix: string
+export namespace FileSetAPI {
+
+  export interface Param {
+    operateType: "get-upload-token"
+    purpose?: "avatar"
+  }
+
+  export interface Res_UploadToken {
+    cloudService: CloudStorageService
+    uploadToken: string
+    prefix: string
+  }
 }
 
 export interface Res_WebhookQiniu {
