@@ -17,6 +17,7 @@ import CropperContent from "./cropper-content/cropper-content.vue";
     </scroll-view>
     <navi-bar 
       title-key="common.crop"
+      confirm-key="common.confirm"
     ></navi-bar>
   </div>
 </template>
