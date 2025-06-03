@@ -87,7 +87,8 @@ function getUploadTokenViaQiniu(
   let qiniu_folder = _env.LIU_QINIU_FOLDER || "users"
   if(body.purpose === "avatar") {
     const dateStr = LiuDateUtil.getYYYYMMDD()
-    qiniu_folder = `avatars/${dateStr}`
+    const avatarFolder = _env.LIU_QINIU_AVATAR_FOLDER || "avatars"
+    qiniu_folder = `${avatarFolder}/${dateStr}`
   }
 
   // 1.3 generate prefix

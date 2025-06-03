@@ -14,7 +14,7 @@ const {
 </script>
 <template>
 
-  <div class="cc-container">
+  <div v-if="tempStore.imageUrlForCropper" class="cc-container">
 
     <Cropper
       :src="tempStore.imageUrlForCropper"

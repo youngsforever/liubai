@@ -272,12 +272,10 @@ export async function compareSpaceAndMember(
     }
 
     // check avatar
-    console.log("cloud avatar: ", v2.member_avatar)
-    console.log("local avatar: ", v1.avatar)
-
     const avatarRes = CloudFiler.imageFromCloudToStore(v2.member_avatar, v1.avatar)
-
-    console.log("avatarRes: ", avatarRes)
+    // console.log("cloud avatar: ", v2.member_avatar)
+    // console.log("local avatar: ", v1.avatar)
+    // console.log("avatarRes: ", avatarRes)
 
     if(avatarRes.useCloud) {
       u7.avatar = avatarRes.image

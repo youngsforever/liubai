@@ -1,4 +1,4 @@
-import { onActivated, ref, toRef, watch } from "vue";
+import { onActivated, onDeactivated, ref, toRef, watch } from "vue";
 import { useTemporaryStore } from "~/hooks/stores/useTemporaryStore";
 import { type RouteAndLiuRouter, useRouteAndLiuRouter } from "~/routes/liu-router";
 import type { ComponentPublicInstance } from "vue"
@@ -27,6 +27,10 @@ export function useCropperContent(
     const url = tempStore.imageUrlForCropper
     if(url) return
     rr.router.goHome()
+  })
+
+  onDeactivated(() => {
+    tempStore.imageUrlForCropper = ""
   })
 
   const cropperRef = ref<ComponentPublicInstance | null>(null)
@@ -172,5 +176,6 @@ async function uploadAvatar(
     hideCropperLoading()
     wStore.setAvatar(imgStore)
     rr.router.goHome()
+    cui.showSnackBar({ text_key: "tip.updated" })
   }
 }
