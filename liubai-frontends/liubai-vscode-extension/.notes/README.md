@@ -71,6 +71,38 @@ vsce package --no-dependencies
 这个命令会检测 `package.json` 的 `scripts` 字段，找到 `vscode:prepublish` 命令，然后执行它。
 
 
+## 小知识
 
+在 `package.json` 中，有一行脚本命令是
 
+```json
+{
+   "scripts": {
+      "test": "vscode-test"
+   }
+}
+```
 
+全局搜索 `vscode-test` 是找不到该命令的，那是因为它是由 `@vscode/test-cli` 在其 `package.json` 中用 `bin` 字段注册的：
+
+```json
+{
+   "bin": {
+    "vscode-test": "./out/bin.mjs"
+  }
+}
+```
+
+这会导致我们运行 `pnpm test` 时，实际执行流程为：
+
+1. pnpm 开始查找当前目录 `package.json` 中的 "test" 脚本
+2. 发现脚本内容是 "vscode-test"
+3. pnpm 会自动在以下位置按顺序查找可执行文件:
+   - 项目的 node_modules/.bin 目录
+   - 全局安装的 node_modules/.bin 目录
+   - 系统 PATH 环境变量
+4. 在项目的 `node_modules/.bin` 文件夹中找到可执行文件 `vscode-test`
+5. 进而得知是 `@vscode/test-cli` 注册的
+6. 再进而得知要运行 `@vscode/test-cli` 的 `./out/bin.mjs` 文件
+
+从而开始运行 `@vscode/test-cli` 所定义的 `./out/bin.mjs` 文件
