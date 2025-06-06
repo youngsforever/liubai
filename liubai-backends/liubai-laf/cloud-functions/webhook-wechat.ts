@@ -43,6 +43,8 @@ import {
   getWxGzhUserInfo,
   valTool,
   liuReq,
+  checkIfUserSubscribed,
+  LiuDateUtil,
 } from "@/common-util";
 import {
   useI18n, 
@@ -244,7 +246,11 @@ async function handle_text(
   const user = await getUserByWxGzhOpenid(wx_gzh_openid)
   if(!user) return
 
-  // 4. ai!
+  // 4. dynamic auto reply
+  const res4 = autoDynamicReply(wx_gzh_openid, userText, user)
+  if(res4) return
+
+  // 5. ai!
   get_into_ai({ user, msg_type: "text", text: userText, wx_gzh_openid })
 }
 
@@ -913,6 +919,61 @@ async function downloadVoice(
   }
 }
 
+function autoDynamicReply(
+  wx_gzh_openid: string,
+  text: string,
+  user: Table_User,
+) {
+  // 0. trim and lowercase
+  const txt = text.trim().toLowerCase()
+
+  // 1. membership info
+  const keywords1 = [
+    "会员", "會員", "membership", "vip", "premium",
+    "会员群", "會員群", "會員群租", "vip group"
+  ]
+  const existed1 = keywords1.includes(txt)
+  if(existed1) {
+    sendMemberInfo(wx_gzh_openid, user)
+    return true
+  }
+
+  return false
+}
+
+
+function sendMemberInfo(
+  wx_gzh_openid: string,
+  user: Table_User,
+) {
+  const subscribed = checkIfUserSubscribed(user)
+  const { t } = useI18n(wechatLang, { user })
+
+  let msg = ""
+
+  // 1. not subscribed
+  if(!subscribed) {
+    msg = t("membership_1")
+    sendText(wx_gzh_openid, msg)
+    return
+  }
+
+  // 2.1 calculate expireDate
+  let endDate = "Unknown"
+  const expireStamp = user.subscription?.expireStamp
+  if(expireStamp) {
+    const { date } = LiuDateUtil.getDateAndTime(expireStamp)
+    endDate = date
+  }
+
+  // 2.2 get invite link
+  const _env = process.env
+  const groupLink = _env.LIU_WECOM_GROUP_LINK ?? ""
+  msg = t("membership_2", { endDate, groupLink })
+  sendText(wx_gzh_openid, msg)
+}
+
+
 // when user sends text, check out if we have to reply automatically
 async function autoReplyAfterReceivingText(
   wx_gzh_openid: string,
@@ -931,7 +992,7 @@ async function autoReplyAfterReceivingText(
     return true
   }
 
-  // 4. check out if auto reply
+  // 3. check out static auto-reply
   let theReplies: Wx_Gzh_Send_Msg[] = []
   for(let i=0; i<wxTextRepliesItems.length; i++) {
     const item = wxTextRepliesItems[i]
@@ -946,7 +1007,7 @@ async function autoReplyAfterReceivingText(
   const _env = process.env
   const contactMediaId = _env.LIU_WX_GZ_MEDIA_ID_FOR_CONTACT ?? ""
   
-  // 5. ready to send
+  // 4. ready to send
   for(let i=0; i<theReplies.length; i++) {
     const v = theReplies[i]
     const obj = valTool.copyObject(v)
