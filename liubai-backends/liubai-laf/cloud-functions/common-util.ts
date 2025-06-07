@@ -3636,7 +3636,6 @@ export class LiuMilvus {
         name: "_id",
         data_type: MilvusDataType.VarChar,
         is_primary_key: true,
-        autoID: true,
         max_length: 64,
       },
       {
@@ -3649,6 +3648,21 @@ export class LiuMilvus {
         data_type: MilvusDataType.FloatVector,
         dim: 1024,
       },
+      {
+        name: "copytext_sparse",
+        data_type: MilvusDataType.SparseFloatVector,
+      },
+      {
+        name: "copytext",
+        data_type: MilvusDataType.VarChar,
+        max_length: 1024,
+        enable_analyzer: true,
+        enable_match: true,
+      },
+
+
+
+
       {
         name: "copytext",
         data_type: MilvusDataType.VarChar,

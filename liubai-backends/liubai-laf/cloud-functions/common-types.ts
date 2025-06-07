@@ -6,7 +6,8 @@ import type { BaseSchema } from "valibot"
 import { Stream } from "openai/streaming"
 
 // 全局类型
-// Table_ 开头，表示为数据表结构
+// Table_ 开头，表示为数据表结构（文档型数据库）
+// Vector_ 开头，表示为向量数据库结构
 // Shared_ 开头，表示为全局缓存 cloud.shared 所涉及的结构
 // Sch_ 开头的，表示类型的 Schema，用于 valibot
 // Res_ 开头的，表示返回至前端的类型
@@ -150,6 +151,16 @@ export const oState_Drafts = ["OK", "POSTED", "DELETED", "LOCAL"] as const
 export type OState_Draft = typeof oState_Drafts[number]
 export const Sch_OState_Draft = vbot.picklist(oState_Drafts)
 
+// coupon 的 oState
+export const oState_Coupons = [
+  "OK", 
+  "REVIEWING", 
+  "DEL_BY_USER", 
+  "DEL_BY_ADMIN",
+  "DEL_BY_AI",
+]
+export type OState_Coupon = typeof oState_Coupons[number]
+
 // order 的 oState
 export const oState_Orders = ["OK", "DEL_BY_USER"] as const
 export type OState_Order = typeof oState_Orders[number]
@@ -163,6 +174,9 @@ export type PayChannel = "stripe" | "wxpay" | "alipay"
 
 // running status
 export type RunningStatus = "no_need" | "fail" | "success"
+
+// from type
+export type LiuFromType = "official" | "user"
 
 // type of order
 export const orderTypes = ["subscription", "product"] as const
@@ -1788,6 +1802,11 @@ export interface Table_AiChat extends BaseTable {
   wxMediaId16K?: string
 }
 
+export interface CopyBox {
+  title?: string
+  content: string
+}
+
 export interface Table_Showcase extends BaseTable {
   key?: string
   title: string
@@ -1798,58 +1817,37 @@ export interface Table_Showcase extends BaseTable {
   isOn: BaseIsOn
 }
 
-export interface CopyBox {
-  title?: string
-  content: string
-}
-
-
-export interface Table_Coupon extends BaseTable {
-  owner?: string
-  oState: OState
-  fromType: "official" | "user"
-  tags?: string[]
-  emoji?: string
-  brand?: string
-  keywords?: string[]
-  title?: string
-  copybox?: string
-  description?: string
-  images?: Cloud_ImageStore[]
-  gottenNum: number
-  maxNum?: number
-  expireStamp?: number
-}
-
-export interface Table_Happy_Coupons extends BaseTable {
-  copytext_vector: number[]
-  image_vector: number[]
+export interface Table_HappyCoupon extends BaseTable {
   copytext?: string
   image_url?: string
-  owner: string
-  oState: "OK" | "REVIEWING" | "DEL_BY_USER" | "DEL_BY_ADMIN" | "DEL_BY_AI"
-  fromType: "official" | "user"
+  owner?: string
+  oState: OState_Coupon
+  fromType: LiuFromType
   emoji?: string
   brand?: string
-  title: string
+  title?: string
   keywords?: string[]
   gottenNum: number
   totalNum: number
+  embeddingModel?: string
+  expireStamp: number
+}
+
+export interface Vector_happy_coupons extends BaseTable {
+  copytext_vector: number[]
+  image_vector: number[]
+  title_vector: number[]
+  // copytext_sparse 交由 milvus 自行生成
+  copytext: string
+  title: string
+  keywords?: string[]
+  owner?: string
+  oState: OState_Coupon
   embeddingModel: string
   expireStamp: number
 }
 
-export interface Table_Happy_Actions extends BaseTable {
-  userId: string
-  infoType: "get_coupon"
-  couponId?: string
-}
 
-export interface Table_Happy_Topics extends BaseTable {
-  text: string
-  text_vector: number[]
-  userIds: string[]
-}
 
 
 /*********************** 基于 Table 的扩展类型 ***********************/
