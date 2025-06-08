@@ -1398,6 +1398,7 @@ export interface Table_User extends BaseTable {
 
   /** wechat data */
   wx_gzh_openid?: string
+  wx_mini_openid?: string
   wx_unionid?: string
 
   /** wecom data for qynb, which is for company internal use */
@@ -1597,7 +1598,7 @@ export interface Table_Config extends BaseTable {
 /** 临时凭证表的类型 */
 export type Table_Credential_Type =  "sms-code" | "email-code" | "wx-gzh-scan"
   | "users-select" | "stripe-checkout-session" | "bind-wecom" | "bind-wechat" 
-  | "bind-phone" | "auth-code" | "weixin-ad"
+  | "bind-wxmini" | "bind-phone" | "auth-code" | "weixin-ad"
 
 /** 临时凭证表 */
 export interface Table_Credential extends BaseTable {
@@ -1623,6 +1624,7 @@ export interface Table_Credential extends BaseTable {
   sms_sent_result?: Record<string, any>
   redirect_uri?: string        // required when infoType is "auth-code"
   app_type?: LiuAppType        // required when infoType is "auth-code"
+  wx_gzh_openid?: string
 }
 
 /** 订阅方案表 */

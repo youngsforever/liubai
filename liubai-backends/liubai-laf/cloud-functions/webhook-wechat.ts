@@ -8,6 +8,7 @@ import type {
   LiuErrReturn, 
   LiuRqReturn,
   Ns_FFmpeg,
+  Partial_Id,
   SupportedLocale,
   Table_Credential,
   Table_Member,
@@ -32,6 +33,7 @@ import type {
 import { decrypt } from "@wecom/crypto"
 import xml2js from "xml2js"
 import { 
+  getBasicStampWhileAdding,
   getNowStamp, 
   isWithinMillis,
   MINUTE,
@@ -53,11 +55,13 @@ import {
   wechatLang,
   wxClickReplies,
   wxTextRepliesItems,
+  type GetLangValOpt,
 } from "@/common-i18n";
-import { createCredential2 } from "@/common-ids";
+import { createCredential2, createIdToIdCredential } from "@/common-ids";
 import { init_user } from "@/user-login";
 import { WxGzhSender } from "@/service-send";
 import { get_into_ai } from "@/ai-entrance";
+import { wx_coupon_keys } from "./common-config";
 
 const db = cloud.database()
 const _ = db.command
@@ -202,7 +206,7 @@ async function handle_click(
   if(!EventKey) return false
 
   // 1.2 handle special events, like "coupon"
-  const couponEvents = ["coupon", "coupon=zh-Hant", "coupon=en"]
+  const couponEvents = wx_coupon_keys.clicks
   if(couponEvents.includes(EventKey)) {
     const lang = EventKey.split("=")?.[1]
     handle_coupon(wx_gzh_openid, lang as SupportedLocale)
@@ -246,17 +250,26 @@ async function handle_text(
   // 1. get openid
   const wx_gzh_openid = msgObj.FromUserName
 
-  // 2. check if we get to auto-reply
+  // 2.1 check if we get to auto-reply
   const userText = msgObj.Content
-  const res2 = await autoReplyAfterReceivingText(wx_gzh_openid, userText)
+  const trimText = userText.trim()
+  const res2 = await autoReplyAfterReceivingText(wx_gzh_openid, trimText)
   if(res2) return
+
+  // 2.2 handle coupon
+  const couponKeywords = wx_coupon_keys.texts
+  const existed2 = couponKeywords.includes(trimText)
+  if(existed2) {
+    handle_coupon(wx_gzh_openid)
+    return
+  }
 
   // 3. get user
   const user = await getUserByWxGzhOpenid(wx_gzh_openid)
   if(!user) return
 
   // 4. dynamic auto reply
-  const res4 = autoDynamicReply(wx_gzh_openid, userText, user)
+  const res4 = autoDynamicReply(wx_gzh_openid, trimText, user)
   if(res4) return
 
   // 5. ai!
@@ -882,8 +895,53 @@ async function handle_coupon(
   wx_gzh_openid: string,
   lang?: SupportedLocale,
 ) {
-  
-  
+
+  // 1. define a function to get credential
+  const _getCredential = async () => {
+    const cCol = db.collection("Credential")
+    const cred = createIdToIdCredential()
+    const b1 = getBasicStampWhileAdding()
+    const w1: Partial_Id<Table_Credential> = {
+      ...b1,
+      credential: cred,
+      infoType: "bind-wxmini",
+      wx_gzh_openid,
+      expireStamp: b1.insertedStamp + MINUTE * 5,
+    }
+    const res1 = await cCol.add(w1)
+    return cred
+  }
+
+  // 2. define a function to send text
+  const _send = async (cred?: string, user?: Table_User) => {
+    const opt2: GetLangValOpt = { user }
+    if(!user) opt2.lang = lang
+    const { t } = useI18n(wechatLang, opt2)
+    
+    const _env = process.env
+    const appid = _env.LIU_WX_MINI_APPID
+    if(!appid) {
+      console.warn("fail to get appid in handle_coupon")
+      return false
+    }
+    let path = wx_coupon_keys.mini_path
+    if(cred) path += `?cred=${cred}`
+    const msg = t("find_coupon", { appid, path })
+    console.log("msg: ", msg)
+    sendText(wx_gzh_openid, msg)
+    return true
+  }
+
+  // 3. get user
+  const user = await getUserByWxGzhOpenid(wx_gzh_openid)
+  const wx_unionid = user?.wx_unionid
+
+  // 4. decide whether to get credential
+  let cred3: string | undefined
+  if(!wx_unionid) {
+    cred3 = await _getCredential()
+  }
+  _send(cred3, user)  
 }
 
 
@@ -913,7 +971,7 @@ function autoDynamicReply(
   user: Table_User,
 ) {
   // 0. trim and lowercase
-  const txt = text.trim().toLowerCase()
+  const txt = text.toLowerCase()
 
   // 1. membership info
   const keywords1 = [
@@ -965,10 +1023,9 @@ function sendMemberInfo(
 // when user sends text, check out if we have to reply automatically
 async function autoReplyAfterReceivingText(
   wx_gzh_openid: string,
-  text: string,
+  text1: string,
 ) {
   // 1. check if text is empty
-  const text1 = text.trim()
   if(!text1) {
     console.warn("autoReply: text is empty")
     return true

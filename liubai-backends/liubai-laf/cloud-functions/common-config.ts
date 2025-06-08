@@ -46,6 +46,17 @@ export const wx_expired_tmpl = {
   }
 }
 
+export const wx_coupon_keys = {
+  clicks: ["coupon", "coupon=zh-Hant", "coupon=en"],
+  texts: [
+    "优惠", "优惠券", "找优惠", 
+    "優惠", "優惠券", "找優惠", 
+    "Coupon", "Coupons", "Discount"
+  ],
+  mini_path: "pages/index/index",
+}
+
+
 /********************* tencent SES template config ****************/
 export const tencent_ses_tmpl_cfg = {
   "confirmation": {
