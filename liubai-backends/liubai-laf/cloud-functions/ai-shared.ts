@@ -464,6 +464,10 @@ export class AiShared {
       apiKey = _env.LIU_ZHIPU_API_KEY
       baseURL = _env.LIU_ZHIPU_BASE_URL
     }
+    else if(p === "jina") {
+      apiKey = _env.LIU_JINA_APIKEY
+      baseURL = _env.LIU_JINA_BASE_URL
+    }
 
     if(apiKey && baseURL) {
       return { apiKey, baseURL }
@@ -3325,49 +3329,144 @@ export class LogHelper {
 
 export class LiuEmbedding {
 
-  private _jina_base_url = "https://api.jina.ai/v1/embeddings"
   private _jina_model = "jina-clip-v2"
   private _dimensions = 1024
 
+  private _tongyi_text_model = "text-embedding-v4"
+  private _tongyi_multi_model = "multimodal-embedding-v1"
+  private _tongyi_multi_url = "https://dashscope.aliyuncs.com/api/v1/services/embeddings/multimodal-embedding/multimodal-embedding"
+
   async run(input: LiuAi.EmbeddingInput[]) {
 
-    // 1. get api key
-    const _env = process.env
-    const jinaApiKey = _env.LIU_JINA_APIKEY
-    if(jinaApiKey) {
-      const res = await this.runByJina(input, jinaApiKey)
-      return res
-    }
+    // 1. using jina first
+    let res = await this.runByJina(input)
+    if(res) return res
 
+    // 2. using tongyi
+    res = await this.runByTongyi(input)
+    return res
   }
 
-  private async runByJina(
-    input: LiuAi.EmbeddingInput[],
-    apiKey: string,
+  private async _runWithOpenAICompatible(
+    apiEndpoint: LiuAi.ApiEndpoint,
+    model: string,
+    input: string[],
   ) {
-    const url = this._jina_base_url
+    try {
+      const client = new OpenAI(apiEndpoint)
+      const t1 = getNowStamp()
+      const res = await client.embeddings.create({
+        model,
+        input,
+        dimensions: this._dimensions,
+      })
+      const t2 = getNowStamp()
+      console.log(`${model} using OpenAICompatible cost ${t2 - t1} ms`)
+      return res as LiuAi.EmbeddingResult
+    }
+    catch(err) {
+      console.warn("fail to get embedding by openai compatible")
+      console.log(err)
+    }
+  }
+
+  private async _runWithLiuReq(
+    url: string,
+    apiKey: string,
+    model: string,
+    input: LiuAi.EmbeddingInput[],
+  ) {
     const headers = {
       "Authorization": `Bearer ${apiKey}`,
     }
     const body = {
-      model: this._jina_model,
+      model,
       dimensions: this._dimensions,
       input,
     }
 
-    const t1 = getNowStamp()
-    const res1 = await liuReq(url, body, { headers })
-    const t2 = getNowStamp()
-    const durationStamp = t2 - t1
-    console.log(`jina embedding cost ${durationStamp} ms`)
-    const rData = res1.data as LiuAi.EmbeddingResult
-    if(res1.code !== "0000" || !rData) {
-      console.warn("fail to get embedding by jina")
-      console.log(res1)
-      return
+    try {
+      const t1 = getNowStamp()
+      const res1 = await liuReq(url, body, { headers })
+      const t2 = getNowStamp()
+      const durationStamp = t2 - t1
+      console.log(`${model} cost ${durationStamp} ms`)
+  
+      const rData = res1.data as LiuAi.EmbeddingResult
+      if(res1.code !== "0000" || !rData) {
+        console.warn(`${model} fail to get embedding`)
+        console.log(res1)
+        return
+      }
+      return rData
     }
-    
-    return rData
+    catch(err) {
+      console.warn("fail to get embedding by liuReq")
+      console.log(err)
+    }
+  }
+
+  async runByTongyi(
+    input: LiuAi.EmbeddingInput[],
+    apiEndpoint?: LiuAi.ApiEndpoint,
+  ) {
+    // 1. get apiEndpoint if not provided
+    if(!apiEndpoint) {
+      apiEndpoint = AiShared.getEndpointFromProvider("aliyun-bailian")
+      if(!apiEndpoint) {
+        console.warn("there is no api key and base url for aliyun-bailian")
+        return
+      }
+    }
+
+    // 2. check out if we have to use multimodal
+    const allText: string[] = []
+    let usingMulti = false
+    input.forEach(v => {
+      if(v && (v as any).text) {
+        allText.push((v as any).text)
+      }
+      else {
+        usingMulti = true
+      }
+    })
+
+    // 3. using multi model
+    if(usingMulti) {
+      const res3 = await this._runWithLiuReq(
+        this._tongyi_multi_url,
+        apiEndpoint.apiKey,
+        this._tongyi_multi_model,
+        input,
+      )
+      return res3
+    }
+
+    // 4. turn input to all string arr
+    const res4 = await this._runWithOpenAICompatible(
+      apiEndpoint,
+      this._tongyi_text_model,
+      allText,
+    )
+    return res4
+  }
+
+  async runByJina(
+    input: LiuAi.EmbeddingInput[],
+    apiEndpoint?: LiuAi.ApiEndpoint,
+  ) {
+    if(!apiEndpoint) {
+      apiEndpoint = AiShared.getEndpointFromProvider("jina")
+      if(!apiEndpoint) {
+        console.warn("there is no api key and base url for jina")
+        return
+      }
+    }
+
+    const { apiKey, baseURL } = apiEndpoint
+    const url = `${baseURL}/embeddings`
+    const res2 = await this._runWithLiuReq(url, apiKey, this._jina_model, input)
+    return res2
   }
 
 }

@@ -222,6 +222,7 @@ declare global {
       LIU_AMAP_WEB_KEY?: string              // Web Key of Amap
 
       /** Jina */ 
+      LIU_JINA_BASE_URL?: string             // Do not add a trailing slash: /
       LIU_JINA_APIKEY?: string
 
       /** Milvus */

@@ -122,6 +122,7 @@ import {
   IndexType as MilvusIndexType,
   MetricType as MilvusMetricType,
   FieldType as MilvusFieldType,
+  FunctionType as MilvusFuncType,
 } from "@zilliz/milvus2-sdk-node"
 
 const db = cloud.database()
@@ -3649,6 +3650,11 @@ export class LiuMilvus {
         dim: 1024,
       },
       {
+        name: "title_vector",
+        data_type: MilvusDataType.FloatVector,
+        dim: 1024,
+      },
+      {
         name: "copytext_sparse",
         data_type: MilvusDataType.SparseFloatVector,
       },
@@ -3658,23 +3664,26 @@ export class LiuMilvus {
         max_length: 1024,
         enable_analyzer: true,
         enable_match: true,
+        analyzer_params: {
+          type: "chinese",
+        }
       },
-
-
-
-
       {
-        name: "copytext",
+        name: "title",
         data_type: MilvusDataType.VarChar,
-        max_length: 1024,
-        nullable: true,
+        max_length: 128,
         enable_analyzer: true,
         enable_match: true,
+        analyzer_params: {
+          type: "chinese",
+        }
       },
       {
-        name: "image_url",
-        data_type: MilvusDataType.VarChar,
-        max_length: 512,
+        name: "keywords",
+        data_type: MilvusDataType.Array,
+        element_type: MilvusDataType.VarChar,
+        max_length: 128,
+        max_capacity: milvus_cfg.coupon_keywords_max_capacity,
         nullable: true,
       },
       {
@@ -3686,54 +3695,19 @@ export class LiuMilvus {
       {
         name: "oState",
         data_type: MilvusDataType.VarChar,
-        max_length: 16,
-      },
-      {
-        name: "fromType",
-        data_type: MilvusDataType.VarChar,
-        max_length: 16,
-      },
-      {
-        name: "emoji",
-        data_type: MilvusDataType.VarChar,
-        max_length: 16,
-        nullable: true,
-      },
-      {
-        name: "brand",
-        data_type: MilvusDataType.VarChar,
         max_length: 32,
-        nullable: true,
-        enable_analyzer: true,
-        enable_match: true,
       },
       {
-        name: "title",
+        name: "textEmbeddingModel",
         data_type: MilvusDataType.VarChar,
         max_length: 64,
-        enable_analyzer: true,
-        enable_match: true,
-      },
-      {
-        name: "keywords",
-        data_type: MilvusDataType.Array,
-        element_type: MilvusDataType.VarChar,
-        max_length: 128,
-        max_capacity: milvus_cfg.coupon_keywords_max_capacity,
         nullable: true,
       },
       {
-        name: "gottenNum",
-        data_type: MilvusDataType.Int32,
-      },
-      {
-        name: "totalNum",
-        data_type: MilvusDataType.Int32,
-      },
-      {
-        name: "embeddingModel",
+        name: "imageEmbeddingModel",
         data_type: MilvusDataType.VarChar,
         max_length: 64,
+        nullable: true,
       },
       {
         name: "expireStamp",
@@ -3761,27 +3735,21 @@ export class LiuMilvus {
       },
       {
         field_name: "image_vector",
+        index_type: MilvusIndexType.HNSW,
+        metric_type: MilvusMetricType.L2,
+      },
+      {
+        field_name: "title_vector",
         index_type: MilvusIndexType.AUTOINDEX,
         metric_type: MilvusMetricType.COSINE,
       },
       {
+        field_name: "copytext_sparse",
+        index_type: MilvusIndexType.AUTOINDEX,
+        metric_type: MilvusMetricType.BM25,
+      },
+      {
         field_name: "copytext",
-        index_type: MilvusIndexType.AUTOINDEX,
-      },
-      {
-        field_name: "owner",
-        index_type: MilvusIndexType.AUTOINDEX,
-      },
-      {
-        field_name: "oState",
-        index_type: MilvusIndexType.BITMAP,
-      },
-      {
-        field_name: "fromType",
-        index_type: MilvusIndexType.BITMAP,
-      },
-      {
-        field_name: "brand",
         index_type: MilvusIndexType.AUTOINDEX,
       },
       {
@@ -3791,6 +3759,14 @@ export class LiuMilvus {
       {
         field_name: "keywords",
         index_type: MilvusIndexType.AUTOINDEX,
+      },
+      {
+        field_name: "owner",
+        index_type: MilvusIndexType.AUTOINDEX,
+      },
+      {
+        field_name: "oState",
+        index_type: MilvusIndexType.BITMAP,
       },
       {
         field_name: "expireStamp",
@@ -3806,11 +3782,23 @@ export class LiuMilvus {
       },
     ]
 
+    const funcs = [
+      {
+        name: "copytext_bm25",
+        description: "turn copytext into sparse vector",
+        type: MilvusFuncType.BM25,
+        input_field_names: ["copytext"],
+        output_field_names: ["copytext_sparse"],
+        params: {},
+      }
+    ]
+
     const t1 = getNowStamp()
     const res = await client.createCollection({
       collection_name: "happy_coupons",
       schema,
       index_params,
+      functions: funcs,
       enableDynamicField: true,
     })
     const t2 = getNowStamp()

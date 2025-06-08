@@ -673,7 +673,7 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 /*********************** About AI **********************/
 export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" 
-  | "minimax" | "moonshot" | "stepfun" | "zero-one" | "zhipu"
+  | "minimax" | "moonshot" | "stepfun" | "zero-one" | "zhipu" | "jina"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
   | "suanleme"
@@ -1843,7 +1843,8 @@ export interface Vector_happy_coupons extends BaseTable {
   keywords?: string[]
   owner?: string
   oState: OState_Coupon
-  embeddingModel: string
+  textEmbeddingModel?: string
+  imageEmbeddingModel?: string
   expireStamp: number
 }
 

@@ -80,5 +80,5 @@ export const ai_cfg = {
 
 /********************* milvus config ****************/
 export const milvus_cfg = {
-  coupon_keywords_max_capacity: 16,
+  coupon_keywords_max_capacity: 32,
 }
