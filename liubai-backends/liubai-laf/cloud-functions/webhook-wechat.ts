@@ -8,6 +8,7 @@ import type {
   LiuErrReturn, 
   LiuRqReturn,
   Ns_FFmpeg,
+  SupportedLocale,
   Table_Credential,
   Table_Member,
   Table_User,
@@ -199,6 +200,14 @@ async function handle_click(
   // 1. get params
   const { EventKey, FromUserName: wx_gzh_openid } = msgObj
   if(!EventKey) return false
+
+  // 1.2 handle special events, like "coupon"
+  const couponEvents = ["coupon", "coupon=zh-Hant", "coupon=en"]
+  if(couponEvents.includes(EventKey)) {
+    const lang = EventKey.split("=")?.[1]
+    handle_coupon(wx_gzh_openid, lang as SupportedLocale)
+    return
+  }
 
   // 2. get replies and the domain
   const replies = wxClickReplies[EventKey]
@@ -869,6 +878,15 @@ async function make_user_subscribed(
 }
 
 
+async function handle_coupon(
+  wx_gzh_openid: string,
+  lang?: SupportedLocale,
+) {
+  
+  
+}
+
+
 
 /***************** helper functions *************/
 
@@ -888,91 +906,6 @@ async function getVoiceLink(
 
   return link
 }
-
-
-async function downloadVoice(
-  media_id: string,
-) {
-  // 1. get accessToken for wx gzh
-  const res1 = await checkAccessToken()
-  if(!res1) return
-
-  // 2. construct link
-  const url = new URL(API_MEDIA_DOWNLOAD)
-  const sP = url.searchParams
-  sP.set("access_token", res1)
-  sP.set("media_id", media_id)
-  const link = url.toString()
-
-  // 3. to download
-  try {
-    const res = await fetch(link)
-    const fileBlob = await res.blob()
-    const arrayBuffer = await fileBlob.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const b64 = buffer.toString("base64")
-    return { fileBlob, b64 }
-  }
-  catch(err) {
-    console.warn("downloadVoice err:")
-    console.log(err)
-  }
-}
-
-function autoDynamicReply(
-  wx_gzh_openid: string,
-  text: string,
-  user: Table_User,
-) {
-  // 0. trim and lowercase
-  const txt = text.trim().toLowerCase()
-
-  // 1. membership info
-  const keywords1 = [
-    "会员", "會員", "membership", "vip", "premium",
-    "会员群", "會員群", "會員群租", "vip group"
-  ]
-  const existed1 = keywords1.includes(txt)
-  if(existed1) {
-    sendMemberInfo(wx_gzh_openid, user)
-    return true
-  }
-
-  return false
-}
-
-
-function sendMemberInfo(
-  wx_gzh_openid: string,
-  user: Table_User,
-) {
-  const subscribed = checkIfUserSubscribed(user)
-  const { t } = useI18n(wechatLang, { user })
-
-  let msg = ""
-
-  // 1. not subscribed
-  if(!subscribed) {
-    msg = t("membership_1")
-    sendText(wx_gzh_openid, msg)
-    return
-  }
-
-  // 2.1 calculate expireDate
-  let endDate = "Unknown"
-  const expireStamp = user.subscription?.expireStamp
-  if(expireStamp) {
-    const { date } = LiuDateUtil.getDateAndTime(expireStamp)
-    endDate = date
-  }
-
-  // 2.2 get invite link
-  const _env = process.env
-  const groupLink = _env.LIU_WECOM_GROUP_LINK ?? ""
-  msg = t("membership_2", { endDate, groupLink })
-  sendText(wx_gzh_openid, msg)
-}
-
 
 // when user sends text, check out if we have to reply automatically
 async function autoReplyAfterReceivingText(
