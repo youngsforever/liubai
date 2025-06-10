@@ -920,12 +920,17 @@ export interface UserWeChatGzh {
   headimgurl?: string
 }
 
+export interface UserWeixinMini {
+  session_key?: string
+}
+
 // User 表里的 thirdData 字段的类型
 export interface UserThirdData {
   google?: any
   github?: any
   wecom?: Ww_External_Contact
   wx_gzh?: UserWeChatGzh
+  wx_mini?: UserWeixinMini
 }
 
 /** User's Subscription Plan */
@@ -2007,6 +2012,7 @@ export type UserLoginOperate = "init" | "email" | "email_code"
   | "wx_gzh_oauth"
   | "wx_gzh_scan"
   | "wx_gzh_base"   // only for wx_gzh_openid
+  | "wx_mini_session"
   | "scan_check"
   | "scan_login"
   | "google_credential"
@@ -2834,6 +2840,16 @@ export interface Wx_Res_GzhUploadMedia {
   type?: string
   media_id?: string
   created_at?: number     // seconds
+}
+
+export namespace WeixinAPI {
+  export interface Res_Code2Session {
+    session_key: string
+    unionid?: string
+    errmsg?: string
+    openid: string
+    errcode?: number
+  }
 }
 
 

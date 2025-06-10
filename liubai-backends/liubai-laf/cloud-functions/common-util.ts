@@ -2630,6 +2630,32 @@ export async function untagWxUser(
   return res
 }
 
+
+export class WxMiniHandler {
+
+  private static _accessToken = ""
+  private static _lastGetTokenStamp = 0
+
+  static async getAccessToken() {
+    if(this._accessToken) {
+      if(isWithinMillis(this._lastGetTokenStamp, MIN_5)) {
+        return this._accessToken
+      }
+    }
+
+    const col = db.collection("Config")
+    const res = await col.getOne<Table_Config>()
+    const d = res.data
+    const accessToken = d?.wechat_mini?.access_token
+    if(accessToken) {
+      this._accessToken = accessToken
+      this._lastGetTokenStamp = getNowStamp()
+    }
+    return accessToken
+  }
+}
+
+
 /*************** Functions about wechat ends ****************/
 
 /*************** Functions about wxpay starts ****************/

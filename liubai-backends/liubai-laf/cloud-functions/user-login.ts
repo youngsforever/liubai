@@ -36,6 +36,7 @@ import type {
   PhoneData,
   LiuIDEType,
   Table_BlockList,
+  WeixinAPI,
 } from "@/common-types"
 import { clientMaximum, UserLoginAPI } from "@/common-types"
 import { 
@@ -107,6 +108,7 @@ const GOOGLE_API_USER = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 // 微信公众号 创建二维码
 const API_WECHAT_CREATE_QRCODE = "https://api.weixin.qq.com/cgi-bin/qrcode/create"
+const API_WX_MINI_LOGIN = "https://api.weixin.qq.com/sns/jscode2session"
 
 const PREFIX_CLIENT_KEY = "client_key_"
 
@@ -149,6 +151,9 @@ export async function main(ctx: FunctionContext) {
   }
   else if(oT === "wx_gzh_oauth") {
     res = await handle_wx_gzh_oauth(ctx, body)
+  }
+  else if(oT === "wx_mini_session") {
+    res = await handle_wx_mini_session(ctx, body)
   }
   else if(oT === "wx_gzh_base") {
     res = await handle_wx_gzh_base(ctx, body)
@@ -1266,6 +1271,113 @@ async function handle_google_oauth(
   return res8
 }
 
+async function handle_wx_mini_session(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+) {
+  // 1. check out params
+  const js_code = body.js_code
+  const credential = body.credential
+  if(!valTool.isStringWithVal(js_code)) {
+    return { code: "E4000", errMsg: "no js_code" }
+  }
+
+  // 2. get appid appsecret
+  const _env = process.env
+  const appid = _env.LIU_WX_MINI_APPID
+  const appSecret = _env.LIU_WX_MINI_APPSECRET
+  if(!appid || !appSecret) {
+    return { code: "E5001", errMsg: "no appid or appSecret of wx-mini on backend" }
+  }
+
+  // 3. to fetch
+  const url3 = new URL(API_WX_MINI_LOGIN)
+  const sp3 = url3.searchParams
+  sp3.set("appid", appid)
+  sp3.set("secret", appSecret)
+  sp3.set("js_code", js_code)
+  sp3.set("grant_type", "authorization_code")
+  const link3 = url3.toString()
+  const res3 = await liuReq<WeixinAPI.Res_Code2Session>(link3, undefined, { 
+    method: "GET",
+  })
+  const { code: code3, data: data3 } = res3
+  if(code3 !== "0000" || !data3) {
+    console.warn("no login data from wx mini")
+    console.log(res3)
+    return { code: "E5004", errMsg: "no login data from wx mini" }
+  }
+  console.warn("wx mini login data: ", data3)
+
+  // 4. find user
+  let userRes: FindUserRes = { type: 3 }
+  // 4.1 find user by wx_unionid
+  const wx_unionid = data3.unionid
+  const wx_mini_openid = data3.openid
+  if(!wx_mini_openid) {
+    console.warn("no wx_mini_openid: ", data3)
+    return { code: "E5004", errMsg: "no wx_mini_openid" }
+  }
+  const session_key = data3.session_key
+  const thirdData: UserThirdData = { wx_mini: { session_key } }
+  if(wx_unionid) {
+    userRes = await findUserByWxUnionId(wx_unionid)
+  }
+  // 4.2 find user by wx_mini_openid
+  if(userRes.type === 3) {
+    userRes = await findUserByWxMiniOpenId(wx_mini_openid)
+  }
+  
+  // 5. find wx_gzh_openid
+  let wx_gzh_openid: string | undefined
+  if(credential) {
+    const cCol = db.collection("Credential")
+    const res6 = await cCol.where({ credential }).getOne<Table_Credential>()
+    const cData = res6.data
+    if(cData && cData.infoType === "bind-wxmini") {
+      if(cData.wx_gzh_openid) {
+        wx_gzh_openid = cData.wx_gzh_openid
+        cCol.doc(cData._id).remove()
+      }
+    }
+  }
+
+  // 6. find user by wx_gzh_openid
+  if(userRes.type === 3 && wx_gzh_openid) {
+    userRes = await findUserByWxGzhOpenId(wx_gzh_openid)
+  }
+
+  // 7. return error if it occured
+  if(userRes.type === 1) {
+    return userRes.rqReturn
+  }
+
+  // 8. sign in
+  if(userRes.type === 2) {
+    // TODO: 先选第一个登录和绑定
+    const userInfo = userRes.userInfos[0]
+    if(!userInfo) {
+      return { code: "E5001", errMsg: "there is no userInfo to sign in" }
+    }
+    const res8 = await sign_in(ctx, body, [userInfo], {
+      thirdData,
+      wx_unionid,
+      wx_gzh_openid,
+      wx_mini_openid,
+    })
+    return res8
+  }
+
+  // 9. sign up
+  const arg9: SignUpParam2 = { 
+    wx_gzh_openid, 
+    wx_unionid,
+    wx_mini_openid,
+  }
+  const res10 = await sign_up(ctx, body, arg9, undefined, thirdData)
+  return res10
+}
+
 async function handle_wx_gzh_base(
   ctx: FunctionContext,
   body: Record<string, string>,
@@ -1332,6 +1444,7 @@ async function handle_wx_gzh_oauth(
     return { code: "E5004", errMsg: "no access_token from wx gzh" }
   }
   const wx_gzh_openid = data4?.openid
+  const wx_unionid = data4?.unionid
   if(!wx_gzh_openid) {
     console.warn("no openid from wx gzh")
     console.log(res3)
@@ -1400,7 +1513,11 @@ async function handle_wx_gzh_oauth(
   thirdData.wx_gzh = wx_gzh
 
   // 10. sign up
-  const arg10: SignUpParam2 = { wx_gzh_openid, wx_gzh_userinfo: data8 }
+  const arg10: SignUpParam2 = { 
+    wx_gzh_openid, 
+    wx_unionid,
+    wx_gzh_userinfo: data8,
+  }
   const res10 = await sign_up(ctx, body, arg10, client_key, thirdData)
   return res10
 }
@@ -1563,6 +1680,8 @@ interface SignInOpt {
   thirdData?: UserThirdData
   justSignUp?: boolean           // 若为 undefined 当 false 处理
   wx_unionid?: string
+  wx_gzh_openid?: string
+  wx_mini_openid?: string
 }
 
 async function sign_in(
@@ -1592,7 +1711,7 @@ async function sign_in(
   // 4. 检查 user 是否 "DEACTIVATED" 或 "REMOVED"，若是，恢复至 "NORMAL"
   //    检查 是否要用当前用户本地传来的 theme 或 language
   //    update lastEnterStamp
-  //    update wx_unionid
+  //    update wx_unionid, wx_mini_openid, wx_gzh_openid
   user = await handleUserWhileSigningIn(user, body, opt)
 
   // 5. 去创建 token，并存到缓存里
@@ -1751,7 +1870,7 @@ async function tryToSignInWithWxGzhOpenId(
   wx_gzh_openid: string,
   opt: SignInOpt,
 ): Promise<LiuRqReturn<Res_UserLoginNormal> | undefined> {
-  const res1 = await findUserByWxOpenId(wx_gzh_openid)
+  const res1 = await findUserByWxGzhOpenId(wx_gzh_openid)
   const rType = res1.type
   if(rType === 1) {
     return res1.rqReturn
@@ -1804,10 +1923,12 @@ async function handleUserWhileSigningIn(
 
   const oldThirdData = user.thirdData ?? {}
   const oldWxGzh = oldThirdData?.wx_gzh
+  const oldWxMini = oldThirdData?.wx_mini
   const thirdData = opt.thirdData
   const newGoogle = thirdData?.google
   const newGitHub = thirdData?.github
   const newWxGzh = thirdData?.wx_gzh
+  const newWxMini = thirdData?.wx_mini
   if(newGoogle) {
     oldThirdData.google = newGoogle
     u.thirdData = oldThirdData
@@ -1820,10 +1941,24 @@ async function handleUserWhileSigningIn(
     oldThirdData.wx_gzh = { ...oldWxGzh, ...newWxGzh }
     u.thirdData = oldThirdData
   }
+  if(newWxMini) {
+    oldThirdData.wx_mini = { ...oldWxMini, ...newWxMini }
+    u.thirdData = oldThirdData
+  }
   const oldWxUnionid = user.wx_unionid
   const newWxUnionid = opt.wx_unionid
   if(newWxUnionid && oldWxUnionid !== newWxUnionid) {
     u.wx_unionid = newWxUnionid
+  }
+  const oldWxGzhOpenid = user.wx_gzh_openid
+  const newWxGzhOpenid = opt.wx_gzh_openid
+  if(newWxGzhOpenid && oldWxGzhOpenid !== newWxGzhOpenid) {
+    u.wx_gzh_openid = newWxGzhOpenid
+  }
+  const oldWxMiniOpenid = user.wx_mini_openid
+  const newWxMiniOpenid = opt.wx_mini_openid
+  if(newWxMiniOpenid && oldWxMiniOpenid !== newWxMiniOpenid) {
+    u.wx_mini_openid = newWxMiniOpenid
   }
   
   const bTheme = normalizeToLocalTheme(body.theme)
@@ -1971,6 +2106,8 @@ interface SignUpParam2 {
   phone?: string
   wx_gzh_openid?: string
   wx_gzh_userinfo?: Wx_Res_GzhUserInfo
+  wx_mini_openid?: string
+  wx_unionid?: string
 }
 
 /*************************** 注册 ************************/
@@ -2106,8 +2243,14 @@ export async function init_user(
   param2: SignUpParam2,
   thirdData?: UserThirdData,
 ): Promise<LiuRqReturn<LiuUserInfo[]>> {
-  const { email, phone, wx_gzh_openid } = param2
-  if(!email && !phone && !wx_gzh_openid) {
+  const { 
+    email, 
+    phone, 
+    wx_gzh_openid, 
+    wx_mini_openid,
+    wx_unionid,
+  } = param2
+  if(!email && !phone && !wx_gzh_openid && !wx_mini_openid) {
     return { code: "E5001", errMsg: "there is no required data in sign_up" }
   }
 
@@ -2125,6 +2268,8 @@ export async function init_user(
     phone,
     open_id,
     wx_gzh_openid,
+    wx_mini_openid,
+    wx_unionid,
     thirdData,
     theme: "system",
     systemTheme,
@@ -2134,9 +2279,8 @@ export async function init_user(
   if(typeof github_id === "number" && github_id > 0) {
     user.github_id = github_id
   }
-  const wx_unionid = param2.wx_gzh_userinfo?.unionid
-  if(wx_unionid) {
-    user.wx_unionid = wx_unionid
+  if(!wx_unionid && param2.wx_gzh_userinfo) {
+    user.wx_unionid = param2.wx_gzh_userinfo.unionid
   }
 
   // 2. create the user
@@ -2324,11 +2468,7 @@ type FindUserRes = {
   type: 3
 }
 
-/** look up user by openid */
-async function findUserByWxOpenId(
-  wx_gzh_openid: string,
-) {
-  const w: Partial<Table_User> = { wx_gzh_openid }
+async function _toFindUser(w: Partial<Table_User>) {
   const uCol = db.collection("User")
   const res1 = await uCol.where(w).get<Table_User>()
   const list = res1.data
@@ -2336,15 +2476,38 @@ async function findUserByWxOpenId(
   return res2
 }
 
+/** look up user by gzh openid */
+async function findUserByWxGzhOpenId(
+  wx_gzh_openid: string,
+) {
+  const res = await _toFindUser({ wx_gzh_openid })
+  return res
+}
+
+/** look up user by wx-mini openid */
+async function findUserByWxMiniOpenId(
+  wx_mini_openid: string,
+) {
+  const res = await _toFindUser({ wx_mini_openid })
+  return res
+}
+
+/** look up user by wx union openid */
+async function findUserByWxUnionId(
+  wx_unionid: string,
+) {
+  const res = await _toFindUser({ wx_unionid })
+  return res
+}
+
+
+
 /** 使用 github_id 去寻找用户 */
 async function findUserByGitHubId(
   github_id: number,
 ) {
-  const w = { github_id }
-  const res = await db.collection("User").where(w).get<Table_User>()
-  const list = res.data
-  const res2 = await handleUsersFound(list)
-  return res2
+  const res = await _toFindUser({ github_id })
+  return res
 }
 
 
@@ -2356,12 +2519,8 @@ async function findUserByEmail(
   email: string
 ): Promise<FindUserRes> {
   email = email.toLowerCase()
-
-  const w = { email }
-  const res = await db.collection("User").where(w).get<Table_User>()
-  const list = res.data
-  const res2 = await handleUsersFound(list)
-  return res2
+  const res = await _toFindUser({ email })
+  return res
 }
 
 /**
@@ -2371,11 +2530,8 @@ async function findUserByEmail(
 async function findUserByPhone(
   phone: string,
 ) {
-  const uCol = db.collection("User")
-  const res = await uCol.where({ phone }).get<Table_User>()
-  const list = res.data
-  const res2 = await handleUsersFound(list)
-  return res2
+  const res = await _toFindUser({ phone })
+  return res
 }
 
 /** 使用 userId 查找用户信息 */
