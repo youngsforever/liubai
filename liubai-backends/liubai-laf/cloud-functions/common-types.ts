@@ -1560,6 +1560,12 @@ export interface Config_WeChat_GZH {
   jsapi_ticket?: string
 }
 
+export interface Config_WeChat_MINI {
+  access_token?: string
+  expires_in?: number 
+  lastGetStamp?: number
+}
+
 export interface Config_WeCom_Qynb {
   access_token?: string
   expires_in?: number
@@ -1586,6 +1592,9 @@ export interface Table_Config extends BaseTable {
 
   // wechat subscription
   wechat_gzh?: Config_WeChat_GZH
+
+  // wechat miniprogram
+  wechat_mini?: Config_WeChat_MINI
 
   // wecom config for company internal development
   // qynb means 企业内部（开发）
