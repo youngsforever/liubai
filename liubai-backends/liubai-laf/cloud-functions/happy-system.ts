@@ -14,6 +14,7 @@ import type {
 import { getBasicStampWhileAdding, getNowStamp, isWithinMillis, MINUTE, SECOND } from "@/common-time"
 import { createAdCredential } from "@/common-ids"
 import { ai_cfg } from "@/common-config"
+import { Img2Txt } from "@/ai-shared"
 
 const db = cloud.database()
 const _ = db.command
@@ -240,21 +241,167 @@ async function get_showcase(
 
 
 /***************************** Coupons *****************************/
-interface CouponAddCheckerOpt {
+
+export interface CouponAddManagerOpt {
+  user: Table_User
   copytext?: string
   image_url?: string
 }
 
-class CouponAddChecker {
+class CouponAddManager {
 
-  
-  
-  static image(image_url: string) {
+  private _user?: Table_User
+  private _copytext?: string
+  private _image_url?: string
+
+  constructor(
+    opt: CouponAddManagerOpt,
+  ) {
+    this._user = opt.user
+    this._copytext = opt.copytext
+    this._image_url = opt.image_url
+  }
+
+  async run() {
+    // 1. get required params
+    const copytext = this._copytext
+    const image_url = this._image_url
+    if(!copytext && !image_url) {
+      console.warn("there is no copytext or image_url")
+      return
+    }
+
+    // 2. try to add data into document db
+    if(copytext) {
+
+    }
     
+  }
+
+  async addCopyTextIntoDocDB() {
 
   }
 
-  static text() {
+  async addImageIntoDocDB() {
+    const image_url = this._image_url as string
+    const res1 = await CouponAddChecker.image(image_url)
+    const img_to_txt = res1?.text?.trim?.()
+    if(!img_to_txt || img_to_txt === "0") {
+      console.warn("fail to parse image in CouponAddManager")
+      console.log(img_to_txt)
+      return
+    }
+
+
+
+  }
+
+
+  addIntoVectorDB() {
+
+  }
+
+
+}
+
+
+const coupon_add_checker_system1 = `
+你是一个优惠券系统安全网关，严格判断用户消息的性质。
+
+## 输出规则
+
+请你按以下规则输出：
+
+### <score>1</score> 
+确认是正常营销信息（含优惠券/折扣/促销等商业推广）
+
+### <score>0.5</score>
+存在营销特征但信息模糊，或无法排除非营销可能性
+
+### <score>0</score>
+符合任一情况即触发：
+- 非营销内容（日常对话/客服咨询等）
+- 涉及黄赌毒、欺诈、非法内容
+- 诱导用户点击高危链接或提交敏感信息
+
+### 使用 <output> 标签包裹结果
+务必记住：你的输出文字必须用 <output>......</output> 包裹，比如这样：
+
+<output>
+  <score>1</score>
+</output>
+
+否则会视为错误。
+
+## 案例
+
+<input>哈哈哈哈哈这什么鬼</input>
+<output>
+  <score>0</score>
+</output>
+
+<input>限时领50元外卖红包！戳链接：xxx.com</input>
+<output>
+  <score>1</score>
+</output>
+
+<input>帮我查快递订单</input>
+<output>
+  <score>0</score>
+</output>
+
+<input>【曼玲粥店全国品牌日】\nmp://mL40fkRVjs5iEqH</input>
+<output>
+  <score>1</score>
+</output>
+
+<input># https://www.wmslz.com/s/1i8QbRO78M7#💯付枝💯此消息，打开支付宝搜suǒ，体验霸王茶姬+小程序  T:/8 ZH7247 2024/02/20</input>
+<output>
+  <score>1</score>
+</output>
+
+<input>🌟MissWiss张柏芝同款女神防晒衣‼
+💰74.18‼防晒衣
+夏季防晒必备日常都要200➕
+商品链接：#小程序://拼多多优惠商品推荐/QOyLq25ImNId3Vb</input>
+<output>
+  <score>1</score>
+</output>
+
+<input>煞笔、有内味了、辣鸡、undefined</input>
+<output>
+  <score>0</score>
+</output>
+`.trim()
+
+const coupon_add_checker_user1 = `
+## 当前环境
+
+系统名称: 优惠券系统
+当前日期: {current_date}
+当前时间: {current_time}
+
+## 用户输入
+
+以下为当前用户的输入：
+
+<input>{current_input}</input>
+
+请你凭借上述描述的规则进行回复，再次提醒：你只能以 <output> 开始输出，以 </output> 结尾你的回复。
+`.trim()
+
+class CouponAddChecker {
+  
+  static async image(image_url: string) {
+    const prompt1 = "请提取图中的优惠券、折扣、商品等信息。"
+    const prompt2 = "若图片信息与营销或商品图无关，又或者涉及非法违规、欺诈、黄赌毒等内容，请直接回复 0，无需过多解释。"
+    const prompt = `${prompt1}\n${prompt2}`
+    const img2txt = new Img2Txt({ image_url, prompt })
+    const res1 = await img2txt.run()
+    return res1
+  }
+
+  static text(copytext: string) {
 
 
 
