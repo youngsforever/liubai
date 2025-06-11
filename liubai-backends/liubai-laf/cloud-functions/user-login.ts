@@ -447,9 +447,9 @@ async function handle_scan_login(
     const opt7_1 = { client_key }
 
     const t7_1 = getNowStamp()
-    const res7_1 = await tryToSignInWithWxGzhOpenId(ctx, body, wx_gzh_openid, opt7_1)
+    const res7_1 = await tryToSignInWithWxGzh(ctx, body, wx_gzh_openid, opt7_1)
     const t7_2 = getNowStamp()
-    // console.warn(`user-login tryToSignInWithWxGzhOpenId takes ${t7_2 - t7_1}ms`)
+    console.warn(`user-login tryToSignInWithWxGzh takes ${t7_2 - t7_1}ms`)
     
     if(res7_1 && res7_1.code === "0000") {
       const lang = res7_1.data?.language
@@ -1499,9 +1499,9 @@ async function handle_wx_gzh_oauth(
   }
   const thirdData: UserThirdData = { wx_gzh }
 
-  // 7. try to sign in with wx_gzh_openid
+  // 7. try to sign in with wx_gzh_openid or wx_unionid
   const opt7 = { client_key, thirdData, wx_unionid: data5.unionid }
-  const res7 = await tryToSignInWithWxGzhOpenId(ctx, body, wx_gzh_openid, opt7)
+  const res7 = await tryToSignInWithWxGzh(ctx, body, wx_gzh_openid, opt7)
   if(res7) return res7
 
   /******* prepare to sign up ********/
@@ -1875,17 +1875,21 @@ async function tryToSignInWithUserId(
   return { code: "E5001", errMsg: "there is no user with userId" }
 }
 
-async function tryToSignInWithWxGzhOpenId(
+async function tryToSignInWithWxGzh(
   ctx: FunctionContext,
   body: Record<string, string>,
   wx_gzh_openid: string,
   opt: SignInOpt,
 ): Promise<LiuRqReturn<Res_UserLoginNormal> | undefined> {
+
+  // 1. find user by wx_gzh_openid
   const res1 = await findUserByWxGzhOpenId(wx_gzh_openid)
   const rType = res1.type
   if(rType === 1) {
     return res1.rqReturn
   }
+
+  // 2. sign in using wx_gzh_openid
   if(rType === 2) {
     const res2 = await sign_in(ctx, body, res1.userInfos, opt)
 
@@ -1898,6 +1902,22 @@ async function tryToSignInWithWxGzhOpenId(
 
     return res2
   }
+
+  // 3. find user by wx_unionid
+  const wx_unionid = opt.wx_unionid
+  if(!wx_unionid) return
+  const res3 = await findUserByWxUnionId(wx_unionid)
+  const rType3 = res3.type
+  if(rType3 === 1) {
+    return res3.rqReturn
+  }
+
+  // 4. sign in using wx_unionid
+  if(rType3 === 2) {
+    const res4 = await sign_in(ctx, body, res3.userInfos, opt)
+    return res4
+  }
+  
 }
 
 /** 登录后，检查 token 是否过多，过多的拿去销毁 */
