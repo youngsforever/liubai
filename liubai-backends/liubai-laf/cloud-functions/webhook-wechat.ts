@@ -552,6 +552,7 @@ async function login_with_wechat_gzh(
   opt?: OperationOpt,
 ) {
   // console.log("login_with_wechat_gzh......")
+  const wx_unionid = userInfo?.unionid
 
   // 1. get credential
   const cCol = db.collection("Credential")
@@ -598,15 +599,44 @@ async function login_with_wechat_gzh(
     _sendGoBackToOurApp()
   }
 
-  // 3. get user by wx_gzh_openid
+  // 2.3 bind wx_gzh_openid and wx_unionid
+  const _bindWxId = async (user: Table_User) => {
+    let needUpdate = false
+    const u2: Partial<Table_User> = { updatedStamp: getNowStamp() }
+    if(wx_gzh_openid !== user.wx_gzh_openid) {
+      needUpdate = true
+      u2.wx_gzh_openid = wx_gzh_openid
+    }
+    if(wx_unionid && wx_unionid !== user.wx_unionid) {
+      needUpdate = true
+      u2.wx_unionid = wx_unionid
+    }
+    if(!needUpdate) return
+    const userId = user._id
+    await uCol.doc(userId).update(u2)
+  }
+  
+  // 3.1 get user by wx_gzh_openid
   const uCol = db.collection("User")
   const w3: Partial<Table_User> = { wx_gzh_openid }
-  const q3 = uCol.where(w3)
-  const res3 = await q3.getOne<Table_User>()
-  const user3 = res3.data
-  if(user3) {
+  const res3_1 = await uCol.where(w3).getOne<Table_User>()
+  const user3_1 = res3_1.data
+  if(user3_1) {
     _setCredential2()
+    _bindWxId(user3_1)
     return
+  }
+
+  // 3.2 get user by wx_unionid
+  if(wx_unionid) {
+    const w3_2: Partial<Table_User> = { wx_unionid }
+    const res3_2 = await uCol.where(w3_2).getOne<Table_User>()
+    const user3_2 = res3_2.data
+    if(user3_2) {
+      _setCredential2()
+      _bindWxId(user3_2)
+      return
+    }
   }
 
   // 4. create user
