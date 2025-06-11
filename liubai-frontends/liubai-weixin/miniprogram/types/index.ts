@@ -1,4 +1,8 @@
 
+import type { LocalTheme } from "./types-atom"
+import type { LocalLocale } from "./types-locale"
+import type { UserSubscription } from "./types-cloud"
+
 export type BcrResult = WechatMiniprogram.BoundingClientRectCallbackResult | null
 export type BoundingClientRectResolver = (res: BcrResult) => void
 export type GetImagePath = () => string
@@ -6,4 +10,15 @@ export type GetImagePath = () => string
 export interface MiniProgramContext<D = Record<string, any>> {
   data: D
   setData: (data: Partial<D>) => void
+}
+
+export interface LiuLoginData {
+  theme?: LocalTheme
+  language?: LocalLocale
+  token?: string
+  serial?: string
+  nickName?: string
+  avatarUrl?: string
+  subscription?: UserSubscription
+  lastSetStamp: number
 }

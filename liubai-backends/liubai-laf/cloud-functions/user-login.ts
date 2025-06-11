@@ -1274,7 +1274,7 @@ async function handle_google_oauth(
 async function handle_wx_mini_session(
   ctx: FunctionContext,
   body: Record<string, string>,
-) {
+): Promise<LiuRqReturn<UserLoginAPI.Res_WxMiniSession>> {
   // 1. check out params
   const js_code = body.js_code
   const credential = body.credential
@@ -1359,13 +1359,19 @@ async function handle_wx_mini_session(
     if(!userInfo) {
       return { code: "E5001", errMsg: "there is no userInfo to sign in" }
     }
-    const res8 = await sign_in(ctx, body, [userInfo], {
+    const res8_1 = await sign_in(ctx, body, [userInfo], {
       thirdData,
       wx_unionid,
       wx_gzh_openid,
       wx_mini_openid,
     })
-    return res8
+    if(res8_1.code !== "0000") return res8_1 as LiuErrReturn
+    const data8: UserLoginAPI.Res_WxMiniSession = {
+      ...res8_1.data,
+      operateType: "wx_mini_session",
+      wx_mini_openid,
+    }
+    return { code: "0000", data: data8 }
   }
 
   // 9. sign up
@@ -1374,8 +1380,14 @@ async function handle_wx_mini_session(
     wx_unionid,
     wx_mini_openid,
   }
-  const res10 = await sign_up(ctx, body, arg9, undefined, thirdData)
-  return res10
+  const res9 = await sign_up(ctx, body, arg9, undefined, thirdData)
+  if(res9.code !== "0000") return res9 as LiuErrReturn
+  const data9: UserLoginAPI.Res_WxMiniSession = {
+    ...res9.data,
+    operateType: "wx_mini_session",
+    wx_mini_openid,
+  }
+  return { code: "0000", data: data9 }
 }
 
 async function handle_wx_gzh_base(

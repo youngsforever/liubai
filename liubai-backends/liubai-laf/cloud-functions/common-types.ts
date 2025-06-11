@@ -2643,6 +2643,11 @@ export namespace UserLoginAPI {
     x_liu_ide_type: Sch_LiuIDEType,
   })
 
+  export interface Res_WxMiniSession extends Res_UserLoginNormal {
+    operateType: "wx_mini_session"
+    wx_mini_openid: string
+  }
+
 }
 
 /******************** open-connect **********************/

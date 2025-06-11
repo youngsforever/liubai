@@ -1,4 +1,4 @@
-import type { BoolFunc } from "./basic/type-tool"
+import type { BoolFunc, StrFunc } from "./basic/type-tool"
 
 
 export class LiuApi {
@@ -189,6 +189,53 @@ export class LiuApi {
     opt: WechatMiniprogram.OpenCustomerServiceChatOption,
   ) {
     wx.openCustomerServiceChat(opt)
+  }
+
+  static login() {
+    const _wait = (a: StrFunc) => {
+      wx.login({
+        timeout: 5000,
+        success(res) {
+          console.log("login success: ", res)
+          a(res.code)
+        },
+        fail(err) {
+          console.warn("login failed: ", err)
+          a("")
+        }
+      })
+    }
+    return new Promise(_wait)
+  }
+
+  static checkSession() {
+    const _wait = (a: BoolFunc) => {
+      wx.checkSession({
+        success(res) {
+          console.log("checkSession success: ", res)
+          a(true)
+        },
+        fail(err) {
+          console.warn("checkSession failed: ", err)
+          a(false)
+        }
+      })
+    }
+    return new Promise(_wait)
+  }
+
+  static setStorage(opt: WechatMiniprogram.SetStorageOption) {
+    opt.key = `liu_${opt.key}`
+    return wx.setStorage(opt)
+  }
+
+  static getStorage(opt: WechatMiniprogram.GetStorageOption) {
+    opt.key = `liu_${opt.key}`
+    return wx.getStorage(opt)
+  }
+
+  static getLaunchOptionsSync() {
+    return wx.getLaunchOptionsSync()
   }
 
 }

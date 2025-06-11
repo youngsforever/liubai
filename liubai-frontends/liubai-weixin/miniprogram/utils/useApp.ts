@@ -8,6 +8,8 @@ export async function useApp() {
   // 1. time calibrate
   await timeCalibrate()
 
+  // 2. check out login state
+
 }
 
 async function timeCalibrate() {
