@@ -158,7 +158,7 @@ export const oState_Coupons = [
   "DEL_BY_USER", 
   "DEL_BY_ADMIN",
   "DEL_BY_AI",
-]
+] as const
 export type OState_Coupon = typeof oState_Coupons[number]
 
 // order 的 oState
@@ -1864,6 +1864,9 @@ export interface Table_HappyCoupon extends BaseTable {
   totalNum: number
   embeddingModel?: string
   expireStamp: number
+  extraData?: {
+    deletedReason?: string
+  }
 }
 
 export interface Vector_happy_coupons extends BaseTable {
@@ -4126,3 +4129,38 @@ export namespace Ns_MapTool {
   
 
 }
+
+
+export namespace WxMiniAPI {
+  export interface ResultBase {
+    errcode: number
+    errmsg: string
+  }
+
+  export type SecCheckSuggest = "risky" | "pass" | "review"
+  export type SecCheckLabel = 100 | 10001 | 
+    20001 | 20002 | 20003 | 20006 | 20008 | 20012 | 20013 | 21000
+
+  export interface Res_MsgSecCheck extends ResultBase {
+    detail: {
+      strategy: string
+      errcode: number
+      suggest: SecCheckSuggest
+      label: SecCheckLabel
+      keyword?: string
+      prob?: number
+    }[]
+    trace_id: string
+    result: {
+      suggest: SecCheckSuggest
+      label: SecCheckLabel
+    }
+  }
+
+  export interface Res_MediaCheckAsync extends ResultBase {
+    trace_id?: string
+  }
+
+
+}
+

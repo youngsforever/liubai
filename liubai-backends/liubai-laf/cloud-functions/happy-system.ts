@@ -1,19 +1,23 @@
 // Function Name: happy-system
 
 import cloud from "@lafjs/cloud"
-import { getDocAddId, valTool, verifyToken } from "@/common-util"
+import { getDocAddId, SubscriptionManager, valTool, verifyToken, WxMiniHandler } from "@/common-util"
 import type { 
   HappySystemAPI,
+  LiuAi,
   LiuRqReturn,
+  OState_Coupon,
   Partial_Id,
   Table_AiRoom,
   Table_Credential,
+  Table_HappyCoupon,
   Table_Showcase,
   Table_User,
   VerifyTokenRes,
   VerifyTokenRes_B,
 } from "@/common-types"
 import { 
+  DAY,
   getBasicStampWhileAdding, 
   getNowStamp, 
   isWithinMillis, 
@@ -320,10 +324,11 @@ async function coupon_post(
     image_h2w,
     availableDays,
   }
-  const addManager = new CouponAddManager(addManagerOpt)
-  addManager.run()
+  const couponManager = new CouponAddManager(addManagerOpt)
+  const res3 = await couponManager.run()
+  couponManager.callAiWorker()
 
-  return { code: "0000" }
+  return { code: "0000", data: res3 }
 }
 
 
@@ -338,6 +343,7 @@ export interface CouponAddManagerOpt {
 class CouponAddManager {
 
   private _opt: CouponAddManagerOpt
+  private _couponId?: string
 
   constructor(
     opt: CouponAddManagerOpt,
@@ -346,38 +352,162 @@ class CouponAddManager {
   }
 
   async run() {
-    // 1. get required params
-    const copytext = this._opt.copytext
-    const image_url = this._opt.image_url
+    // 1. try to add data into document db
+    const res = await this.addIntoDocDB()
 
-    // 2. try to add data into document db
-    if(copytext) {
-
-    }
-    else if(image_url) {
-      await this.addImageIntoDocDB()
-    }
+    // 2. check image security using wx-mini api
+    this.afterAddingIntoDocDB()
     
+    return res
   }
 
-  async addCopyTextIntoDocDB() {
+  private async afterAddingIntoDocDB() {
+    const couponId = this._couponId
+    const image_url = this._opt.image_url
+    const wx_mini_openid = this._opt.user.wx_mini_openid
+    if(!image_url || !wx_mini_openid || !couponId) return
 
+    // 1. call media check async 
+    const res1 = await WxMiniHandler.mediaCheckAsync(image_url, wx_mini_openid)
+    console.log("mediaCheckAsync res1: ", res1)
+    if(!res1.pass) return
+    const img_trace_id = res1.data.trace_id
+    if(!img_trace_id) {
+      console.warn("no trace_id found in mediaCheckAsync", res1.data)
+      return
+    }
+
+    // 2. update the image row
+    const hcCol = db.collection("HappyCoupon")
+    const u2: Partial<Table_HappyCoupon> = {
+      img_trace_id,
+      updatedStamp: getNowStamp()
+    }
+    const res2 = await hcCol.doc(couponId).update(u2)
+    console.log("update image row res2: ", res2)
   }
 
-  async addImageIntoDocDB() {
+
+  async callAiWorker() {
+    if(!this._couponId) return
+    const { image_url, copytext } = this._opt
+    if(image_url) {
+      this.imageFlow()
+    }
+    else if(copytext) {
+      this.textFlow()
+    }
+  }
+
+  private async _downgradeOState(
+    oState: OState_Coupon,
+    deletedReason?: string,
+  ) {
+    // 1. get coupon
+    const couponId = this._couponId as string
+    const hcCol = db.collection("HappyCoupon")
+    const res1 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
+    const data1 = res1.data
+    if(!data1) return
+
+    // 2. check if we can update it
+    let canUpdate = false
+    const oldState = data1.oState
+    if(oldState === "OK" || oldState === "REVIEWING") {
+      canUpdate = true
+    }
+    if(!canUpdate) return
+
+    // 3. to update
+    const u3: Partial<Table_HappyCoupon> = {
+      oState,
+      updatedStamp: getNowStamp(),
+    }
+    if(deletedReason) {
+      u3.extraData = { deletedReason }
+    }
+    const res3 = await hcCol.doc(couponId).update(u3)
+    console.log("downgrade oState res3: ", res3)
+  }
+
+  private _getReason(
+    prefixMsg: string,
+    worker?: LiuAi.AiWorker,
+  ) {
+    const computingProvider2 = worker?.computingProvider
+    const model2 = worker?.model
+    let deletedReason = prefixMsg
+    if(model2) deletedReason += `using ${model2} `
+    if(computingProvider2) deletedReason += `from ${computingProvider2} `
+    return deletedReason
+  }
+
+  private async imageFlow() {
+    // 1. check image security
     const image_url = this._opt.image_url as string
     const res1 = await CouponAddChecker.image(image_url)
-    const img_to_txt = res1?.text?.trim?.()
-    if(!img_to_txt || img_to_txt === "0") {
-      console.warn("fail to parse image in CouponAddManager")
-      console.log(img_to_txt)
+
+    // 2. check out result from CouponAddChecker
+    const txt2 = res1?.text?.trim?.()
+    if(txt2 === "0") {
+      const deletedReason = this._getReason(
+        "delete by coupon_add_checker ", 
+        res1?.worker
+      )
+      this._downgradeOState("DEL_BY_AI", deletedReason)
       return
     }
 
 
 
+
   }
 
+  private async textFlow() {
+
+  }
+
+
+  private async addIntoDocDB() {
+    // 1. get params
+    const opt = this._opt
+    let copytext = opt.copytext
+    if(copytext) {
+      copytext = copytext.trim()
+    }
+    const user = opt.user
+    const availableDays = opt.availableDays
+    const userId = user._id
+    const role = user.role
+    let totalNum = role === "admin" ? 1000 : 200
+    const subscriptionManager = new SubscriptionManager(user)
+    const isSubscribed = subscriptionManager.getSubscribed()
+    if(isSubscribed) {
+      totalNum = 1000
+    }
+    const b1 = getBasicStampWhileAdding()
+    const expireStamp = b1.insertedStamp + availableDays * DAY
+
+    // 2. add the row into db
+    const u2: Partial_Id<Table_HappyCoupon> = {
+      ...b1,
+      copytext,
+      image_url: opt.image_url,
+      image_h2w: opt.image_h2w,
+      owner: userId,
+      oState: "OK",
+      fromType: role === "admin" ? "official" : "user",
+      title: "",
+      gottenNum: 0,
+      totalNum,
+      expireStamp,
+    }
+    const hcCol = db.collection("HappyCoupon")
+    const res2 = await hcCol.add(u2)
+    const couponId = getDocAddId(res2)
+    this._couponId = couponId
+    return { couponId }
+  }
 
   addIntoVectorDB() {
 

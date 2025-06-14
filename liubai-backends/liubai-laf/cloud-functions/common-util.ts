@@ -62,6 +62,7 @@ import type {
   PhoneData,
   Table_BlockList,
   LiuIDEType,
+  WxMiniAPI,
 } from '@/common-types'
 import { 
   sch_opt_arr,
@@ -2708,7 +2709,7 @@ export class WxMiniHandler {
       openid,
     }
     const url = this.idToUrl.TEXT_CHECK
-    const res = await this.toRequest(url, obj)
+    const res = await this.toRequest<WxMiniAPI.Res_MsgSecCheck>(url, obj)
     return res
   }
 
@@ -2725,7 +2726,7 @@ export class WxMiniHandler {
       openid,
     }
     const url = this.idToUrl.IMG_CHECK
-    const res = await this.toRequest(url, obj)
+    const res = await this.toRequest<WxMiniAPI.Res_MediaCheckAsync>(url, obj)
     return res
   }
 
