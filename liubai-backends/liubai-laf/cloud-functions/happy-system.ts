@@ -565,13 +565,22 @@ export class CouponAddManager {
   ) {
     console.log("_handleParserResult result: ", result)
 
-    // 1. error
+    // 1.1 error
     const errmsg = result?.errmsg
     if(errmsg !== "ok" && errmsg !== "OK") {
       const reason = this._getReason(errmsg ?? "", worker)
       this._downgradeOState("REVIEWING", reason)
       return false
     }
+
+    // 1.2 check out emoji
+    const emoji = result?.emoji
+    if(emoji && emoji.length > 1) {
+      console.warn("emoji length > 1 in _handleParserResult: ", emoji)
+      delete result.emoji
+    }
+
+
     // 2. success
     const u2: Partial<Table_HappyCoupon> = {
       title: result?.title,
