@@ -1379,7 +1379,7 @@ export interface Table_LoginState extends BaseTable {
 }
 
 export interface Table_LogAi extends BaseTable {
-  infoType: "cost" | "kick_character" | "add_character"
+  infoType: "cost" | "kick_character" | "add_character" | "cost-embedding"
   characters?: AiCharacter[]
   costUsage?: LiuAi.Usage
   costBaseUrl?: string
@@ -3704,7 +3704,7 @@ export interface Res_Alipay_Refund {
 export namespace LiuAi {
 
   export interface Usage {
-    completion_tokens: number
+    completion_tokens?: number
     prompt_tokens: number
     total_tokens: number
   }

@@ -3523,6 +3523,7 @@ export class LiuEmbedding {
         dimensions: this._dimensions,
       })
       const t2 = getNowStamp()
+      this._log(res, t2 - t1, apiEndpoint.baseURL)
       console.log(`${model} using OpenAICompatible cost ${t2 - t1} ms`)
       return res as LiuAi.EmbeddingResult
     }
@@ -3530,6 +3531,27 @@ export class LiuEmbedding {
       console.warn("fail to get embedding by openai compatible")
       console.log(err)
     }
+  }
+
+  private _log(
+    res: LiuAi.EmbeddingResult,
+    costDuration: number,
+    baseUrl: string,
+  ) {
+    const usage = res.usage
+    if(!usage) return
+
+    const logCol = db.collection("LogAi")
+    const b1 = getBasicStampWhileAdding()
+    const aLog: Partial_Id<Table_LogAi> = {
+      ...b1,
+      infoType: "cost-embedding",
+      costUsage: usage,
+      costBaseUrl: baseUrl,
+      model: res.model,
+      costDuration,
+    }
+    logCol.add(aLog)
   }
 
   private async _runWithLiuReq(
@@ -3560,6 +3582,7 @@ export class LiuEmbedding {
         console.log(res1)
         return
       }
+      this._log(rData, durationStamp, url)
       return rData
     }
     catch(err) {

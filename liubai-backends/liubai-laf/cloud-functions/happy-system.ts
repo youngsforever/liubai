@@ -343,7 +343,7 @@ export interface CouponAddManagerOpt {
   availableDays: number
 }
 
-class CouponAddManager {
+export class CouponAddManager {
 
   private _opt: CouponAddManagerOpt
   private _couponId?: string
@@ -395,10 +395,10 @@ class CouponAddManager {
     if(!this._couponId) return
     const { image_url, copytext } = this._opt
     if(image_url) {
-      this.imageFlow()
+      await this.imageFlow()
     }
     else if(copytext) {
-      this.textFlow()
+      await this.textFlow()
     }
   }
 
@@ -429,8 +429,7 @@ class CouponAddManager {
     if(aiReason) {
       u3.extraData = { aiReason }
     }
-    const res3 = await hcCol.doc(couponId).update(u3)
-    console.log("downgrade oState res3: ", res3)
+    await hcCol.doc(couponId).update(u3)
   }
 
   private _getReason(
@@ -440,8 +439,8 @@ class CouponAddManager {
     const computingProvider2 = worker?.computingProvider
     const model2 = worker?.model
     let aiReason = prefixMsg
-    if(model2) aiReason += `using ${model2} `
-    if(computingProvider2) aiReason += `from ${computingProvider2} `
+    if(model2) aiReason += ` using ${model2}`
+    if(computingProvider2) aiReason += ` from ${computingProvider2}`
     return aiReason
   }
 
@@ -451,8 +450,7 @@ class CouponAddManager {
       u.updatedStamp = getNowStamp()
     }
     const hcCol = db.collection("HappyCoupon")
-    const res1 = await hcCol.doc(couponId).update(u)
-    console.log("_saveData res1: ", res1)
+    await hcCol.doc(couponId).update(u)
   }
 
   private async imageFlow() {
@@ -486,8 +484,6 @@ class CouponAddManager {
     }
 
     // 4. start to embedding
-
-
 
 
   }
@@ -567,6 +563,8 @@ class CouponAddManager {
     result?: Res_CouponParser,
     worker?: LiuAi.AiWorker,
   ) {
+    console.log("_handleParserResult result: ", result)
+
     // 1. error
     const errmsg = result?.errmsg
     if(errmsg !== "ok" && errmsg !== "OK") {
@@ -767,12 +765,10 @@ class CouponChecker {
     for(let i=0; i<this.MAX_RUN_TIMES; i++) {
       // 3.1 just do it
       const res3_1 = await workerBase.justDoIt(messages)
-      console.log("CouponChecker res3_1: ", res3_1)
       if(!res3_1 || !res3_1.result) continue
       
       // 3.2 get content
       const res3_2 = AiShared.getContentFromLLM(res3_1.result)
-      console.log("CouponChecker res3_2: ", res3_2)
       if(!res3_2.content) continue
       
       // 3.3 check out content
@@ -781,7 +777,6 @@ class CouponChecker {
       
       // 3.4 parse content
       const res3_4 = await AiShared.turnOutputIntoObject(txt3)
-      console.log("CouponChecker res3_4: ", res3_4)
       if(!res3_4) continue
 
       // 3.5 handle score
@@ -920,8 +915,10 @@ class CouponParser {
     const workerBase = new WorkerBase("txt2txt")
     for(let i=0; i<this.MAX_RUN_TIMES; i++) {
       result = await this.doIt(messages, workerBase)
-      if(!result) continue
-      worker = workerBase.getCurrent()
+      if(result) {
+        worker = workerBase.getCurrent()
+        break
+      }
     }
 
     return { result, worker }
@@ -963,8 +960,10 @@ class CouponParser {
     const workerBase = new WorkerBase("img2txt")
     for(let i=0; i<this.MAX_RUN_TIMES; i++) {
       result = await this.doIt(messages, workerBase)
-      if(!result) continue
-      worker = workerBase.getCurrent()
+      if(result) {
+        worker = workerBase.getCurrent()
+        break
+      }
     }
     return { result, worker }
   }
@@ -1163,7 +1162,8 @@ class CouponKeyworder  {
     }
 
     // 7. get keywords
-    const keywords = keywordStr.split(",")
+    let keywords = keywordStr.split(",").map(v => v.trim())
+    keywords = keywords.filter(v => Boolean(v))
     return { keywords, worker }
   }
 
