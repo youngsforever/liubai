@@ -1124,10 +1124,37 @@ export class AiShared {
       res2 = xml
     }
     catch(err) {
-      console.warn("AiCluster xml2js.Parser parse error: ", content)
+      console.warn("AiShared turnOutputIntoObject xml2js.Parser error: ", content)
       return
     }
     return res2
+  }
+
+  static async turnOutputIntoStr(content: string) {
+    const outputStr1 = "<output>"
+    const outputStr2 = "</output>"
+    const len1 = outputStr1.length
+    const len2 = outputStr2.length
+    const tmpLength = content.length
+    if(tmpLength <= len1 + len2) return
+    const newContent = `<xml>${content}</xml>`
+    const parser = new xml2js.Parser({ explicitArray: false })
+
+    let res2: any = {}
+    try {
+      const { xml } = await parser.parseStringPromise(newContent)
+      res2 = xml
+    }
+    catch(err) {
+      console.warn("AiShared turnOutputIntoStr xml2js.Parser error: ", newContent)
+      return
+    }
+
+    console.log("turnOutputIntoStr res2: ", res2)
+    const res3 = res2.output
+    if(valTool.isStringWithVal(res3)) {
+      return res3
+    }
   }
 
 }

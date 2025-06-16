@@ -1868,6 +1868,13 @@ export interface Table_HappyCoupon extends BaseTable {
     aiReason?: string
     imgToTxtModel?: string
     imgToTxtProvider?: string
+
+    parseModel?: string
+    parseProvider?: string
+
+    keywordModel?: string
+    keywordProvider?: string
+    
   }
 }
 
