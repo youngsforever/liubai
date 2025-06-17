@@ -483,7 +483,18 @@ export class CouponAddManager {
       this._saveData(u3)
     }
 
-    // 4. start to embedding
+    // 4. & 5. generate title, emoji......
+    const res4 = await CouponParser.image(image_url, img_to_txt)
+    const res5 = this._handleParserResult(res4.result, res4.worker)
+    if(!res5) return
+
+    // 6. generate keywords
+    const res6 = await CouponKeyworder.run(
+      res4.result as Res_CouponParser, 
+      undefined, 
+      img_to_txt
+    )
+    this._handleKeywordsResult(res6.keywords, res6.worker)
 
 
   }
@@ -1025,12 +1036,13 @@ const coupon_keyworder_system1 = `
 
 ## 输入规则
 
-优惠券信息会以 <input> 标签包裹，其中可选地包含
+优惠券信息会以 <input> 标签包裹，其中可选地包含：
 
-<copytext>用户复制粘贴的文本。如果用户上传的是海报，则没有此项</copytext>
-<title>优惠券核心信息</title>
-<emoji>与此相关的一个表情符，丰富 UI 界面</emoji>
-<brand>与此相关的一个品牌名</brand>
+- <copytext>用户复制粘贴的文本。如果用户上传的是海报，则没有此项</copytext>
+- <img-info>用户上传的海报识别结果。如果用户上传的是文本，则没有此项</img-info>
+- <title>优惠券核心信息</title>
+- <emoji>与此相关的一个表情符，丰富 UI 界面</emoji>
+- <brand>与此相关的一个品牌名</brand>
 
 ## 你的输出规则
 
@@ -1078,13 +1090,13 @@ mp://mL40fkRVjs5iEqH</copytext>
 - 折扣
 - 限时优惠
 
-至于
+另外诸如：
 
 - 新用户立减
 - 九折
 - 半价
 
-这类关键词，有一定信息量，但若关键词已经很多了，就不要再添加进 <output> 中。
+这类关键词，其具备一定信息量，但若已有足够多的关键词时，就不要再添加进 <output> 中。
 `.trim()
 
 const coupon_keyworder_user1 = `
@@ -1111,6 +1123,7 @@ class CouponKeyworder  {
   static async run(
     parsedRes: Res_CouponParser,
     copytext?: string,
+    img_to_txt?: string,
   ) {
     // 1. get required params
     const {
@@ -1122,6 +1135,9 @@ class CouponKeyworder  {
     let inputStr = `<input>\n`
     if(copytext) {
       inputStr += `  <copytext>${copytext}</copytext>\n`
+    }
+    if(img_to_txt) {
+      inputStr += `  <img-info>${img_to_txt}</img-info>\n`
     }
     if(parsedRes.title) {
       inputStr += `  <title>${parsedRes.title}</title>\n`

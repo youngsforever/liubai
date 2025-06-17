@@ -129,6 +129,14 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
   }
 ]
 
+// export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
+//   {
+//     computingProvider: "minimax",
+//     model: "MiniMax-M1",
+//     character: "hailuo",
+//   }
+// ]
+
 
 export const img2TxtWorkers: LiuAi.AiWorker[] = [
   {
