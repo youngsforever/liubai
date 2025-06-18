@@ -466,6 +466,8 @@ export class CouponAddManager {
   }
 
   private async imageFlow() {
+    const t0 = getNowStamp()
+
     // 1. check image security
     const image_url = this._opt.image_url as string
     const res1 = await CouponChecker.image(image_url)
@@ -501,18 +503,34 @@ export class CouponAddManager {
     if(!res5) return
 
     // 6. generate keywords
-    const resParsed = res4.result as Res_CouponParser
+    const parsedRes = res4.result as Res_CouponParser
     const res6 = await CouponKeyworder.run(
-      resParsed, 
+      parsedRes, 
       undefined, 
-      img_to_txt
+      img_to_txt,
     )
     this._handleKeywordsResult(res6.keywords, res6.worker)
 
+    // 7. start to embedding
+    const res7 = await CouponEmbedding.image(image_url, parsedRes)
+    if(!res7) return
 
+    // 8. save embedding to vector db
+    const partialData: Partial<Vector_happy_coupons> = {
+      image_vector: res7.image_vector,
+      title_vector: res7.title_vector,
+      title: parsedRes.title,
+      keywords: res6.keywords,
+      imageEmbeddingModel: res7.model,
+    }
+    await this.addIntoVectorDB(partialData)
+    const t8 = getNowStamp()
+    console.warn("imageFlow cost: ", t8 - t0)
   }
 
   private async textFlow() {
+    const t0 = getNowStamp()
+
     // 1. get score by CouponChecker
     const copytext = this._opt.copytext as string
     const res1 = await CouponChecker.text(copytext)
@@ -535,7 +553,6 @@ export class CouponAddManager {
       this._downgradeOState("REVIEWING", aiReason2)
     }
 
-
     // 3. & 4. generate title, emoji......
     const res3 = await CouponParser.text(copytext)
     const res4 = this._handleParserResult(res3.result, res3.worker)
@@ -552,10 +569,16 @@ export class CouponAddManager {
     if(!res6) return
 
     // 7. save embedding to vector db
-
-
-    
-
+    const partialData: Partial<Vector_happy_coupons> = {
+      copytext_vector: res6.copytext_vector,
+      title_vector: res6.title_vector,
+      title: parsedRes.title,
+      keywords: res5.keywords,
+      textEmbeddingModel: res6.model,
+    }
+    await this.addIntoVectorDB(partialData)
+    const t7 = getNowStamp()
+    console.warn("textFlow cost: ", t7 - t0)
   }
 
   private _handleKeywordsResult(
@@ -594,7 +617,6 @@ export class CouponAddManager {
       console.warn("emoji length > 1 in _handleParserResult: ", emoji)
       delete result.emoji
     }
-
 
     // 2. success
     const u2: Partial<Table_HappyCoupon> = {
@@ -1060,12 +1082,10 @@ class CouponParser {
   ) {
     // 3.1 just do it
     const res3_1 = await workerBase.justDoIt(messages)
-    console.log("CouponParser res3_1: ", res3_1)
     if(!res3_1 || !res3_1.result) return
 
     // 3.2 get content
     const res3_2 = AiShared.getContentFromLLM(res3_1.result)
-    console.log("CouponParser res3_2: ", res3_2)
     if(!res3_2.content) return
     
     // 3.3 check out content
@@ -1351,7 +1371,7 @@ class CouponEmbedding {
 
     // 2. request
     const liuEmb = new LiuEmbedding()
-    const res2 = await liuEmb.runByTongyi(inputs)
+    const res2 = await liuEmb.runByJina(inputs)
     const outputs = liuEmb.getOutputs(res2)
     if(!outputs) return
 
