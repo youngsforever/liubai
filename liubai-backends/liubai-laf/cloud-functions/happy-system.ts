@@ -1,7 +1,16 @@
 // Function Name: happy-system
 
 import cloud from "@lafjs/cloud"
-import { getDocAddId, LiuDateUtil, SubscriptionManager, valTool, ValueTransform, verifyToken, WxMiniHandler } from "@/common-util"
+import { 
+  getDocAddId, 
+  LiuDateUtil, 
+  LiuMilvus, 
+  SubscriptionManager, 
+  valTool, 
+  ValueTransform, 
+  verifyToken, 
+  WxMiniHandler,
+} from "@/common-util"
 import type { 
   HappySystemAPI,
   LiuAi,
@@ -30,6 +39,9 @@ import { createAdCredential } from "@/common-ids"
 import { ai_cfg } from "@/common-config"
 import { AiShared, Img2Txt, LiuEmbedding, WorkerBase } from "@/ai-shared"
 import { i18nFill } from "@/common-i18n"
+import {
+  type RowData as MilvusRowData,
+} from "@zilliz/milvus2-sdk-node"
 
 const db = cloud.database()
 const _ = db.command
@@ -489,8 +501,9 @@ export class CouponAddManager {
     if(!res5) return
 
     // 6. generate keywords
+    const resParsed = res4.result as Res_CouponParser
     const res6 = await CouponKeyworder.run(
-      res4.result as Res_CouponParser, 
+      resParsed, 
       undefined, 
       img_to_txt
     )
@@ -529,26 +542,17 @@ export class CouponAddManager {
     if(!res4) return
 
     // 5. generate keywords
-    const res5 = await CouponKeyworder.run(res3.result as Res_CouponParser, copytext)
+    const parsedRes = res3.result as Res_CouponParser
+    const res5 = await CouponKeyworder.run(parsedRes, copytext)
     this._handleKeywordsResult(res5.keywords, res5.worker)
 
 
-    // start to embedding
-    // const inputEmbedding: LiuAi.EmbeddingInput[] = [
-    //   {
-    //     text: copytext,
-    //   }
-    // ]
-    // const liuEmb = new LiuEmbedding()
-    // const res3 = await liuEmb.runByTongyi(inputEmbedding)
-    // console.log("liuEmb.runByTongyi res3: ", res3)
+    // 6. start to embedding
+    const res6 = await CouponEmbedding.text(copytext, parsedRes)
+    if(!res6) return
 
-    // handle embedding result
-    // const outputs = liuEmb.getOutputs(res3)
-    // if(!outputs) {
-    //   console.warn("no embedding result in text flow: ", res3)
-    //   return
-    // }
+    // 7. save embedding to vector db
+
 
     
 
@@ -648,8 +652,69 @@ export class CouponAddManager {
     return { couponId }
   }
 
-  addIntoVectorDB() {
+  async addIntoVectorDB(
+    partialData: Partial<Vector_happy_coupons>,
+  ): Promise<LiuRqReturn> {
+    // 1. get doc data
+    const couponId = this._couponId as string
+    const hcCol = db.collection("HappyCoupon")
+    const res1 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
+    const docData = res1.data
+    if(!docData) return { code: "E4004" }
+    if(docData.oState === "DEL_BY_AI") {
+      console.warn("addIntoVectorDB: coupon is deleted by ai")
+      return { code: "E4004" }
+    }
+    if(docData.oState === "DEL_BY_ADMIN") {
+      console.warn("addIntoVectorDB: coupon is deleted by admin")
+      return { code: "E4004" }
+    }
+    if(docData.oState === "DEL_BY_USER") {
+      console.warn("addIntoVectorDB: coupon is deleted by user")
+      return { code: "E4004" }
+    }
 
+    // 2. construct vector data
+    const b2 = getBasicStampWhileAdding()
+    const zeros = new Array(1024).fill(0)
+    const d2: Vector_happy_coupons = {
+      ...b2,
+      _id: couponId,
+      copytext_vector: partialData.copytext_vector ?? zeros,
+      image_vector: partialData.image_vector ?? zeros,
+      title_vector: partialData.title_vector ?? zeros,
+      copytext: docData.copytext ?? "",
+      title: partialData.title ?? "",
+      keywords: partialData.keywords,
+      owner: docData.owner,
+      oState: docData.oState,
+      textEmbeddingModel: partialData.textEmbeddingModel,
+      imageEmbeddingModel: partialData.imageEmbeddingModel,
+      expireStamp: docData.expireStamp,
+    }
+
+    // 3. insert vector data into milvus
+    const milvusClient = LiuMilvus.getClient()
+    if(!milvusClient) return { code: "E5001", errMsg: "no milvus client" }
+    const d3 = d2 as unknown as MilvusRowData
+    try {
+      const t3 = getNowStamp()
+      const res3 = await milvusClient.insert({
+        collection_name: "happy_coupons",
+        data: [d3],
+      })
+      const t4 = getNowStamp()
+      console.log(`milvus insert cost ${t4 - t3} ms`)
+      const entityId = LiuMilvus.getEntityId(res3)
+      console.log("entityId: ", entityId)
+      return { code: "0000", data: res3 }
+    }
+    catch(err) {
+      console.warn("fail to insert data to milvus")
+      console.log(err)
+    }
+
+    return { code: "E5004", errMsg: "fail to insert data to milvus" }
   }
 
 
@@ -1215,6 +1280,93 @@ class CouponKeyworder  {
     if(!txt4) return
 
     return txt4
+  }
+
+}
+
+
+interface Res_CouponEmbedding1 {
+  copytext_vector: number[]
+  title_vector?: number[]
+  model: string
+  computingProvider: LiuAi.ComputingProvider
+}
+
+interface Res_CouponEmbedding2 {
+  image_vector: number[]
+  title_vector?: number[]
+  model: string
+  computingProvider: LiuAi.ComputingProvider
+}
+
+class CouponEmbedding {
+
+  static async text(
+    copytext: string,
+    parsedRes: Res_CouponParser,
+  ): Promise<Res_CouponEmbedding1 | undefined> {
+    // 1. construct inputs
+    const inputs: LiuAi.EmbeddingInput[] = [
+      {
+        text: copytext,
+      }
+    ]
+    if(parsedRes.title) {
+      inputs.push({ text: parsedRes.title })
+    }
+
+    // 2. request
+    const liuEmb = new LiuEmbedding()
+    const res2 = await liuEmb.runByTongyi(inputs)
+    const outputs = liuEmb.getOutputs(res2)
+    if(!outputs) return
+
+    // 3. handle result
+    const copytext_vector = outputs[0].embedding
+    let title_vector: number[] | undefined
+    if(outputs.length > 1) {
+      title_vector = outputs[1].embedding
+    }
+    return {
+      copytext_vector,
+      title_vector,
+      model: res2.originalResult?.model ?? "",
+      computingProvider: res2.computingProvider,
+    }
+  }
+
+  static async image(
+    image_url: string,
+    parsedRes: Res_CouponParser,
+  ): Promise<Res_CouponEmbedding2 | undefined> {
+    // 1. construct inputs
+    const inputs: LiuAi.EmbeddingInput[] = [
+      {
+        image: image_url,
+      }
+    ]
+    if(parsedRes.title) {
+      inputs.push({ text: parsedRes.title })
+    }
+
+    // 2. request
+    const liuEmb = new LiuEmbedding()
+    const res2 = await liuEmb.runByTongyi(inputs)
+    const outputs = liuEmb.getOutputs(res2)
+    if(!outputs) return
+
+    // 3. handle result
+    const image_vector = outputs[0].embedding
+    let title_vector: number[] | undefined
+    if(outputs.length > 1) {
+      title_vector = outputs[1].embedding
+    }
+    return {
+      image_vector,
+      title_vector,
+      model: res2.originalResult?.model ?? "",
+      computingProvider: res2.computingProvider,
+    }
   }
 
 }

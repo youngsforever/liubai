@@ -3717,7 +3717,7 @@ export class LiuEmbedding {
     return totalResult
   }
 
-  async getOutputs(res: LiuAi.Res_Embedding) {
+  getOutputs(res: LiuAi.Res_Embedding) {
     const data = res?.originalResult?.data
     if(!data || data.length < 1) return
     return data
