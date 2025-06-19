@@ -34,7 +34,6 @@ import {
 } from '@/ai-shared'
 import { commonLang, i18nFill, useI18n } from '@/common-i18n'
 import { getNowStamp } from '@/common-time'
-import xml2js from "xml2js"
 import { LiuReporter } from '@/service-send'
 
 const db = cloud.database()

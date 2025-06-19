@@ -42,6 +42,7 @@ import { i18nFill } from "@/common-i18n"
 import {
   type RowData as MilvusRowData,
 } from "@zilliz/milvus2-sdk-node"
+import { LiuReporter } from "@/service-send"
 
 const db = cloud.database()
 const _ = db.command
@@ -422,7 +423,7 @@ export class CouponAddManager {
     const couponId = this._couponId as string
     const hcCol = db.collection("HappyCoupon")
     const res1 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
-    const data1 = res1.data
+    let data1 = res1.data
     if(!data1) return
 
     // 2. check if we can update it
@@ -442,7 +443,25 @@ export class CouponAddManager {
       u3.extraData = { aiReason }
     }
     await hcCol.doc(couponId).update(u3)
+
+    // 4. merge 
+    data1 = { ...data1, ...u3 }
+    this._callAdmin(data1)
   }
+
+  private async _callAdmin(
+    data: Table_HappyCoupon,
+  ) {
+    const title = "Liubai Coupon"
+    const userId = data.owner ?? "unknown"
+    const couponId = data._id
+    let footer = ""
+    footer += `**User id:** ${userId}\n\n`
+    footer += `**Coupon id:** ${couponId}\n\n`
+    const reporter = new LiuReporter()
+    reporter.sendAny(title, data, footer)
+  }
+
 
   private _getReason(
     prefixMsg: string,
@@ -476,7 +495,7 @@ export class CouponAddManager {
     const img_to_txt = res1?.text?.trim?.()
     if(img_to_txt === "0") {
       const aiReason = this._getReason(
-        "delete by coupon_add_checker ", 
+        "deleted by coupon_add_checker ", 
         res1?.worker
       )
       this._downgradeOState("DEL_BY_AI", aiReason)
@@ -613,10 +632,7 @@ export class CouponAddManager {
 
     // 1.2 check out emoji
     const emoji = result?.emoji
-    if(emoji && emoji.length > 1) {
-      console.warn("emoji length > 1 in _handleParserResult: ", emoji)
-      delete result.emoji
-    }
+    console.warn("emoji length: ", emoji?.length)
 
     // 2. success
     const u2: Partial<Table_HappyCoupon> = {
@@ -1296,7 +1312,6 @@ class CouponKeyworder  {
 
     // 4. turn output into string
     const txt4 = await AiShared.turnOutputIntoStr(txt3)
-    console.log("CouponKeyworder txt4: ", txt4)
     if(!txt4) return
 
     return txt4

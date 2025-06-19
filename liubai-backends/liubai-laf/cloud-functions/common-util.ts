@@ -194,10 +194,18 @@ function strToObj<T = any>(str: string): T {
 }
 
 // 对象转字符串
-function objToStr<T = any>(obj: T): string {
-  let str = ``
+function objToStr<T = any>(
+  obj: T,
+  visualized: boolean = false,
+): string {
+  let str = ""
   try {
-    str = JSON.stringify(obj)
+    if(visualized) {
+      str = JSON.stringify(obj, null, 2)
+    }
+    else {
+      str = JSON.stringify(obj)
+    }
   }
   catch(err) {}
   return str
