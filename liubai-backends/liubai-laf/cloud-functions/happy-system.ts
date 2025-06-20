@@ -20,6 +20,7 @@ import type {
   Partial_Id,
   Table_AiRoom,
   Table_Credential,
+  Table_HappyCache,
   Table_HappyCoupon,
   Table_Showcase,
   Table_User,
@@ -37,7 +38,7 @@ import {
   SECOND,
 } from "@/common-time"
 import { createAdCredential } from "@/common-ids"
-import { ai_cfg } from "@/common-config"
+import { ai_cfg, happy_coupon_cfg } from "@/common-config"
 import { AiShared, Img2Txt, LiuEmbedding, WorkerBase } from "@/ai-shared"
 import { i18nFill } from "@/common-i18n"
 import {
@@ -332,19 +333,148 @@ async function coupon_search(
 
 export class CouponFastSearch {
 
-  private _keywords: string[] = []
-  private _image_url = ""
+  private _checkoutWord(str: string) {
+    if(str.includes("\\")) return false
+    const invalidChars = [".", "*", "+", "?", "^", "$"]
+    const isInvaild = invalidChars.some(v => v === str)
+    if(isInvaild) return false
+    return true
+  }
 
-  async texts(keywords: string[]) {
-    this._keywords = keywords
+  async texts(strs: string[]) {
+    const sLength = strs.length
+    if(sLength < 1) {
+      return { code: "E4000", errMsg: "strs is empty" }
+    }
+
+    // 1. check out cache
+    const theWord = strs[sLength - 1]?.trim()
+    if(!theWord) {
+      return { code: "E4000", errMsg: "the word is empty" }
+    }
+    const checkingWord = this._checkoutWord(theWord)
+    if(!checkingWord) {
+      return { code: "E4003", errMsg: "the word is invalid" }
+    }
+    const res1 = await this._getDataFromCache(theWord)
+    if(res1) return { code: "0000", data: res1 }
+
+    // 2. search title
+    const hcCol = db.collection("HappyCoupon")
+    const safeWord = ValueTransform.escapeRegExp(theWord)
+    const w2 = {
+      title: new RegExp(`${safeWord}`, "i"),
+      oState: "OK",
+      expireStamp: _.gt(getNowStamp()),
+    }
+    const res2 = await hcCol.where(w2).get<Table_HappyCoupon>()
+    
+
+
 
   }
 
-  async image(image_url: string) {
-    this._image_url = image_url
+  async image(
+    image_url: string
+  ): Promise<LiuRqReturn<HappySystemAPI.Res_FastSearch>> {
+    const res = await this._getDataFromCache(undefined, image_url)
+    if(res) return { code: "0000", data: res }
+    return { code: "E4004" }
+  }
 
-    // only search in cache!
+  private async _getDataFromCache(
+    keyword?: string,
+    image_url?: string,
+  ) {
+    // 1. search in cache!
+    const cacheCol = db.collection("HappyCache")
+    const mins = happy_coupon_cfg.cache_mins * MINUTE
+    const THRESHOLD = getNowStamp() - mins
+    const w1: Record<string, any> = {
+      insertedStamp: _.gte(THRESHOLD),
+    }
+    if(image_url) {
+      w1.infoType = "coupon-image"
+      w1.image_url = image_url
+    }
+    else if(keyword) {
+      w1.infoType = "coupon-keyword"
+      w1.keyword = keyword
+    }
 
+    // 2. get cache
+    const res2 = await cacheCol.where(w1).getOne<Table_HappyCache>()
+    const cache2 = res2.data
+    if(!cache2) return
+    let ids = cache2.query_ids ?? []
+    if(cache2.search_ids) {
+      ids.push(...cache2.search_ids)
+    }
+    ids = valTool.uniqueArray(ids)
+    if(ids.length < 1) {
+      return this._getEmptyDataForFastSearch(cache2)
+    }
+
+    // 3. get coupons
+    const hcCol = db.collection("HappyCoupon")
+    const w3 = { _id: _.in(ids), oState: "OK" }
+    const res3 = await hcCol.where(w3).get<Table_HappyCoupon>()
+    const couponList = res3.data
+    if(!couponList || couponList.length < 1) {
+      return this._getEmptyDataForFastSearch(cache2)
+    }
+
+    // 4. handle results
+    const queryList = this._packageList(
+      cache2.query_ids ?? [],
+      couponList,
+    )
+    const res4: HappySystemAPI.Res_FastSearch = {
+      fromType: "cache",
+      queryList,
+    }
+    if(cache2.search_ids?.length) {
+      res4.searchList = this._packageList(
+        cache2.search_ids, 
+        couponList,
+      )
+    }
+    return res4
+  }
+
+  private _packageList(
+    ids: string[],
+    couponList: Table_HappyCoupon[],
+  ) {
+    if(ids.length < 1 || couponList.length < 1) return []
+    const list: HappySystemAPI.CouponItem[] = []
+    for(let i=0; i<ids.length; i++) {
+      const coupon = couponList.find(v => v._id === ids[i])
+      if(!coupon) continue
+      const item: HappySystemAPI.CouponItem = {
+        _id: coupon._id,
+        title: coupon.title,
+        copytext: coupon.copytext,
+        image_url: coupon.image_url,
+        image_h2w: coupon.image_h2w,
+        emoji: coupon.emoji,
+        brand: coupon.brand,
+        expireStamp: coupon.expireStamp,
+      }
+      list.push(item)
+    }
+    return list
+  }
+
+  private _getEmptyDataForFastSearch(
+    cache: Table_HappyCache
+  ) {
+    const result: HappySystemAPI.Res_FastSearch = {
+      fromType: "cache",
+      queryList: [],
+    }
+    const within2 = isWithinMillis(cache.insertedStamp, MINUTE)
+    if(within2) return result
   }
 
 

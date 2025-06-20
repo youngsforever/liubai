@@ -85,3 +85,8 @@ export const ai_cfg = {
 export const milvus_cfg = {
   coupon_keywords_max_capacity: 32,
 }
+
+/********************* happy coupon config ****************/
+export const happy_coupon_cfg = {
+  cache_mins: 10, 
+}

@@ -411,6 +411,10 @@ export class ValueTransform {
     return [num1, num2]
   }
 
+  static escapeRegExp(str: string) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  }
+
 }
 
 

@@ -1893,7 +1893,13 @@ export interface Vector_happy_coupons extends BaseTable {
   expireStamp: number
 }
 
-
+export interface Table_HappyCache extends BaseTable {
+  infoType: "coupon-image" | "coupon-keyword"
+  image_url?: string
+  keyword?: string
+  query_ids?: string[]
+  search_ids?: string[]
+}
 
 
 /*********************** 基于 Table 的扩展类型 ***********************/
@@ -2583,6 +2589,26 @@ export namespace HappySystemAPI {
     texts: sch_opt_arr(vbot.string(), [vbot.maxLength(9)]),
     image_url: vbot.optional(vbot.string()),
   })
+
+  export interface CouponItem {
+    _id: string
+    title?: string
+    copytext?: string
+    image_url?: string
+    image_h2w?: string
+    emoji?: string
+    brand?: string
+    expireStamp: number
+  }
+
+  export interface Res_FastSearch {
+    fromType: "query" | "cache"
+    queryList: CouponItem[]
+    searchList?: CouponItem[]
+  }
+
+
+
 }
 
 /****************** sync-operate api ***************/
