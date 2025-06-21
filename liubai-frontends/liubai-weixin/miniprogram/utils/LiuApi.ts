@@ -51,6 +51,20 @@ export class LiuApi {
     return wx.getMenuButtonBoundingClientRect()
   }
 
+  static onMenuButtonBoundingClientRectWeightChange(
+    listener: WechatMiniprogram.OnMenuButtonBoundingClientRectWeightChangeCallback
+  ) {
+    if(!wx.onMenuButtonBoundingClientRectWeightChange) return
+    return wx.onMenuButtonBoundingClientRectWeightChange(listener)
+  }
+
+  static offMenuButtonBoundingClientRectWeightChange(
+    listener: WechatMiniprogram.OffMenuButtonBoundingClientRectWeightChangeCallback
+  ) {
+    if(!wx.offMenuButtonBoundingClientRectWeightChange) return
+    return wx.offMenuButtonBoundingClientRectWeightChange(listener)
+  }
+
   static getEnterOptionsSync() {
     return wx.getEnterOptionsSync()
   }

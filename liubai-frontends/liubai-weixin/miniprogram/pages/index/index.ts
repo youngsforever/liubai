@@ -25,7 +25,7 @@ Component({
 
   behaviors: [
     i18nBehavior("index"),
-    navibarBehavior,
+    navibarBehavior(),
     sharedBehavior(),
     themeBehavior(),
   ],
