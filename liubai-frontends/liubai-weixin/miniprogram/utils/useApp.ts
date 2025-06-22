@@ -6,11 +6,14 @@ import { LiuApi } from "./LiuApi"
 import { Loginer } from "./login/Loginer"
 import { BoolFunc, LiuTimeout } from "./basic/type-tool"
 import valTool from "./val-tool"
+import { AuthManager } from "./managers/AuthManager"
+import { defaultData } from "~/config/default-data"
 
 export async function useApp() {
-  LiuApp.init()
+  await LiuApp.init()
+  await valTool.waitMilli(defaultData.duration_ms_2)
+  await AuthManager.init()
 }
-
 
 export class LiuApp {
 

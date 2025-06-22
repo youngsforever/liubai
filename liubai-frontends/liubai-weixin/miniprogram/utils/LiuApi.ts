@@ -286,4 +286,60 @@ export class LiuApi {
   ) {
     return wx.showShareImageMenu(opt)
   }
+
+
+  static async getSetting(withSubscriptions = true) {
+    try {
+      const res = await wx.getSetting({ withSubscriptions })
+      return res
+    }
+    catch(err) {
+      console.warn("getSetting failed: ", err)
+      return
+    }
+  }
+
+  static async openSetting(withSubscriptions = true) {
+    try {
+      const res = await wx.openSetting({ withSubscriptions })
+      return res
+    }
+    catch(err) {
+      console.warn("openSetting failed: ", err)
+      return
+    }
+  }
+
+  static async requestSubscribeMessage(tmplIds: string[]) {
+    try {
+      const res = await wx.requestSubscribeMessage({ tmplIds })
+      return res
+    }
+    catch(err) {
+      console.warn("requestSubscribeMessage failed: ", err)
+      return
+    }
+  }
+
+  static async openAppAuthorizeSetting() {
+    try {
+      const res = await wx.openAppAuthorizeSetting()
+      return res
+    }
+    catch(err) {
+      console.warn("openAppAuthorizeSetting failed: ", err)
+      return
+    }
+  }
+
+  static getAppAuthorizeSetting() {
+    const res = wx.getAppAuthorizeSetting()
+    return res
+  }
+
+  static chooseContact(opt: WechatMiniprogram.ChooseContactOption) {
+    wx.chooseContact(opt)
+  }
+
+
 }

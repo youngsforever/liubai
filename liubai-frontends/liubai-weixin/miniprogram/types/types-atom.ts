@@ -25,3 +25,5 @@ export type SupportedTheme = "light" | "dark"
 export type LocalTheme = SupportedTheme | "system" | "auto"   // auto 就是日夜切换
 
 export type BaseIsOn = "Y" | "N"
+
+export type SubMsgItemType = "accept" | "reject" | "ban" | "filter"
