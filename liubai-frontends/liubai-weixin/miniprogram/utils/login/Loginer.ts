@@ -47,16 +47,16 @@ export class Loginer {
   private static async toLogin() {
     // 1. get js_code
     const js_code = await LiuApi.login()
-    if(!js_code) return
+    if(!js_code) return false
 
     // 2. fetch login
     const res2 = await fetchLogin(js_code)
-    if(!res2) return
+    if(!res2) return false
 
     // 3. handle data
     const data3 = res2.data
-    if(!data3) return
-    if(!data3.serial_id || !data3.token) return
+    if(!data3) return false
+    if(!data3.serial_id || !data3.token) return false
     
     // 4. get avatar & nickname
     const avaNick = this._getAvatarAndNickname(data3.spaceMemberList)
@@ -81,7 +81,7 @@ export class Loginer {
   private static async toRefresh() {
     // 1. fetch
     const res1 = await fetchEnter()
-    if(!res1) return
+    if(!res1) return false
     const code1 = res1.code
     console.log("toRefresh res1: ", res1)
 
@@ -92,7 +92,7 @@ export class Loginer {
       return res2
     }
     const data1 = res1.data
-    if(!data1) return
+    if(!data1) return false
 
     // 3. merge login data
     const oldData = await this.getLoginData()
