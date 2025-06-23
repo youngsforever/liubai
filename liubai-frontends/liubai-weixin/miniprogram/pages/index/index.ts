@@ -9,8 +9,8 @@ import { envData } from "~/config/env-data"
 import { useI18n } from "~/locales/index"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
-import { LiuTunnel } from "~/utils/LiuTunnel"
 import valTool from "~/utils/val-tool"
+import { handleImageSearch } from "./tools/useIndexPage"
 
 Component({
 
@@ -91,20 +91,8 @@ Component({
       })
     },
 
-    async onTapArticle() {
-      LiuApi.vibrateShort({ type: "medium" })
-      const res1 = await LiuApi.chooseMedia({ 
-        mediaType: ["image"], 
-        count: 1, 
-        sourceType: ["album"],
-        sizeType: ["original"]
-      })
-      if(!res1) return
-      const file = res1.tempFiles[0]
-      if(!file) return
-      
-      LiuTunnel.setStuff("coupon-search-image", file)
-      LiuApi.navigateTo({ url: "/packageA/pages/coupon-search/coupon-search" })
+    onTapArticle() {
+      handleImageSearch()
     },
 
     toOpenWzh() {

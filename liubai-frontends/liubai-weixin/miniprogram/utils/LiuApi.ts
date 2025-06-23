@@ -365,6 +365,18 @@ export class LiuApi {
     }
   }
 
+  static async getImageInfo(opt: WechatMiniprogram.GetImageInfoOption) {
+    try {
+      const res = await wx.getImageInfo(opt)
+      return res
+    }
+    catch(err) {
+      console.warn("getImageInfo err: ")
+      console.log(err)
+      return
+    }
+  }
+
   static cropImage(opt: WechatMiniprogram.CropImageOption) {
     wx.cropImage(opt)
   }

@@ -25,7 +25,7 @@ export class LiuTunnel {
   ): Promise<T | undefined> {
     if(this._key === key && this._val) {
       const val1 = valTool.copyObject(this._val)
-      console.log("LiuTunnel get val 111: ", val1)
+      // console.log("LiuTunnel get val 111: ", valTool.copyObject(val1))
       this._clear()
       return val1 as T
     }
