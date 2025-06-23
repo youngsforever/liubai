@@ -52,3 +52,8 @@ export function createRandom(
   }
   return randomString
 }
+
+
+export function createFileNonce() {
+  return createRandom(4)
+}

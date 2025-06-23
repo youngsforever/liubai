@@ -6,6 +6,7 @@ export type LiuEnvData = {
   GZH_USERNAME?: string
   LIU_CUSTOMER_SERVICE?: string
   LIU_WECOM_CORPID?: string
+  LIU_QINIU_UPLOAD?: string
 }
 
 export const envData: LiuEnvData = {

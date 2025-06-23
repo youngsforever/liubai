@@ -27,3 +27,5 @@ export type LocalTheme = SupportedTheme | "system" | "auto"   // auto 就是日�
 export type BaseIsOn = "Y" | "N"
 
 export type SubMsgItemType = "accept" | "reject" | "ban" | "filter"
+
+export type FilePurpose = "coupon-upload" | "coupon-tmp"

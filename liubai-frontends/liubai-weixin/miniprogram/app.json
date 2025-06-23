@@ -9,7 +9,8 @@
       "root": "packageA",
       "name": "packageA",
       "pages": [
-        "pages/watch-video/watch-video"
+        "pages/watch-video/watch-video",
+        "pages/coupon-search/coupon-search"
       ]
     }
   ],

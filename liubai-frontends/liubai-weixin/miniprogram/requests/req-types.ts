@@ -1,5 +1,9 @@
 import type { LocalTheme } from "~/types/types-atom"
-import type { LiuSpaceAndMember, UserSubscription } from "~/types/types-cloud"
+import type { 
+  CloudStorageService, 
+  LiuSpaceAndMember, 
+  UserSubscription,
+} from "~/types/types-cloud"
 import type { LocalLocale } from "~/types/types-locale"
 
 /********************** Hello World *******************/
@@ -76,3 +80,16 @@ export namespace HappySystemAPI {
 }
 
 
+/************************ Uploading File ********************/
+export namespace FileSetAPI {
+  export interface Param {
+    operateType: "get-upload-token"
+    purpose?: "coupon-upload" | "coupon-tmp"
+  }
+
+  export interface Res_UploadToken {
+    cloudService: CloudStorageService
+    uploadToken: string
+    prefix: string
+  }
+}

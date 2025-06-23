@@ -27,6 +27,8 @@ declare global {
       */
       LIU_CLOUD_LOGIN: LiuSwitch | "03"
 
+      LIU_ENV_STATE?: "prod" | "dev" 
+
       /** 当前应用的域名 
        *  其结尾请不要添加路径的开头 `/`
       */

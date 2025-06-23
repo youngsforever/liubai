@@ -2181,7 +2181,7 @@ export namespace FileSetAPI {
 
   export interface Param {
     operateType: "get-upload-token"
-    purpose?: "avatar"
+    purpose?: "avatar" | "coupon-upload" | "coupon-tmp"
   }
 
   export interface Res_UploadToken {

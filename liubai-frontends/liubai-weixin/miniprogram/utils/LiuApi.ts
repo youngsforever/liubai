@@ -341,5 +341,37 @@ export class LiuApi {
     wx.chooseContact(opt)
   }
 
+  static async chooseMedia(opt: WechatMiniprogram.ChooseMediaOption) {
+    try {
+      const res = await wx.chooseMedia(opt)
+      return res
+    }
+    catch(err) {
+      console.warn("chooseMedia err: ")
+      console.log(err)
+      return
+    }
+  }
+
+  static async compressImage(opt: WechatMiniprogram.CompressImageOption) {
+    try {
+      const res = await wx.compressImage(opt)
+      return res
+    }
+    catch(err) {
+      console.warn("compressImage err: ")
+      console.log(err)
+      return
+    }
+  }
+
+  static cropImage(opt: WechatMiniprogram.CropImageOption) {
+    wx.cropImage(opt)
+  }
+
+  static previewMedia(opt: WechatMiniprogram.PreviewMediaOption) {
+    return wx.previewMedia(opt)
+  }
+
 
 }

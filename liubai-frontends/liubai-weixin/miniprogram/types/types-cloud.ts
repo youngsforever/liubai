@@ -36,3 +36,7 @@ export interface UserSubscription {
   expireStamp?: number
   chargeTimes?: number
 }
+
+/*************************** 云存储 **********************/
+// 云存储服务
+export type CloudStorageService = "qiniu" | "tecent_cos" | "aliyun_oss"
