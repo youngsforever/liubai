@@ -8,8 +8,6 @@ import type {
   LiuErrReturn, 
   LiuRqReturn,
   Ns_FFmpeg,
-  Partial_Id,
-  SupportedLocale,
   Table_Credential,
   Table_Member,
   Table_User,
@@ -32,8 +30,7 @@ import type {
 } from "@/common-types";
 import { decrypt } from "@wecom/crypto"
 import xml2js from "xml2js"
-import { 
-  getBasicStampWhileAdding,
+import {
   getNowStamp, 
   isWithinMillis,
   MINUTE,

@@ -3,7 +3,9 @@
 import cloud from "@lafjs/cloud"
 import { 
   checker,
+  CommonShared,
   getDocAddId, 
+  getIp, 
   LiuDateUtil, 
   LiuMilvus, 
   SubscriptionManager, 
@@ -37,7 +39,6 @@ import {
   MINUTE, 
   SECOND,
 } from "@/common-time"
-import { createAdCredential } from "@/common-ids"
 import { ai_cfg, happy_coupon_cfg } from "@/common-config"
 import { AiShared, Img2Txt, LiuEmbedding, WorkerBase } from "@/ai-shared"
 import { i18nFill } from "@/common-i18n"
@@ -79,8 +80,8 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "coupon-status" && vRes?.pass) {
     res = await coupon_status(body, vRes)
   }
-  else if(oT === "coupon-check") {
-
+  else if(oT === "coupon-check" && vRes?.pass) {
+    res = await coupon_check(ctx, vRes)
   }
   else if(oT === "coupon-post" && vRes?.pass) {
     res = await coupon_post(body, vRes)
@@ -235,24 +236,15 @@ async function get_weixin_ad(
   // 5. create credential
   if(!cred) {
     const MIN_25_LATER = getNowStamp() + MINUTE * 25
-    const b5 = getBasicStampWhileAdding()
-    const newCred: Partial_Id<Table_Credential> = {
-      ...b5,
-      userId,
-      infoType: "weixin-ad",
-      expireStamp: MIN_25_LATER,
-      verifyNum: 0,
-      credential: createAdCredential(),
-    }
-    const res5 = await cCol.add(newCred)
-    const credId = getDocAddId(res5)
-    if(!credId) {
+    const cred_data = await CommonShared.createCredential(
+      userId, 
+      MIN_25_LATER, 
+      "weixin-ad"
+    )
+    if(!cred_data._id) {
       return { code: "E5001", errMsg: "fail to create credential" }
     }
-    cred = {
-      _id: credId,
-      ...newCred,
-    }
+    cred = cred_data as Table_Credential
   }
 
   // 6. package result
@@ -306,6 +298,95 @@ async function get_showcase(
 
 /***************************** Coupons *****************************/
 
+async function coupon_check(
+  ctx: FunctionContext,
+  vRes: VerifyTokenRes_B,
+): Promise<LiuRqReturn<HappySystemAPI.Res_CouponCheck>> {
+  // 1. check out params
+  const ip = getIp(ctx)
+  console.log("ip in coupon_check: ", ip)
+  if(!ip) {
+    return { code: "E4000", errMsg: "no ip" }
+  }
+  const body = ctx.body ?? {}
+  const image_url = body.image_url
+  const copytext = body.copytext
+  const hasImg = valTool.isStringWithVal(image_url)
+  const hasText = valTool.isStringWithVal(copytext)
+  if(!hasImg && !hasText) {
+    return { code: "E4000", errMsg: "Invalid image_url or copytext" }
+  }
+  const user = vRes.userData
+  const userId = user._id
+  const wx_mini_openid = user.wx_mini_openid
+  if(!wx_mini_openid) {
+    return { code: "E4003", errMsg: "no wx_mini_openid" }
+  }
+
+  // 2.1 define result
+  const result: HappySystemAPI.Res_CouponCheck = {
+    operateType: "coupon-check",
+    pass: false,
+  }
+  // 2.2 define a function to create a credential
+  const _fillWithCredential = async () => {
+    const MIN_10_LATER = getNowStamp() + MINUTE * 10
+    const cred_data = await CommonShared.createCredential(
+      userId,
+      MIN_10_LATER,
+      "coupon-auth",
+    )
+    result.pass = true
+    result.credential= cred_data.credential
+  }
+
+  // 3. get the number of coupons I've posted
+  const hcCol = db.collection("HappyCoupon")
+  const w3 = {
+    owner: userId,
+    oState: _.or(_.eq("OK"), _.eq("REVIEWING")),
+  }
+  const res3 = await hcCol.where(w3).count()
+  const posted_coupons = res3.total ?? 0
+  if(posted_coupons >= happy_coupon_cfg.max_coupons) {
+    result.failReason = "unsafe"
+    return { code: "0000", data: result }
+  }
+
+  // 4. check out text
+  if(hasText) {
+    const res4_1 = await WxMiniHandler.msgSecCheck(copytext, wx_mini_openid)
+    if(!res4_1.pass) return res4_1.err
+    const res4_2 = res4_1.data.result
+    if(res4_2.suggest === "pass") {
+      await _fillWithCredential()
+    }
+    else if(res4_2.label === 10001) {
+      await _fillWithCredential()
+    }
+    else {
+      result.failReason = "text_illegal"
+    }
+    return { code: "0000", data: result }
+  }
+
+  // 5. check out user risk rank for image
+  if(hasImg) {
+    const res5_1 = await WxMiniHandler.getUserRiskRank(wx_mini_openid, ip)
+    if(!res5_1.pass) return res5_1.err
+    const res5_2 = res5_1.data.risk_rank
+    if(res5_2 >= 3) {
+      result.failReason = "image_illegal"
+    }
+    else {
+      await _fillWithCredential()
+    }
+    return { code: "0000", data: result }
+  }
+
+  return { code: "E4003", errMsg: "why you can see the message?" }
+}
+
 async function coupon_status(
   body: Record<string, any>,
   vRes: VerifyTokenRes_B,
@@ -353,7 +434,7 @@ async function coupon_status(
     max_coupons = happy_coupon_cfg.premium_max_coupons
   }
   if(user.role === "admin") {
-    max_coupons = happy_coupon_cfg.admin_max_coupons
+    max_coupons = happy_coupon_cfg.max_coupons
   }
 
   result.posted_coupons = posted_coupons

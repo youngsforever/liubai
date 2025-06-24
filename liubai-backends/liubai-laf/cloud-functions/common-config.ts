@@ -92,6 +92,6 @@ export const happy_coupon_cfg = {
 
   free_max_coupons: 2,
   premium_max_coupons: 9,
-  admin_max_coupons: 30,
+  max_coupons: 30,
 
 }

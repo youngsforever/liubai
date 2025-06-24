@@ -63,6 +63,9 @@ import type {
   Table_BlockList,
   LiuIDEType,
   WxMiniAPI,
+  Table_Credential_Type,
+  Partial_Id,
+  Table_Credential,
 } from '@/common-types'
 import { 
   sch_opt_arr,
@@ -81,6 +84,8 @@ import {
   createImgId, 
   createOrderId,
   createPaymentNonce,
+  createCommonNonce,
+  createAdCredential,
 } from "@/common-ids"
 import { 
   getNowStamp, 
@@ -2749,13 +2754,15 @@ export class WxMiniHandler {
   ) {
     const _env = process.env
     const appid = _env.LIU_WX_MINI_APPID
+    const is_test =  _env.LIU_ENV_STATE === "dev"
     const obj = {
       appid,
       openid,
       client_ip,
+      is_test,
     }
     const url = this.idToUrl.USER_RISK
-    const res = await this.toRequest(url, obj)
+    const res = await this.toRequest<WxMiniAPI.Res_GetUserRiskRank>(url, obj)
     return res
   }
 
@@ -3956,6 +3963,34 @@ export class CommonShared {
   static getGzhType() {
     const _env = process.env
     return _env.LIU_WX_GZ_TYPE ?? "subscription_account"
+  }
+
+  static async createCredential(
+    userId: string,
+    expireStamp: number,
+    infoType: Table_Credential_Type,
+    otherData?: Partial<Table_Credential>,
+  ) {
+    const b2 = getBasicStampWhileAdding()
+    let credential = createCommonNonce()
+    if(infoType === "weixin-ad") {
+      credential = createAdCredential()
+    }
+
+    const newCred: Partial_Id<Table_Credential> = {
+      ...b2,
+      credential,
+      infoType,
+      expireStamp,
+      verifyNum: 0,
+      userId,
+      ...otherData,
+    }
+    const cCol = db.collection("Credential")
+    const res = await cCol.add(newCred)
+    const _id = getDocAddId(res)
+    newCred._id = _id
+    return newCred
   }
 }
 

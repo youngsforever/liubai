@@ -2620,6 +2620,13 @@ export namespace HappySystemAPI {
     max_coupons?: number
     posted_coupons?: number
   }
+  
+  export interface Res_CouponCheck {
+    operateType: "coupon-check"
+    pass: boolean
+    credential?: string
+    failReason?: string
+  }
 
 }
 
@@ -4220,6 +4227,10 @@ export namespace WxMiniAPI {
     trace_id?: string
   }
 
+  export interface Res_GetUserRiskRank extends ResultBase {
+    risk_rank: number  // 用户风险等级，合法值为0,1,2,3,4，数字越大风险越高
+    unoin_id: number
+  }
 
 }
 
