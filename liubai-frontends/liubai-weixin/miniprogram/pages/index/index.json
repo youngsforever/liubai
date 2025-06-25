@@ -1,4 +1,5 @@
 {
   "usingComponents": {
+    "index-search-button": "./index-search-button/index-search-button"
   }
 }

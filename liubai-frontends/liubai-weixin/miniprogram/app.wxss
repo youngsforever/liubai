@@ -8,6 +8,8 @@ page {
   --desc-font: 20px;
   --btn-font: 17px;
 
+  --max-mobile: 600px;
+
   height: 100vh;
   display: flex;
   flex-direction: column;

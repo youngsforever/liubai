@@ -3,15 +3,11 @@ export default {
     "appName": "留白记事"
   },
   "index": {
-    "title": "留小白的抽屉",
-    "desc": "收藏每一个有趣的灵魂！",
-    "add_my_wechat": "加我微信",
-    "follow_us": "关注我们",
-    "slogan": "去掉中间商，直连你的微信",
-    "flow": "🧑‍💻 打造心流",
-    "connect": "🖇️ 连接外部",
-    "map": "🗺️ 路线规划",
-    "dm_me": "💬 加我微信"
+    "slogan": "找优惠，用留小白的抽屉！",
+    "title": "找优惠👇",
+    "powered_by_1": "由",
+    "powered_by_2": "提供技术支持",
+    "placeholder": "输入商品或品牌名称"
   },
   "shared": {
     "copied": "已复制",

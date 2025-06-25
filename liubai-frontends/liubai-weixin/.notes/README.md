@@ -18,3 +18,13 @@
 `r`: 表示 room id
 
 
+## 注意事项
+
+### hover-class 读取不到 app.wxss 里的声明
+
+所以我们需要把全局的 `custom-styles.wxss` 文件，在每个页面或组件里引入，比如
+
+```some-page.wxss
+@import "../../styles/custom-styles.wxss";
+```
+

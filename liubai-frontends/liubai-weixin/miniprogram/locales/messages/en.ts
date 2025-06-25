@@ -5,15 +5,11 @@ export default {
     "appName": "Liubai"
   },
   "index": {
-    "title": "Liubai Drawer",
-    "desc": "Collect every interesting soul!",
-    "add_my_wechat": "DM me",
-    "follow_us": "Follow us",
-    "slogan": "Connect your WeChat without middlemen",
-    "flow": "🧑‍💻 Flow",
-    "connect": "🖇️ Connect",
-    "map": "🗺️ Map",
-    "dm_me": "💬 DM me"
+    "slogan": "Find coupons? Use Liubai's drawer!",
+    "title": "Find Coupons👇",
+    "powered_by_1": "Powered by",
+    "powered_by_2": "",
+    "placeholder": "Product or brand name",
   },
   "shared": {
     "copied": "Copied",

@@ -3,15 +3,11 @@ export default {
     "appName": "留白記事"
   },
   "index": {
-    "title": "留小白的抽屜",
-    "desc": "收藏每一個有趣的靈魂！",
-    "add_my_wechat": "加我微信",
-    "follow_us": "追蹤我們",
-    "slogan": "去掉中間商，直連你的微信",
-    "flow": "🧑‍💻 打造心流",
-    "connect": "🖇️ 連接外部",
-    "map": "🗺️ 路线规划",
-    "dm_me": "💬 加我微信"
+    "slogan": "找優惠，用留小白的抽屜！",
+    "title": "找優惠👇",
+    "powered_by_1": "由",
+    "powered_by_2": "提供技術支援",
+    "placeholder": "輸入商品或品牌名稱"
   },
   "shared": {
     "copied": "已複製",

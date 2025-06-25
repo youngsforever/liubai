@@ -5,62 +5,43 @@
   type="list"
 >
   
-  <view class="index-scroll-view {{renderer}}">
+  <view class="index-container {{renderer}}">
 
     <view class="index-virtual-one"></view>
 
-    <!-- Logo --> 
-    <view class="index-logo-box">
-      <image src="/images/shared/logo_256x256_v3.png" class="index-logo" />
-    </view>
-
-    <!-- Title -->
+    <!-- title -->
     <view class="index-title">
       <text>{{t1.title}}</text>
     </view>
 
-    <!-- Description -->
-    <view class="index-desc">
-      <text>{{t1.desc}}</text>
+    <!-- search box -->
+    <view class="index-search-box">
+      <input class="index-search-input" 
+        placeholder-class="input-search-placeholder"
+        placeholder="{{t1.placeholder}}" 
+        cursor-spacing="20"
+        always-embed
+        maxlength="30"
+        confirm-type="search"
+        cursor-color="{{ theme === 'light' ? light_primary_color : dark_primary_color }}"
+      />
+
+      <view class="index-search-bar">
+        <!-- search by image -->
+        <view class="liu-hover index-image-box"
+          hover-class="liu-skyline-hover"
+        >
+          <image src="{{imagePath}}photo.png" class="isb-image-icon" />
+        </view>
+
+        <!-- search button -->
+        <view class="isb-footer">
+          <index-search-button></index-search-button>
+        </view>
+
+      </view>
     </view>
-
-    <!-- Buttons -->
-    <view class="index-btns">
-
-      <!-- flow -->
-      <custom-button btn-type="normal" 
-        data-type="flow" catchtap="onTapArticle"
-      >
-        <text class="liu-pointer">{{t1.flow}}</text>
-      </custom-button>
-
-      <!-- connect -->
-      <custom-button btn-type="normal" 
-        data-type="connect" catchtap="onTapArticle"
-      >
-        <text class="liu-pointer">{{t1.connect}}</text>
-      </custom-button>
-
-      <!-- map -->
-      <custom-button btn-type="normal" 
-        data-type="map" catchtap="onTapArticle"
-      >
-        <text class="liu-pointer">{{t1.map}}</text>
-      </custom-button>
-
-      <!-- DM me -->
-      <custom-button btn-type="normal" 
-        catchtap="goToShowcase"
-      >
-        <text class="liu-pointer">{{t1.dm_me}}</text>
-      </custom-button>
-
-      <custom-button wx:if="{{showFollowUs}}" btn-type="transparent" 
-        catchtap="onTapFollowUs"
-      >
-        <text class="liu-pointer">{{t1.follow_us}}</text>
-      </custom-button>
-    </view> 
+   
 
     <view class="index-virtual-two"></view>
   </view>

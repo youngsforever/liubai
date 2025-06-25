@@ -21,6 +21,8 @@ Component({
   data: {
     showFollowUs: true,
     pageName: "index",
+    light_primary_color: defaultData.light_primary_color,
+    dark_primary_color: defaultData.dark_primary_color,
     _key1: "",
   },
 

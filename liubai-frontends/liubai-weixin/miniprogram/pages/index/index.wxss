@@ -1,56 +1,94 @@
 /** index.wxss **/
 
-.index-scroll-view {
+@import "../../styles/custom-styles.wxss";
+
+.index-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 100vh;
+  min-height: 90vh;
 }
 
 .index-virtual-one {
   width: 100%;
-  height: 25vh;
+  height: 20px;
+}
+
+
+.index-title {
+  width: 96%;
+  font-size: var(--big-word-style);
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--main-normal);
+}
+
+.index-search-box {
+  width: 92%;
+  max-width: var(--max-mobile);
+  box-sizing: border-box;
+  padding: 36px 36px 30px;
+  border-radius: 24px;
+  background-color: var(--card-bg);
+  position: relative;
+}
+
+.index-search-input {
+  width: 100%;
+  font-size: var(--title-font);
+  color: var(--main-text);
+  padding-bottom: 40px;
+  margin-bottom: 10px;
+  accent-color: var(--primary-color);
+}
+
+.input-search-placeholder {
+  color: var(--main-note);
+}
+
+.index-search-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.index-image-box {
+  width: 50px;
+  height: 50px;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.isb-image-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.isb-footer {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  margin-right: -8px;
 }
 
 .index-virtual-two {
   width: 100%;
-  height: 50px;
-}
-
-.index-logo-box {
-  margin-bottom: 30px;
-  width: 100px;
   height: 100px;
-  position: relative;
+}
+
+.index-footer-container {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 10vh;
+  min-height: 50px;
 }
-
-.index-logo {
-  width: 90%;
-  height: 90%;
-}
-
-.index-title {
-  font-size: var(--head-font);
-  color: var(--main-text);
-  font-weight: 700;
-  margin-bottom: 6px;
-  letter-spacing: 1px;
-}
-
-.index-desc {
-  font-size: var(--desc-font);
-  color: var(--main-text);
-  margin-bottom: 20vh;
-}
-
-.index-btns {
-  width: 90%;
-  max-width: 400px;
-  position: relative;
-}
-
