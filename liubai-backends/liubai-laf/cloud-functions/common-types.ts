@@ -1901,6 +1901,12 @@ export interface Table_HappyCache extends BaseTable {
   search_ids?: string[]
 }
 
+export interface Table_HappyReception extends BaseTable {
+  userId: string
+  infoType: "happy_coupon"
+  couponId?: string
+}
+
 
 /*********************** 基于 Table 的扩展类型 ***********************/
 
@@ -2600,6 +2606,10 @@ export namespace HappySystemAPI {
     emoji?: string
     brand?: string
     expireStamp: number
+
+    // for detail
+    isMine?: boolean
+    drawn?: boolean
   }
 
   export interface Res_FastSearch {
@@ -2626,6 +2636,11 @@ export namespace HappySystemAPI {
     pass: boolean
     credential?: string
     failReason?: string
+  }
+
+  export interface Res_CouponDetail {
+    operateType: "coupon-detail"
+    detail: CouponItem
   }
 
 }

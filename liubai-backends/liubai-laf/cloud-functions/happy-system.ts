@@ -24,6 +24,7 @@ import type {
   Table_Credential,
   Table_HappyCache,
   Table_HappyCoupon,
+  Table_HappyReception,
   Table_Showcase,
   Table_User,
   Vector_happy_coupons,
@@ -87,7 +88,7 @@ export async function main(ctx: FunctionContext) {
     res = await coupon_post(body, vRes)
   }
   else if(oT === "coupon-detail") {
-
+    res = await coupon_detail(ctx)
   }
   else if(oT === "coupon-mine") {
 
@@ -297,6 +298,55 @@ async function get_showcase(
 
 
 /***************************** Coupons *****************************/
+
+async function coupon_detail(
+  ctx: FunctionContext,
+): Promise<LiuRqReturn<HappySystemAPI.Res_CouponDetail>> {
+  // 1. check out params
+  const body = ctx.body ?? {}
+  const couponId = body.couponId
+  if(!valTool.isStringWithVal(couponId)) {
+    return { code: "E4000", errMsg: "Invalid couponId" }
+  }
+
+  // 2. get coupon
+  const hcCol = db.collection("HappyCoupon")
+  const res2 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
+  const coupon = res2.data
+  const oState = coupon?.oState
+  if(!coupon || oState?.startsWith("DEL")) {
+    return { code: "E4004", errMsg: "no coupon found" }
+  }
+
+  // 3. package result & get my logging state
+  const detail = CouponShared.getDetail(coupon)
+  const data3: HappySystemAPI.Res_CouponDetail = {
+    operateType: "coupon-detail",
+    detail,
+  }
+  const vRes = await verifyToken(ctx, body)
+  const hasLogged = vRes.pass
+  if(!hasLogged) {
+    return { code: "0000", data: data3 }
+  }
+
+  // 4. get my user id & check out if I've drawn this coupon
+  const userId = vRes.userData._id
+  const hrCol = db.collection("HappyReception")
+  const w4: Partial<Table_HappyReception> = {
+    userId,
+    infoType: "happy_coupon",
+    couponId,
+  }
+  const res4 = await hrCol.where(w4).getOne<Table_HappyReception>()
+  const reception = res4.data
+
+  detail.isMine = Boolean(userId === coupon.owner)
+  detail.drawn = Boolean(reception)
+
+  return { code: "0000", data: data3 }
+}
+
 
 async function coupon_check(
   ctx: FunctionContext,
@@ -669,16 +719,7 @@ export class CouponFastSearch {
     for(let i=0; i<ids.length; i++) {
       const coupon = couponList.find(v => v._id === ids[i])
       if(!coupon) continue
-      const item: HappySystemAPI.CouponItem = {
-        _id: coupon._id,
-        title: coupon.title,
-        copytext: coupon.copytext,
-        image_url: coupon.image_url,
-        image_h2w: coupon.image_h2w,
-        emoji: coupon.emoji,
-        brand: coupon.brand,
-        expireStamp: coupon.expireStamp,
-      }
+      const item = CouponShared.getDetail(coupon)
       list.push(item)
     }
     return list
@@ -1807,3 +1848,25 @@ class CouponEmbedding {
   }
 
 }
+
+class CouponShared {
+
+  static getDetail(
+    coupon: Table_HappyCoupon,
+  ) {
+    const item: HappySystemAPI.CouponItem = {
+      _id: coupon._id,
+      title: coupon.title,
+      copytext: coupon.copytext,
+      image_url: coupon.image_url,
+      image_h2w: coupon.image_h2w,
+      emoji: coupon.emoji,
+      brand: coupon.brand,
+      expireStamp: coupon.expireStamp,
+    }
+    return item
+  }
+
+
+}
+
