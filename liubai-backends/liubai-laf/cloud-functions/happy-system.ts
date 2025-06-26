@@ -90,8 +90,8 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "coupon-detail") {
     res = await coupon_detail(ctx)
   }
-  else if(oT === "coupon-mine") {
-
+  else if(oT === "coupon-mine" && vRes?.pass) {
+    res = await coupon_mine(vRes)
   }
   else if(oT === "coupon-update") {
 
@@ -345,6 +345,57 @@ async function coupon_detail(
   detail.drawn = Boolean(reception)
 
   return { code: "0000", data: data3 }
+}
+
+
+async function coupon_mine(
+  vRes: VerifyTokenRes_B,
+): Promise<LiuRqReturn<HappySystemAPI.Res_CouponMine>> {
+  // 1. get user id
+  const userId = vRes.userData._id
+  const max_drawn = 9
+
+  // 2. get drawn list
+  const hrCol = db.collection("HappyReception")
+  const w2 = {
+    userId,
+    infoType: "happy_coupon",
+    couponId: _.exists(true),
+  }
+  const q2 = hrCol.where(w2).limit(max_drawn).orderBy("insertedStamp", "desc")
+  const res2 = await q2.get<Table_HappyReception>()
+  const list2 = res2.data ?? []
+  const ids2 = list2.map(v => v.couponId) as string[]
+
+  // 3. get coupon details for drawn list
+  const hcCol = db.collection("HappyCoupon")
+  const w3 = {
+    _id: _.in(ids2),
+    oState: "OK",
+  }
+  const q3 = hcCol.where(w3).orderBy("insertedStamp", "desc")
+  const res3 = await q3.get<Table_HappyCoupon>()
+  const drawnCoupons = res3.data ?? []
+  const drawnList = CouponShared.packageList(ids2, drawnCoupons)
+
+  // 4. get posted list
+  const w4 = {
+    owner: userId,
+    oState: _.in(["OK", "REVIEWING"]),
+  }
+  const q4 = hcCol.where(w4).limit(happy_coupon_cfg.max_coupons)
+  const res4 = await q4.orderBy("insertedStamp", "desc").get<Table_HappyCoupon>()
+  const postedCoupons = res4.data ?? []
+  const postedList = postedCoupons.map(coupon => CouponShared.getDetail(coupon))
+
+  // 5. package result
+  const data5: HappySystemAPI.Res_CouponMine = {
+    operateType: "coupon-mine",
+    drawnList,
+    postedList,
+  }
+
+  return { code: "0000", data: data5 }
 }
 
 
@@ -611,7 +662,7 @@ export class CouponFastSearch {
     list = this._sortList(list)
     this._setMaxLength(list)
     const ids = valTool.uniqueArray(list.map(v => v._id))
-    const results2 = this._packageList(ids, list)
+    const results2 = CouponShared.packageList(ids, list)
     return { 
       code: "0000", 
       data: { 
@@ -693,7 +744,7 @@ export class CouponFastSearch {
     }
 
     // 4. handle results
-    const queryList = this._packageList(
+    const queryList = CouponShared.packageList(
       cache2.query_ids ?? [],
       couponList,
     )
@@ -702,27 +753,12 @@ export class CouponFastSearch {
       queryList,
     }
     if(cache2.search_ids?.length) {
-      res4.searchList = this._packageList(
+      res4.searchList = CouponShared.packageList(
         cache2.search_ids, 
         couponList,
       )
     }
     return res4
-  }
-
-  private _packageList(
-    ids: string[],
-    couponList: Table_HappyCoupon[],
-  ) {
-    if(ids.length < 1 || couponList.length < 1) return []
-    const list: HappySystemAPI.CouponItem[] = []
-    for(let i=0; i<ids.length; i++) {
-      const coupon = couponList.find(v => v._id === ids[i])
-      if(!coupon) continue
-      const item = CouponShared.getDetail(coupon)
-      list.push(item)
-    }
-    return list
   }
 
   private _getEmptyDataForFastSearch(
@@ -735,7 +771,6 @@ export class CouponFastSearch {
     const within2 = isWithinMillis(cache.insertedStamp, MINUTE)
     if(within2) return result
   }
-
 
 }
 
@@ -1850,6 +1885,21 @@ class CouponEmbedding {
 }
 
 class CouponShared {
+
+  static packageList(
+    ids: string[],
+    couponList: Table_HappyCoupon[],
+  ) {
+    if(ids.length < 1 || couponList.length < 1) return []
+    const list: HappySystemAPI.CouponItem[] = []
+    for(let i=0; i<ids.length; i++) {
+      const coupon = couponList.find(v => v._id === ids[i])
+      if(!coupon) continue
+      const item = CouponShared.getDetail(coupon)
+      list.push(item)
+    }
+    return list
+  }
 
   static getDetail(
     coupon: Table_HappyCoupon,

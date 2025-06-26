@@ -2643,6 +2643,12 @@ export namespace HappySystemAPI {
     detail: CouponItem
   }
 
+  export interface Res_CouponMine {
+    operateType: "coupon-mine"
+    drawnList: CouponItem[]
+    postedList: CouponItem[]
+  }
+
 }
 
 /****************** sync-operate api ***************/
