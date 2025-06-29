@@ -22,6 +22,13 @@
   background-color: var(--primary-color);
 }
 
+.liu-hover2 {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+  transition: .15s;
+}
+
 @media(hover: hover) {
   .liu-hover:focus-visible {
     outline: 2px solid var(--main-normal);
@@ -29,6 +36,10 @@
 
   .liu-hover:hover::before {
     opacity: .06;
+  }
+
+  .liu-hover2:hover {
+    opacity: .8;
   }
 }
 
@@ -55,4 +66,8 @@
   transition: .1s;
   opacity: .1;
   background-color: var(--primary-color);
+}
+
+.liu-skyline-hover2 {
+  transform: scale(.95);
 }

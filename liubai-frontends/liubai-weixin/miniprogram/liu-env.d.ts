@@ -5,6 +5,10 @@ declare namespace WechatMiniprogram {
     mode: "default" | "embedded" | "halfPage" | "singlePage"
   }
 
+  interface LiuVibrateShortOption extends WechatMiniprogram.VibrateShortOption {
+    type: "heavy" | "medium" | "light"
+  }
+
   type ApiCategory = "default" 
     | "nativeFunctionalized" 
     | "browseOnly" 

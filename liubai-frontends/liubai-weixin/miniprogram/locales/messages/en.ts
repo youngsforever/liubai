@@ -10,6 +10,11 @@ export default {
     "powered_by_1": "Powered by",
     "powered_by_2": "",
     "placeholder": "Product or brand name",
+    "share_mine": "Add coupons",
+    "try_1": "Try to Input",
+    "try_2": '"Luckin Coffee"\n"Chagee Tea"\n......',
+    "got_it": "Got it",
+    "search": "Search",
   },
   "shared": {
     "copied": "Copied",

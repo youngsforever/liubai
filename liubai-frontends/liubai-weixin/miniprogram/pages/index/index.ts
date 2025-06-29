@@ -23,7 +23,9 @@ Component({
     pageName: "index",
     light_primary_color: defaultData.light_primary_color,
     dark_primary_color: defaultData.dark_primary_color,
+    canSearch: false,
     _key1: "",
+    _searchValue: "",
   },
 
   behaviors: [
@@ -105,6 +107,25 @@ Component({
       }
 
       LiuApi.openOfficialAccountProfile({ username }) 
+    },
+
+    onSearchInput(e: any) {
+      const inputTxt: string = e.detail.value ?? ""
+      const trimTxt = inputTxt.trim()
+      const canSearch = Boolean(trimTxt.length > 1)
+      if(canSearch !== this.data.canSearch) {
+        this.setData({ canSearch })
+      }
+      this.data._searchValue = trimTxt
+    },
+
+    toSearch() {
+      const searchValue = this.data._searchValue
+      const canSearch = this.data.canSearch
+      if(!searchValue || !canSearch) return
+      
+      LiuApi.vibrateShort({ type: "heavy" })
+      console.log("to search: ", searchValue)
     },
 
     onLoad(query: Record<string, string>) {

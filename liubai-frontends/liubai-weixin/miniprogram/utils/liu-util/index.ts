@@ -132,6 +132,10 @@ export class LiuUtil {
     }
     
     const res = await LiuApi.showModal(opt)
+    if(res.confirm) {
+      LiuApi.vibrateShort({ type: "light" })
+    }
+
     return res
   }
 

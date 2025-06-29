@@ -7,7 +7,12 @@ export default {
     "title": "找优惠👇",
     "powered_by_1": "由",
     "powered_by_2": "提供技术支持",
-    "placeholder": "输入商品或品牌名称"
+    "placeholder": "输入商品或品牌名称",
+    "share_mine": "分享我的优惠",
+    "try_1": "试试看，输入",
+    "try_2": "“瑞幸”\n“霸王茶姬”\n......",
+    "got_it": "知道了",
+    "search": "找找看",
   },
   "shared": {
     "copied": "已复制",

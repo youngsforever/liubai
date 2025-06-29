@@ -137,7 +137,7 @@ export class LiuApi {
     return wx.env
   }
 
-  static async vibrateShort(opt: WechatMiniprogram.VibrateShortOption) {
+  static async vibrateShort(opt: WechatMiniprogram.LiuVibrateShortOption) {
     const res = await wx.vibrateShort(opt)
     return res
   }

@@ -24,6 +24,8 @@
         maxlength="30"
         confirm-type="search"
         cursor-color="{{ theme === 'light' ? light_primary_color : dark_primary_color }}"
+        bindinput="onSearchInput"
+        bindconfirm="toSearch"
       />
 
       <view class="index-search-bar">
@@ -36,10 +38,28 @@
 
         <!-- search button -->
         <view class="isb-footer">
-          <index-search-button></index-search-button>
+          <index-search-button can-search="{{canSearch}}"
+            bind:tap="toSearch"
+          ></index-search-button>
         </view>
 
       </view>
+    </view>
+
+    <!-- add & mine --> 
+    <view class="index-add-mine">
+
+      <view class="liu-hover index-add" hover-class="liu-skyline-hover">
+        <image src="{{imagePath}}add.png" class="iam-icon" />
+        <view class="index-add-text">
+          <text>{{t1.share_mine}}</text>
+        </view>
+      </view>
+
+      <view class="liu-hover index-mine" hover-class="liu-skyline-hover">
+        <image src="{{imagePath}}account.png" class="iam-icon-two" />
+      </view>
+      
     </view>
    
 
