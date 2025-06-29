@@ -93,3 +93,8 @@ interface ShowOpenFilePickerOptions {
 interface CSSStyleDeclaration {
   viewTransitionName: string;
 }
+
+declare module 'another-vue3-blurhash' {
+  import { DefineComponent } from 'vue';
+  export const BlurHashCanvas: DefineComponent<any, any, any>;
+}
