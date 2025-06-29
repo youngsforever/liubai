@@ -5,8 +5,7 @@ export default {
   "index": {
     "slogan": "找優惠，用留小白的抽屜！",
     "title": "找優惠👇",
-    "powered_by_1": "由",
-    "powered_by_2": "提供技術支援",
+    "powered_by": "由留白記事提供技術支援",
     "placeholder": "輸入商品或品牌名稱",
     "share_mine": "分享我的優惠",
     "try_1": "試試看，鍵入",

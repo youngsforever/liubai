@@ -19,7 +19,6 @@ Component({
   },
 
   data: {
-    showFollowUs: true,
     pageName: "index",
     light_primary_color: defaultData.light_primary_color,
     dark_primary_color: defaultData.dark_primary_color,
@@ -37,15 +36,7 @@ Component({
 
   lifetimes: {
 
-    attached() {
-
-      // 1. 检查当前版本是否支持打开微信公众号主页
-      const cha = LiuUtil.getCharacteristic()
-      const res1 = valTool.compareVersion(cha.SDKVersion, "3.4.8")
-      const showFollowUs = Boolean(res1 >= 0 && cha.isMobile)
-      this.setData({ showFollowUs })
-
-    },
+    attached() {},
 
   },
 
@@ -59,7 +50,7 @@ Component({
 
     onTapFollowUs() {
       // 0. vibrate
-      LiuApi.vibrateShort({ type: "medium" })
+      LiuApi.vibrateShort({ type: "light" })
 
       // 1. check out whether the current version supports 
       // opening the WeChat official account profile
@@ -68,7 +59,7 @@ Component({
       const res1 = valTool.compareVersion(sdkVersion, "3.7.10")
       const canOpenGzh = Boolean(res1 >= 0 && cha.isMobile)
       if(canOpenGzh) {
-        this.toOpenWzh()
+        this.toOpenGzh()
         return
       }
 
@@ -85,7 +76,7 @@ Component({
 
     toOpenArticle() {
       LiuApi.openOfficialAccountArticle({
-        url: defaultData.fellowArticleLink,
+        url: defaultData.followArticleLink,
         success(res) {
           console.log("openOfficialAccountArticle success", res)
         },
@@ -99,14 +90,18 @@ Component({
       handleImageSearch()
     },
 
-    toOpenWzh() {
+    toOpenGzh() {
       const username = envData.GZH_USERNAME
       if(!username) {
         console.warn("GZH_USERNAME is not set")
         return
       }
 
-      LiuApi.openOfficialAccountProfile({ username }) 
+      LiuApi.openOfficialAccountProfile({ username, success(res) {
+        console.log("openOfficialAccountProfile success", res)
+      }, fail(err) {
+        console.warn("openOfficialAccountProfile fail", err)
+      } }) 
     },
 
     onSearchInput(e: any) {

@@ -61,8 +61,15 @@
       </view>
       
     </view>
-   
 
     <view class="index-virtual-two"></view>
   </view>
+
+  <view class="index-footer-container" catchtap="onTapFollowUs">
+    <image src="/images/shared/logo_256x256_v3.png" class="index-logo"/>
+    <view class="index-powered-by">
+      <text>{{t1.powered_by}}</text>
+    </view>
+  </view>
+
 </scroll-view>
