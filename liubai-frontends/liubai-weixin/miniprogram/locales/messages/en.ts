@@ -7,7 +7,7 @@ export default {
   "index": {
     "slogan": "Find coupons? Use Liubai's drawer!",
     "title": "Find Coupons👇",
-    "powered_by": "Powered by Liubai",
+    "powered_by": "Get the infinite future using Liubai",
     "placeholder": "Product or brand name",
     "share_mine": "Add coupons",
     "try_1": "Try to Input",

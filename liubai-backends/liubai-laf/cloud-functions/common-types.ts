@@ -2594,7 +2594,7 @@ export namespace HappySystemAPI {
   export const Sch_Param_CouponSearch = vbot.object({
     mode: vbot.picklist(["fast", "deep"]),
     texts: sch_opt_arr(vbot.string(), [vbot.maxLength(9)]),
-    image_url: vbot.optional(vbot.string()),
+    image_url: Sch_Opt_Str,
   })
 
   export interface CouponItem {
@@ -2648,6 +2648,24 @@ export namespace HappySystemAPI {
     drawnList: CouponItem[]
     postedList: CouponItem[]
   }
+
+  export interface Param_CouponUpdate {
+    operateType: "coupon-update"
+    couponId: string
+    image_url?: string
+    image_h2w?: string
+    copytext?: string
+    availableDays?: number
+  }
+
+  export const Sch_Param_CouponUpdate = vbot.object({
+    operateType: vbot.literal("coupon-update"),
+    couponId: Sch_String_WithLength,
+    image_url: Sch_Opt_Str,
+    image_h2w: Sch_Opt_Str,
+    copytext: Sch_Opt_Str,
+    availableDays: Sch_Opt_Num,
+  })
 
 }
 

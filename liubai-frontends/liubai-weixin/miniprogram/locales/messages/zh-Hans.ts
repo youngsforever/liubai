@@ -5,7 +5,7 @@ export default {
   "index": {
     "slogan": "找优惠，用留小白的抽屉！",
     "title": "找优惠👇",
-    "powered_by": "由留白记事提供技术支持",
+    "powered_by": "用留白记事，探索无限可能",
     "placeholder": "输入商品或品牌名称",
     "share_mine": "分享我的优惠",
     "try_1": "试试看，输入",

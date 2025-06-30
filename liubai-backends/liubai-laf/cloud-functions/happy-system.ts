@@ -93,8 +93,8 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "coupon-mine" && vRes?.pass) {
     res = await coupon_mine(vRes)
   }
-  else if(oT === "coupon-update") {
-
+  else if(oT === "coupon-update" && vRes?.pass) {
+    res = await coupon_update(body, vRes)
   }
   else if(oT === "coupon-delete" && vRes?.pass) {
     res = await coupon_delete(body, vRes)
@@ -298,6 +298,60 @@ async function get_showcase(
 
 
 /***************************** Coupons *****************************/
+
+async function coupon_update(
+  body: HappySystemAPI.Param_CouponUpdate,
+  vRes: VerifyTokenRes_B,
+): Promise<LiuRqReturn> {
+  // 1. check out body
+  const res1 = vbot.safeParse(HappySystemAPI.Sch_Param_CouponUpdate, body)
+  if(!res1.success) {
+    const errMsg = checker.getErrMsgFromIssues(res1.issues)
+    return { code: "E4000", errMsg }
+  }
+  const couponId = body.couponId
+
+  // 2. get coupon
+  const hcCol = db.collection("HappyCoupon")
+  const res2 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
+  const coupon = res2.data
+  if(!coupon) {
+    return { code: "E4004" }
+  }
+
+  // 3. check out auth
+  const oState = coupon.oState
+  if(oState.startsWith("DEL")) {
+    return { code: "E4004" }
+  }
+  const user = vRes.userData
+  const userId = user._id
+  if(userId !== coupon.owner) {
+    return { code: "E4003" }
+  }
+
+  // 4. call update manager
+  const opt4: CouponManagerOpt = {
+    user,
+    availableDays: body.availableDays,
+    image_url: body.image_url,
+    image_h2w: body.image_h2w,
+    copytext: body.copytext,
+  }
+  const updateManager = new CouponUpdateManager(coupon, opt4)
+  if(!coupon.image_url && body.image_url) {
+    await updateManager.addImage()
+  }
+  else if(!coupon.copytext && body.copytext) {
+    await updateManager.addCopytext()
+  }
+  else if(body.availableDays) {
+    const res4_3 = await updateManager.addAvailableDays()
+    return res4_3
+  }
+
+  return { code: "E4000", errMsg: "no path to go in coupon_update" }
+}
 
 async function coupon_delete(
   body: Record<string, any>,
@@ -590,7 +644,7 @@ async function coupon_status(
 
 
 async function coupon_search(
-  body: Record<string, any>,
+  body: HappySystemAPI.Param_CouponSearch,
   vRes: VerifyTokenRes_B,
 ) {
   // 1. check out params
@@ -857,7 +911,7 @@ async function coupon_post(
   cCol.doc(data1._id).remove()
 
   // 3. start to run
-  const addManagerOpt: CouponAddManagerOpt = {
+  const addManagerOpt: CouponManagerOpt = {
     user: vRes.userData,
     copytext,
     image_url,
@@ -872,21 +926,70 @@ async function coupon_post(
 }
 
 
-export interface CouponAddManagerOpt {
+export interface CouponManagerOpt {
   user: Table_User
   copytext?: string
   image_url?: string
   image_h2w?: string
-  availableDays: number
+  availableDays?: number
+}
+
+export class CouponUpdateManager {
+  private _opt: CouponManagerOpt
+  private _coupon: Table_HappyCoupon
+
+  constructor(
+    coupon: Table_HappyCoupon,
+    opt: CouponManagerOpt,
+  ) {
+    this._coupon = coupon
+    this._opt = opt
+  }
+
+  async addImage() {
+
+  }
+
+  async addCopytext() {
+
+  }
+
+  async addAvailableDays(): Promise<LiuRqReturn> {
+    // 1. check out availableDays
+    const MONTH_THREE = 92 * DAY
+    const threshold = this._coupon.insertedStamp + MONTH_THREE
+    const availableDays = this._opt.availableDays ?? 7
+    const newEndStamp = this._coupon.expireStamp + availableDays * DAY
+    if(newEndStamp > threshold) {
+      return { code: "HS001", errMsg: "availableDays too long" }
+    }
+
+    // 2. update expireStamp
+    const u2: Partial<Table_HappyCoupon> = {
+      expireStamp: newEndStamp,
+    }
+    await this._updateCoupon(u2)
+    return { code: "0000" }
+  }
+
+  private async _updateCoupon(u: Record<string, any>) {
+    if(!u.updatedStamp) u.updatedStamp = getNowStamp()
+    const couponId = this._coupon._id
+    const hcCol = db.collection("HappyCoupon")
+    const res = await hcCol.doc(couponId).update(u)
+    console.log("_updateCoupon res2: ", res)
+    return true
+  }
+
 }
 
 export class CouponAddManager {
 
-  private _opt: CouponAddManagerOpt
+  private _opt: CouponManagerOpt
   private _couponId?: string
 
   constructor(
-    opt: CouponAddManagerOpt,
+    opt: CouponManagerOpt,
   ) {
     this._opt = opt
   }
@@ -1181,7 +1284,7 @@ export class CouponAddManager {
       copytext = copytext.trim()
     }
     const user = opt.user
-    const availableDays = opt.availableDays
+    const availableDays = opt.availableDays ?? 7
     const userId = user._id
     const role = user.role
     let totalNum = role === "admin" ? 1000 : 200
