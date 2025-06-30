@@ -4,15 +4,46 @@ import { LiuReq } from "../requests/LiuReq"
 import { LiuTime } from "./LiuTime"
 import { LiuApi } from "./LiuApi"
 import { Loginer } from "./login/Loginer"
-import { BoolFunc, LiuTimeout } from "./basic/type-tool"
+import type { BoolFunc, LiuTimeout } from "./basic/type-tool"
 import valTool from "./val-tool"
 import { AuthManager } from "./managers/AuthManager"
 import { defaultData } from "~/config/default-data"
+import { LiuTunnel } from "./LiuTunnel"
 
 export async function useApp() {
   await LiuApp.init()
   await valTool.waitMilli(defaultData.duration_ms_2)
   await AuthManager.init()
+}
+
+export async function useForwardMaterials(
+  forwardMaterials: WechatMiniprogram.ForwardMaterials[],
+) {
+  // 1. get the image
+  const firstMaterial = forwardMaterials[0]
+  if(!firstMaterial) return
+  const t1 = firstMaterial.type
+  if(!t1.startsWith("image")) return
+
+  // 2. wait for a while
+  await valTool.waitMilli(defaultData.duration_ms_2)
+
+  // 3. mock a media file
+  const tmpFile: WechatMiniprogram.MediaFile = {
+    fileType: "image",
+    tempFilePath: firstMaterial.path,
+    size: firstMaterial.size,
+    duration: 0,
+    height: 0,
+    width: 0,
+    thumbTempFilePath: "",
+  }
+  LiuTunnel.setStuff("coupon-search-image", tmpFile)
+
+  // 4. navigate to coupon search
+  LiuApi.navigateTo({ 
+    url: "/packageA/pages/coupon-search/coupon-search",
+  })
 }
 
 export class LiuApp {

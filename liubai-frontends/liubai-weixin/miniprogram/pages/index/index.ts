@@ -86,7 +86,7 @@ Component({
       })
     },
 
-    onTapArticle() {
+    onTapImage() {
       handleImageSearch()
     },
 

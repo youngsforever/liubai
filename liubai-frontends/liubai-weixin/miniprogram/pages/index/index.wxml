@@ -32,6 +32,7 @@
         <!-- search by image -->
         <view class="liu-hover index-image-box"
           hover-class="liu-skyline-hover"
+          catchtap="onTapImage"
         >
           <image src="{{imagePath}}photo.png" class="isb-image-icon" />
         </view>
