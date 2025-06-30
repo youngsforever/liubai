@@ -3493,7 +3493,8 @@ export class LogHelper {
 
 export class LiuEmbedding {
 
-  private _jina_model = "jina-clip-v2"
+  private _jina_model = "jina-embeddings-v4"
+  private _gitee_model = "jina-clip-v2"
   private _dimensions = 1024
 
   private _tongyi_text_model = "text-embedding-v4"
@@ -3758,7 +3759,7 @@ export class LiuEmbedding {
     // 2. to request
     const res2 = await this._runWithOpenAICompatible(
       apiEndpoint,
-      this._jina_model,
+      this._gitee_model,
       input,
     )
     totalResult.originalResult = res2
