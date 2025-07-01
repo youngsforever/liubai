@@ -946,9 +946,93 @@ export class CouponUpdateManager {
     this._opt = opt
   }
 
-  async addImage() {
-
+  private async _getVectorData() {
+    const couponId = this._coupon._id
+    const milvusClient = LiuMilvus.getClient()
+    if(!milvusClient) return
+    const res1 = await milvusClient.get({ 
+      collection_name: "happy_coupons", 
+      ids: [couponId],
+    })
+    const data1 = res1.data
+    console.log("_getVectorData see data1: ", data1)
+    if(!data1 || data1.length < 1) return
+    return data1[0] as Vector_happy_coupons
   }
+
+  private async _setVectorData(vec: Vector_happy_coupons) {
+    const aVec = vec as unknown as MilvusRowData
+    const milvusClient = LiuMilvus.getClient()
+    if(!milvusClient) return
+    const res = await milvusClient.insert({
+      collection_name: "happy_coupons",
+      data: [aVec],
+    })
+    console.log("_setVectorData see res: ", res)
+    return true
+  }
+
+  async addImage() {
+    // 1. update NoSQL database
+    const image_url = this._opt.image_url as string
+    const image_h2w = this._opt.image_h2w
+    const u1 = {
+      image_url,
+      image_h2w: _.set(image_h2w),
+    }
+    await this._updateCoupon(u1)
+    this._imageFlow()
+    return { code: "0000" }
+  }
+
+
+  private async _imageFlow() {
+    // 1. get vector data
+    const image_url = this._opt.image_url as string
+    const vectorData = await this._getVectorData()
+    if(!vectorData) return false
+
+    // 2. check image security
+    const res2 = await CouponChecker.image(image_url)
+
+    // 3. handle result of CouponChecker
+    const img_to_txt = res2?.text?.trim?.()
+    if(img_to_txt === "0") {
+      console.warn("ugly image: ", image_url)
+      return false
+    }
+
+    // 4. save img_to_txt
+    if(img_to_txt) {
+      const u4: Partial<Table_HappyCoupon> = {
+        img_to_txt,
+      }
+      if(res2?.worker) {
+        u4.extraData = {
+          imgToTxtModel: res2.worker.model,
+          imgToTxtProvider: res2.worker.computingProvider,
+        }
+      }
+      this._updateCoupon(u4)
+    }
+
+    // 5. start to embedding
+    const res5 = await CouponEmbedding.image(image_url)
+    if(!res5) {
+      console.warn("embedding failed in CouponUpdateManager: ", image_url)
+      return false
+    }
+
+    // 6. to insert for update
+    vectorData.image_vector = res5.image_vector
+    vectorData.imageEmbeddingModel = res5.model
+    vectorData.updatedStamp = getNowStamp()
+    await this._setVectorData(vectorData)
+    
+    return true
+  }
+
+
 
   async addCopytext() {
 
@@ -976,8 +1060,7 @@ export class CouponUpdateManager {
     if(!u.updatedStamp) u.updatedStamp = getNowStamp()
     const couponId = this._coupon._id
     const hcCol = db.collection("HappyCoupon")
-    const res = await hcCol.doc(couponId).update(u)
-    console.log("_updateCoupon res2: ", res)
+    await hcCol.doc(couponId).update(u)
     return true
   }
 
@@ -1998,7 +2081,7 @@ class CouponEmbedding {
 
   static async image(
     image_url: string,
-    parsedRes: Res_CouponParser,
+    parsedRes?: Res_CouponParser,
   ): Promise<Res_CouponEmbedding2 | undefined> {
     // 1. construct inputs
     const inputs: LiuAi.EmbeddingInput[] = [
@@ -2006,7 +2089,7 @@ class CouponEmbedding {
         image: image_url,
       }
     ]
-    if(parsedRes.title) {
+    if(parsedRes?.title) {
       inputs.push({ text: parsedRes.title })
     }
 
