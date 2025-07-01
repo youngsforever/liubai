@@ -934,9 +934,90 @@ export interface CouponManagerOpt {
   availableDays?: number
 }
 
-export class CouponUpdateManager {
+class CouponBaseManager {
+
+  private _couponId: string
+
+  constructor(couponId: string) {
+    this._couponId = couponId
+  }
+
+  async downgradeOState(
+    oState: OState_Coupon,
+    aiReason?: string,
+  ) {
+    // 1. get coupon
+    const couponId = this._couponId as string
+    const hcCol = db.collection("HappyCoupon")
+    const res1 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
+    let data1 = res1.data
+    if(!data1) return
+
+    // 2. check if we can update it
+    let canUpdate = false
+    const oldState = data1.oState
+    if(oldState === "OK" || oldState === "REVIEWING") {
+      canUpdate = true
+    }
+    if(!canUpdate) return
+
+    // 3. to update
+    const u3: Partial<Table_HappyCoupon> = {
+      oState,
+      updatedStamp: getNowStamp(),
+    }
+    if(aiReason) {
+      u3.extraData = { aiReason }
+    }
+    await hcCol.doc(couponId).update(u3)
+
+    // 4. merge 
+    data1 = { ...data1, ...u3 }
+    this.callAdmin(data1)
+  }
+
+  getReason(
+    prefixMsg: string,
+    worker?: LiuAi.AiWorker,
+  ) {
+    const computingProvider2 = worker?.computingProvider
+    const model2 = worker?.model
+    let aiReason = prefixMsg
+    if(model2) aiReason += ` using ${model2}`
+    if(computingProvider2) aiReason += ` from ${computingProvider2}`
+    return aiReason
+  }
+
+  async callAdmin(
+    data: Table_HappyCoupon,
+    otherInfo?: string,
+  ) {
+    const title = "Liubai Coupon"
+    const userId = data.owner ?? "unknown"
+    const couponId = data._id
+    let footer = ""
+    footer += `**User id:** ${userId}\n\n`
+    footer += `**Coupon id:** ${couponId}\n\n`
+    if(otherInfo) footer += `**Other info:** ${otherInfo}\n`
+    const reporter = new LiuReporter()
+    reporter.sendAny(title, data, footer)
+  }
+
+  async updateCoupon(u: Record<string, any>) {
+    if(!u.updatedStamp) u.updatedStamp = getNowStamp()
+    const couponId = this._couponId
+    const hcCol = db.collection("HappyCoupon")
+    await hcCol.doc(couponId).update(u)
+    return true
+  }
+
+}
+
+
+class CouponUpdateManager {
   private _opt: CouponManagerOpt
   private _coupon: Table_HappyCoupon
+  private _baseManager: CouponBaseManager
 
   constructor(
     coupon: Table_HappyCoupon,
@@ -944,6 +1025,7 @@ export class CouponUpdateManager {
   ) {
     this._coupon = coupon
     this._opt = opt
+    this._baseManager = new CouponBaseManager(coupon._id)
   }
 
   private async _getVectorData() {
@@ -980,15 +1062,14 @@ export class CouponUpdateManager {
       image_url,
       image_h2w: _.set(image_h2w),
     }
-    await this._updateCoupon(u1)
-    this._imageFlow()
+    await this._baseManager.updateCoupon(u1)
+    this._imageFlow(image_url)
     return { code: "0000" }
   }
 
 
-  private async _imageFlow() {
+  private async _imageFlow(image_url: string) {
     // 1. get vector data
-    const image_url = this._opt.image_url as string
     const vectorData = await this._getVectorData()
     if(!vectorData) return false
 
@@ -999,6 +1080,10 @@ export class CouponUpdateManager {
     const img_to_txt = res2?.text?.trim?.()
     if(img_to_txt === "0") {
       console.warn("ugly image: ", image_url)
+      const reason3 = this._baseManager.getReason(
+        "turn to reviewing by update manager ", res2?.worker
+      )
+      this._baseManager.downgradeOState("REVIEWING", reason3)
       return false
     }
 
@@ -1013,13 +1098,14 @@ export class CouponUpdateManager {
           imgToTxtProvider: res2.worker.computingProvider,
         }
       }
-      this._updateCoupon(u4)
+      this._baseManager.updateCoupon(u4)
     }
 
     // 5. start to embedding
     const res5 = await CouponEmbedding.image(image_url)
     if(!res5) {
       console.warn("embedding failed in CouponUpdateManager: ", image_url)
+      this._baseManager.callAdmin(this._coupon, "embedding failed in CouponUpdateManager")
       return false
     }
 
@@ -1032,9 +1118,20 @@ export class CouponUpdateManager {
     return true
   }
 
-
-
   async addCopytext() {
+    const copytext = this._opt.copytext as string
+    const u1: Partial<Table_HappyCoupon> = { copytext }
+    await this._baseManager.updateCoupon(u1)
+    this._textFlow(copytext)
+    return { code: "0000" }
+  }
+
+  private async _textFlow(copytext: string) {
+    // 1. get vector data
+    const vectorData = await this._getVectorData()
+    if(!vectorData) return false
+
+    
 
   }
 
@@ -1052,16 +1149,8 @@ export class CouponUpdateManager {
     const u2: Partial<Table_HappyCoupon> = {
       expireStamp: newEndStamp,
     }
-    await this._updateCoupon(u2)
+    await this._baseManager.updateCoupon(u2)
     return { code: "0000" }
-  }
-
-  private async _updateCoupon(u: Record<string, any>) {
-    if(!u.updatedStamp) u.updatedStamp = getNowStamp()
-    const couponId = this._coupon._id
-    const hcCol = db.collection("HappyCoupon")
-    await hcCol.doc(couponId).update(u)
-    return true
   }
 
 }
@@ -1104,111 +1193,39 @@ export class CouponAddManager {
     }
 
     // 2. update the image row
-    const hcCol = db.collection("HappyCoupon")
-    const u2: Partial<Table_HappyCoupon> = {
-      img_trace_id,
-      updatedStamp: getNowStamp()
-    }
-    const res2 = await hcCol.doc(couponId).update(u2)
-    console.log("update image row res2: ", res2)
+    const u2: Partial<Table_HappyCoupon> = { img_trace_id }
+    const baseManager = new CouponBaseManager(couponId)
+    baseManager.updateCoupon(u2)
   }
 
 
   async callAiWorker() {
-    if(!this._couponId) return
+    const couponId = this._couponId
+    if(!couponId) return
     const { image_url, copytext } = this._opt
     if(image_url) {
-      await this.imageFlow()
+      await this.imageFlow(image_url, couponId)
     }
     else if(copytext) {
-      await this.textFlow()
+      await this.textFlow(copytext, couponId)
     }
   }
 
-  private async _downgradeOState(
-    oState: OState_Coupon,
-    aiReason?: string,
-  ) {
-    // 1. get coupon
-    const couponId = this._couponId as string
-    const hcCol = db.collection("HappyCoupon")
-    const res1 = await hcCol.doc(couponId).get<Table_HappyCoupon>()
-    let data1 = res1.data
-    if(!data1) return
-
-    // 2. check if we can update it
-    let canUpdate = false
-    const oldState = data1.oState
-    if(oldState === "OK" || oldState === "REVIEWING") {
-      canUpdate = true
-    }
-    if(!canUpdate) return
-
-    // 3. to update
-    const u3: Partial<Table_HappyCoupon> = {
-      oState,
-      updatedStamp: getNowStamp(),
-    }
-    if(aiReason) {
-      u3.extraData = { aiReason }
-    }
-    await hcCol.doc(couponId).update(u3)
-
-    // 4. merge 
-    data1 = { ...data1, ...u3 }
-    this._callAdmin(data1)
-  }
-
-  private async _callAdmin(
-    data: Table_HappyCoupon,
-  ) {
-    const title = "Liubai Coupon"
-    const userId = data.owner ?? "unknown"
-    const couponId = data._id
-    let footer = ""
-    footer += `**User id:** ${userId}\n\n`
-    footer += `**Coupon id:** ${couponId}\n\n`
-    const reporter = new LiuReporter()
-    reporter.sendAny(title, data, footer)
-  }
-
-
-  private _getReason(
-    prefixMsg: string,
-    worker?: LiuAi.AiWorker,
-  ) {
-    const computingProvider2 = worker?.computingProvider
-    const model2 = worker?.model
-    let aiReason = prefixMsg
-    if(model2) aiReason += ` using ${model2}`
-    if(computingProvider2) aiReason += ` from ${computingProvider2}`
-    return aiReason
-  }
-
-  private async _saveData(u: Partial<Table_HappyCoupon>) {
-    const couponId = this._couponId as string
-    if(!u.updatedStamp) {
-      u.updatedStamp = getNowStamp()
-    }
-    const hcCol = db.collection("HappyCoupon")
-    await hcCol.doc(couponId).update(u)
-  }
-
-  private async imageFlow() {
+  private async imageFlow(image_url: string, couponId: string) {
+    const baseManager = new CouponBaseManager(couponId)
     const t0 = getNowStamp()
 
     // 1. check image security
-    const image_url = this._opt.image_url as string
     const res1 = await CouponChecker.image(image_url)
 
     // 2. check out result from CouponChecker
     const img_to_txt = res1?.text?.trim?.()
     if(img_to_txt === "0") {
-      const aiReason = this._getReason(
+      const aiReason = baseManager.getReason(
         "deleted by coupon_add_checker ", 
         res1?.worker
       )
-      this._downgradeOState("DEL_BY_AI", aiReason)
+      baseManager.downgradeOState("DEL_BY_AI", aiReason)
       return
     }
 
@@ -1223,7 +1240,7 @@ export class CouponAddManager {
           imgToTxtProvider: res1.worker.computingProvider,
         }
       }
-      this._saveData(u3)
+      baseManager.updateCoupon(u3)
     }
 
     // 4. & 5. generate title, emoji......
@@ -1257,29 +1274,29 @@ export class CouponAddManager {
     console.warn("imageFlow cost: ", t8 - t0)
   }
 
-  private async textFlow() {
+  private async textFlow(copytext: string, couponId: string) {
+    const baseManager = new CouponBaseManager(couponId)
     const t0 = getNowStamp()
 
     // 1. get score by CouponChecker
-    const copytext = this._opt.copytext as string
     const res1 = await CouponChecker.text(copytext)
 
     // 2. handle score
     const score = res1.score
     if(score === 0) {
-      const aiReason1 = this._getReason(
+      const aiReason1 = baseManager.getReason(
         "delete by coupon_add_checker", 
         res1.worker
       )
-      this._downgradeOState("DEL_BY_AI", aiReason1)
+      baseManager.downgradeOState("DEL_BY_AI", aiReason1)
       return
     }
     if(score === 0.5) {
-      const aiReason2 = this._getReason(
+      const aiReason2 = baseManager.getReason(
         "decided by coupon_add_checker",
         res1.worker
       )
-      this._downgradeOState("REVIEWING", aiReason2)
+      baseManager.downgradeOState("REVIEWING", aiReason2)
     }
 
     // 3. & 4. generate title, emoji......
@@ -1323,20 +1340,21 @@ export class CouponAddManager {
       },
       updatedStamp: getNowStamp(),
     }
-    this._saveData(u)
+    const baseManager = new CouponBaseManager(this._couponId as string)
+    baseManager.updateCoupon(u)
   }
 
   private _handleParserResult(
     result?: Res_CouponParser,
     worker?: LiuAi.AiWorker,
   ) {
-    console.log("_handleParserResult result: ", result)
+    const baseManager = new CouponBaseManager(this._couponId as string)
 
     // 1.1 error
     const errmsg = result?.errmsg
     if(errmsg !== "ok" && errmsg !== "OK") {
-      const reason = this._getReason(errmsg ?? "", worker)
-      this._downgradeOState("REVIEWING", reason)
+      const reason = baseManager.getReason(errmsg ?? "", worker)
+      baseManager.downgradeOState("REVIEWING", reason)
       return false
     }
 
@@ -1354,7 +1372,7 @@ export class CouponAddManager {
         parseProvider: worker?.computingProvider,
       }
     }
-    this._saveData(u2)
+    baseManager.updateCoupon(u2)
     return true
   }
 
