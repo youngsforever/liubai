@@ -31,6 +31,10 @@ Component({
     },
     title: {
       type: String,
+    },
+    alwaysArrowBack: {
+      type: Boolean,
+      value: false,
     }
   },
 

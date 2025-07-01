@@ -8,5 +8,16 @@ export default {
     "back": "回去聊天",
     "tip_1": "由影片觀看\n兌換來的可聊天次數",
     "learn_more": "檢視詳情",
+  },
+  "coupon-add-select": {
+    "title": "選擇類型",
+    "btn_1": "海報（圖片）",
+    "btn_2": "連結（文本）",
+  },
+  "coupon-add-date": {
+    "title": "有效期",
+    "btn_1": "1 週内",
+    "btn_2": "2 週内",
+    "btn_3": "一個月内",
   }
 }

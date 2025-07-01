@@ -10,13 +10,17 @@
       "name": "packageA",
       "pages": [
         "pages/watch-video/watch-video",
-        "pages/coupon-search/coupon-search"
+        "pages/coupon-search/coupon-search",
+        "pages/coupon-add-select/coupon-add-select",
+        "pages/coupon-add-date/coupon-add-date"
       ]
     }
   ],
   "usingComponents": {
     "placeholder-view": "/components/placeholder-view/placeholder-view",
-    "custom-button": "/components/custom-button/custom-button"
+    "custom-button": "/components/custom-button/custom-button",
+    "custom-navibar": "/components/custom-navibar/custom-navibar",
+    "virtual-navibar": "/components/virtual-navibar/virtual-navibar"
   },
   "window": {
     "backgroundTextStyle": "dark",

@@ -95,10 +95,11 @@ export function navibarBehavior() {
             }
           }
           else {
+            // console.log(height2, mbTop, mbHeight)
             height2 = mbTop + mbHeight
             height2 = Math.max(height1, height2)
             if(mbTop <= 12) height2 += mbTop
-            height2 = Math.min(50, height2)
+            height2 = Math.min(72, height2)
             height1 = 0
           }
   

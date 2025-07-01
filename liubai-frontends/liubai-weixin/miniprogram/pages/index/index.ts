@@ -134,6 +134,20 @@ Component({
       })
     },
 
+    onTapAdd() {
+      LiuApi.vibrateShort({ type: "medium" })
+      LiuApi.navigateTo({
+        url: "/packageA/pages/coupon-add-select/coupon-add-select",
+        routeType: "wx://modal",
+        routeConfig: {
+          barrierColor: "rgba(0, 0, 0, 0.6)",
+          barrierDismissible: true,
+          popGestureDirection: "multi",
+          fullscreenDrag: false,
+        },
+      })
+    },
+
     onLoad(query: Record<string, string>) {
       if(query?.key1) {
         this.data._key1 = query.key1

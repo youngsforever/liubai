@@ -31,7 +31,7 @@
       catchtap="onTapBack"
     >
       <!-- arrow back -->
-      <image wx:if="{{renderer === 'webview' && pageLength > 1}}" 
+      <image wx:if="{{alwaysArrowBack || (renderer === 'webview' && pageLength > 1)}}" 
         src="{{imagePath}}arrow-back.png" 
         class="cn-back-image"
       ></image>

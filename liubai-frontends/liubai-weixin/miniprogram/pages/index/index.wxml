@@ -59,7 +59,9 @@
     <!-- add & mine --> 
     <view class="index-add-mine">
 
-      <view class="liu-hover index-add" hover-class="liu-skyline-hover">
+      <view class="liu-hover index-add" hover-class="liu-skyline-hover"
+        catchtap="onTapAdd"
+      >
         <image src="{{imagePath}}add.png" class="iam-icon" />
         <view class="index-add-text">
           <text>{{t1.share_mine}}</text>
