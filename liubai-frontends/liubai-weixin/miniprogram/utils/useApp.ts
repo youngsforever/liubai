@@ -29,14 +29,10 @@ export async function useForwardMaterials(
   await valTool.waitMilli(defaultData.duration_ms_2)
 
   // 3. mock a media file
-  const tmpFile: WechatMiniprogram.MediaFile = {
+  const tmpFile: LiuMiniprogram.MediaFile = {
     fileType: "image",
     tempFilePath: firstMaterial.path,
     size: firstMaterial.size,
-    duration: 0,
-    height: 0,
-    width: 0,
-    thumbTempFilePath: "",
   }
   LiuTunnel.setStuff("coupon-search-image", tmpFile)
 

@@ -12,14 +12,14 @@ export interface ImageHelperOpt {
 
 export class ImageHelper {
 
-  private _tempFile: WechatMiniprogram.MediaFile
+  private _tempFile: LiuMiniprogram.MediaFile
   private _compressKB = 250
   private _maxPixel = 1080
   private _maxH2W = 2
   private _cropScale: CropScale = "9:16"    // width : height
 
   constructor(
-    file: WechatMiniprogram.MediaFile,
+    file: LiuMiniprogram.MediaFile,
     opt?: ImageHelperOpt,
   ) {
     this._tempFile = file
@@ -48,7 +48,8 @@ export class ImageHelper {
     if(!res2) return
     
     // 3. return new file
-    return valTool.copyObject(this._tempFile)
+    const res3 = valTool.copyObject(this._tempFile)
+    return res3 as WechatMiniprogram.MediaFile
   }
 
   async preCheck() {
@@ -70,7 +71,7 @@ export class ImageHelper {
   }
 
   private async checkH2W() {
-    const file = this._tempFile
+    const file = this._tempFile as WechatMiniprogram.MediaFile
     const height = file.height
     const width = file.width
     const h2w = height / width
@@ -127,7 +128,7 @@ export class ImageHelper {
 
   private async toCompress() {
     // 1. get file info
-    const file = this._tempFile
+    const file = this._tempFile as WechatMiniprogram.MediaFile
     const tempFilePath = file.tempFilePath
     const height = file.height
     const width = file.width
