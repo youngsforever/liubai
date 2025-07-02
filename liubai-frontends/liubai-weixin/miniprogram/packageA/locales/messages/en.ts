@@ -19,5 +19,11 @@ export default {
     "btn_1": "1 Week",
     "btn_2": "2 Weeks",
     "btn_3": "1 Month",
+  },
+  "coupon-add-success": {
+    "title": "Received!",
+    "desc": "Let AI help you make money",
+    "btn_1": "Send Again",
+    "btn_2": "Back",
   }
 }

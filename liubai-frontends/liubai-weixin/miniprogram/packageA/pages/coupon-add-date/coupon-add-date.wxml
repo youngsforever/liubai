@@ -10,7 +10,9 @@
     <text>📅 {{t1.title}}</text>
   </view>
 
-  <view class="liu-hover ca-box" hover-class="liu-skyline-hover">
+  <view class="liu-hover ca-box" hover-class="liu-skyline-hover"
+    catchtap="goToSuccess"
+  >
     <view class="cab-text">
       <text>{{t1.btn_1}}</text>
     </view>

@@ -19,5 +19,11 @@ export default {
     "btn_1": "1 周内",
     "btn_2": "2 周内",
     "btn_3": "一个月内",
+  },
+  "coupon-add-success": {
+    "title": "收到！",
+    "desc": "让 AI 帮你赚钱",
+    "btn_1": "再发一张",
+    "btn_2": "返回",
   }
 }

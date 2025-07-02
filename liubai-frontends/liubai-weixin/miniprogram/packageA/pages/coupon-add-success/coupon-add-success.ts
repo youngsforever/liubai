@@ -11,28 +11,27 @@ Component({
   },
 
   behaviors: [
-    i18nBehavior("coupon-add-date"),
+    i18nBehavior("coupon-add-success"),
     sharedBehavior(),
     navibarBehavior(),
     themeBehavior(),
   ],
   
   data: {
-    pageName: "coupon-add-date",
+    pageName: "coupon-add-success",
   },
-
 
   methods: {
 
-    goToSuccess() {
-      LiuApi.navigateTo({
-        url: "/packageA/pages/coupon-add-success/coupon-add-success",
-        routeType: "wx://modal-navigation",
-      })
-    }
+    onTapPostAgain() {
+      LiuApi.navigateBack({ delta: 2 })
+    },
 
+    onTapBack() {
+      LiuApi.navigateBack({ delta: 3 })
+    },
 
-  }
+  },
 
 
 })

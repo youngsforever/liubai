@@ -12,7 +12,8 @@
         "pages/watch-video/watch-video",
         "pages/coupon-search/coupon-search",
         "pages/coupon-add-select/coupon-add-select",
-        "pages/coupon-add-date/coupon-add-date"
+        "pages/coupon-add-date/coupon-add-date",
+        "pages/coupon-add-success/coupon-add-success"
       ]
     }
   ],

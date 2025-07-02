@@ -35,7 +35,11 @@ Component({
     alwaysArrowBack: {
       type: Boolean,
       value: false,
-    }
+    },
+    alwaysGoHome: {
+      type: Boolean,
+      value: false,
+    },
   },
 
   lifetimes: {
@@ -51,6 +55,11 @@ Component({
   methods: {
     onTapBack() {
       LiuApi.vibrateShort({ type: "light" })
+
+      if(this.properties.alwaysGoHome) {
+        LiuUtil.goHome()
+        return
+      }
 
       const pages = LiuApi.getPages()
       const pLength = pages.length
