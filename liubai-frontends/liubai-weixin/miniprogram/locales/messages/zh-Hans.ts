@@ -24,6 +24,7 @@ export default {
     "got_it": "了解",
     "contact_us": "联系客服",
     "try_again_later": "请稍后再试",
+    "cannot_use_1": "功能不开放",
   },
   "err": {
     "no_data": "找不到耶",

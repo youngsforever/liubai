@@ -26,6 +26,7 @@ export default {
     "got_it": "Got it",
     "contact_us": "Contact us",
     "try_again_later": "Try again later",
+    "cannot_use_1": "Function not open",
   },
   "err": {
     "no_data": "Nothing Here",

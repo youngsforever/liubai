@@ -9,4 +9,5 @@ export default {
   WEIXIN_AD: d + "happy-system",
   UPLOAD_FILE: d + "file-set",
   USER_SETTINGS: d + "user-settings",
+  HAPPY_SYSTEM: d + "happy-system",
 }

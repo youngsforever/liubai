@@ -77,6 +77,68 @@ export namespace HappySystemAPI {
     operateType: "post-weixin-ad"
     conversationCountFromAd: number
   }
+
+  /********************** for Coupons *********************/
+  export interface CouponItem {
+    _id: string
+    title?: string
+    copytext?: string
+    image_url?: string
+    image_h2w?: string
+    emoji?: string
+    brand?: string
+    expireStamp: number
+
+    // for detail
+    isMine?: boolean
+    drawn?: boolean
+  }
+
+  export interface Res_FastSearch {
+    fromType: "query" | "cache"
+    queryList: CouponItem[]
+    searchList?: CouponItem[]
+  }
+
+  export interface Res_CouponPost {
+    couponId?: string
+  }
+
+  export interface Res_CouponStatus {
+    can_i_use: boolean
+    membership: "free" | "premium"
+    tmpl_id_1?: string
+    tmpl_id_2?: string
+    max_coupons?: number
+    posted_coupons?: number
+  }
+  
+  export interface Res_CouponCheck {
+    operateType: "coupon-check"
+    pass: boolean
+    credential?: string
+    failReason?: string
+  }
+
+  export interface Res_CouponDetail {
+    operateType: "coupon-detail"
+    detail: CouponItem
+  }
+
+  export interface Res_CouponMine {
+    operateType: "coupon-mine"
+    drawnList: CouponItem[]
+    postedList: CouponItem[]
+  }
+
+  export interface Param_CouponUpdate {
+    operateType: "coupon-update"
+    couponId: string
+    image_url?: string
+    image_h2w?: string
+    copytext?: string
+    availableDays?: number
+  }
 }
 
 

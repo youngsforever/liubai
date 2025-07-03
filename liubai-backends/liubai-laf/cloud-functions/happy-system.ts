@@ -603,7 +603,7 @@ async function coupon_status(
     return { code: "E4003", errMsg: "user is not normal" }
   }
   const blockedFuncs = user.blockedFuncs ?? []
-  const can_i_use = blockedFuncs.includes("coupon")
+  const can_i_use = !Boolean(blockedFuncs.includes("coupon"))
   const subManager = new SubscriptionManager(user)
   const isSubscribed = subManager.getSubscribed()
   const _env = process.env
