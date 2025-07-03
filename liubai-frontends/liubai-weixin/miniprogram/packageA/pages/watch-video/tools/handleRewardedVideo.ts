@@ -1,6 +1,6 @@
 import { LiuApi } from "~/utils/LiuApi"
 import type { MiniProgramContext } from "~/types/index"
-import { WatchVideoData } from "./types"
+import type { WatchVideoData } from "./types"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { fetchPost } from "./useWatchVideo"
 import { envData } from "~/config/env-data"

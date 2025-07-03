@@ -6,6 +6,12 @@ import { LiuTime } from "~/utils/LiuTime"
 import valTool from "~/utils/val-tool"
 import { envData } from "~/config/env-data"
 import type { FilePurpose } from "~/types/types-atom"
+import { LiuApi } from "~/utils/LiuApi"
+import type { Cloud_ImageStore } from "~/types/types-cloud"
+import type { DataPass, DataPass_A } from "~/types/index"
+
+export type ImageUploaderResult = DataPass<Cloud_ImageStore>
+export type ImageStoreResolver = (res: ImageUploaderResult) => void
 
 export class FileUploader {
 
@@ -26,24 +32,30 @@ export class FileUploader {
   static async uploadViaQiniu(
     localPath: string, 
     purpose: FilePurpose,
-  ) {
+  ): Promise<ImageUploaderResult> {
     // 0. get upload url
+    const failResult: DataPass_A = {
+      pass: false, 
+      errMsg: "",
+    }
     const uploadUrl = envData.LIU_QINIU_UPLOAD
     if(!uploadUrl) {
       console.warn("fail to get upload url")
-      return
+      failResult.errMsg = "fail to get upload url"
+      return valTool.getPromise(failResult)
     }
-    
 
     // 1. get token
     const tokenRes = await this.getQiniuToken(purpose)
     if (tokenRes.code !== "0000" || !tokenRes.data) {
       console.warn("fail to get token for uploading", tokenRes)
-      return
+      failResult.errMsg = "fail to get token for uploading"
+      return valTool.getPromise(failResult)
     }
 
     // 2. get required params
     const dataForUpload = tokenRes.data
+    const token = dataForUpload.uploadToken
     const prefix = dataForUpload?.prefix ?? ""
     const suffix = valTool.getSuffix(localPath)
     const now = LiuTime.getTime()
@@ -51,9 +63,30 @@ export class FileUploader {
     const key = `${prefix}-${now}-${nonce}.${suffix}`
     console.log("key: ", key)
 
-
-
-
+    // 3. to upload
+    const _wait = (a: ImageStoreResolver) => {
+      LiuApi.uploadFile({
+        url: uploadUrl,
+        filePath: localPath,
+        name: "file",
+        formData: {
+          token,
+          key,
+        },
+        success(res) {
+          console.log("upload success: ", res)
+          const data = valTool.strToObj(res.data)
+          console.warn("upload success data: ", data)
+        },
+        fail(err) {
+          console.warn("upload failed: ", err)
+          failResult.errMsg = "upload failed"
+          a(failResult)
+        }
+      })
+    }
+    
+    return new Promise(_wait)
   }
 
 }

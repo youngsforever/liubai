@@ -136,6 +136,10 @@ export class LiuApi {
     return wx.request(opt)
   }
 
+  static uploadFile(opt: WechatMiniprogram.UploadFileOption) {
+    return wx.uploadFile(opt)
+  }
+
   static getFileSystemManager() {
     return wx.getFileSystemManager()
   }

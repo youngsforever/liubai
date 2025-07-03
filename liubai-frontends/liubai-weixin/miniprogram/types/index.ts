@@ -7,7 +7,9 @@ export type BcrResult = WechatMiniprogram.BoundingClientRectCallbackResult | nul
 export type BoundingClientRectResolver = (res: BcrResult) => void
 export type GetImagePath = () => string
 
-export interface MiniProgramContext<D = Record<string, any>> {
+export interface MiniProgramContext<
+  D = Record<string, any>
+> {
   data: D
   setData: (data: Partial<D>) => void
 }
@@ -23,3 +25,17 @@ export interface LiuLoginData {
   wx_mini_openid?: string
   lastSetStamp: number
 }
+
+
+
+export interface DataPass_A {
+  pass: false
+  errMsg: string
+}
+
+export interface DataPass_B<T> {
+  pass: true
+  data: T
+}
+
+export type DataPass<T = any> = DataPass_A | DataPass_B<T>
