@@ -31,6 +31,7 @@ export interface LiuLoginData {
 export interface DataPass_A {
   pass: false
   errMsg: string
+  errData?: any
 }
 
 export interface DataPass_B<T> {

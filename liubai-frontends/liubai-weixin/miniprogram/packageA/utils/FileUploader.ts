@@ -1,17 +1,16 @@
 import APIs from "~/requests/APIs"
 import { LiuReq } from "~/requests/LiuReq"
-import { FileSetAPI } from "~/requests/req-types"
 import { createFileNonce } from "~/utils/basic/ider"
 import { LiuTime } from "~/utils/LiuTime"
 import valTool from "~/utils/val-tool"
 import { envData } from "~/config/env-data"
-import type { FilePurpose } from "~/types/types-atom"
 import { LiuApi } from "~/utils/LiuApi"
-import type { Cloud_ImageStore } from "~/types/types-cloud"
 import type { DataPass, DataPass_A } from "~/types/index"
+import type { FilePurpose } from "~/types/types-atom"
+import type { FileSetAPI } from "~/requests/req-types"
 
-export type ImageUploaderResult = DataPass<Cloud_ImageStore>
-export type ImageStoreResolver = (res: ImageUploaderResult) => void
+export type ImageUploaderResult = DataPass<string>
+export type ImageUploaderResolver = (res: ImageUploaderResult) => void
 
 export class FileUploader {
 
@@ -61,10 +60,9 @@ export class FileUploader {
     const now = LiuTime.getTime()
     const nonce = createFileNonce()
     const key = `${prefix}-${now}-${nonce}.${suffix}`
-    console.log("key: ", key)
 
     // 3. to upload
-    const _wait = (a: ImageStoreResolver) => {
+    const _wait = (a: ImageUploaderResolver) => {
       LiuApi.uploadFile({
         url: uploadUrl,
         filePath: localPath,
@@ -75,8 +73,19 @@ export class FileUploader {
         },
         success(res) {
           console.log("upload success: ", res)
-          const data = valTool.strToObj(res.data)
-          console.warn("upload success data: ", data)
+
+          if(res.statusCode === 200 && res.data) {
+            const result = valTool.strToObj(res.data)
+            const cloud_url = result?.data?.cloud_url
+            if(result.code === "0000" && cloud_url) {
+              a({ pass: true, data: cloud_url })
+              return
+            }
+          }
+
+          failResult.errMsg = "fail to upload"
+          failResult.errData = res
+          a(failResult)
         },
         fail(err) {
           console.warn("upload failed: ", err)

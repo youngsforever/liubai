@@ -154,4 +154,8 @@ export namespace FileSetAPI {
     uploadToken: string
     prefix: string
   }
+
+  export interface Res_QiniuUploaded {
+    cloud_url: string
+  }
 }
