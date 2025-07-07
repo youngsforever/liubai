@@ -3,29 +3,8 @@ import type { MiniProgramContext } from "~/types/index"
 import type { WatchVideoData } from "./types"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { fetchPost } from "./useWatchVideo"
-import { envData } from "~/config/env-data"
 
 let rewardedVideoAd: WechatMiniprogram.RewardedVideoAd | undefined
-
-
-function toContactUs() {
-  const link = envData.LIU_CUSTOMER_SERVICE
-  const corpId = envData.LIU_WECOM_CORPID
-  if(!link || !corpId) return
-  LiuApi.vibrateShort({ type: "medium" })
-  LiuApi.openCustomerServiceChat({
-    extInfo: {
-      url: link,
-    },
-    corpId,
-    success(res) {
-      console.log("openCustomerServiceChat success: ", res)
-    },
-    fail(err) {
-      console.error("openCustomerServiceChat fail: ", err)
-    }
-  })
-}
 
 async function tryToLoad() {
   if(!rewardedVideoAd) return
@@ -105,9 +84,8 @@ export async function initRewardedVideoAd(
       content_opt: { msg: errMsg, code: errCode },
       confirm_key: "shared.contact_us",
       success(res) {
-        if(res.confirm) {
-          toContactUs()
-        }
+        if(!res.confirm) return
+        LiuUtil.toContactUs()
       }
     })
   })

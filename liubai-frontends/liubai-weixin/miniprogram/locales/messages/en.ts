@@ -27,6 +27,8 @@ export default {
     "contact_us": "Contact us",
     "try_again_later": "Try again later",
     "cannot_use_1": "Function not open",
+    "privacy_tip": "Privacy 🔏",
+    "ok": "OK",
   },
   "err": {
     "no_data": "Nothing Here",
@@ -46,4 +48,10 @@ export default {
     "tip_4": "Watch too much 🤯",
     "tip_5": "Go back to chat!",
   },
+  "coupon-related": {
+    "tip_1": "Too many coupons",
+    "tip_2": "Let's manange them!",
+    "tip_3": "This will read your clipboard content, helping you upload quickly!",
+    "manage": "Manage"
+  }
 }

@@ -396,5 +396,17 @@ export class LiuApi {
     return wx.previewMedia(opt)
   }
 
+  static async getClipboardData() {
+    try {
+      const res = await wx.getClipboardData()
+      return res
+    }
+    catch(err) {
+      console.warn("getClipboardData err: ")
+      console.log(err)
+      return
+    }
+  }
+
 
 }

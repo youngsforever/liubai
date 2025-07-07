@@ -1,4 +1,4 @@
-import { LiuUtil } from "../liu-util/index";
+import { LiuUtil, type CustomModalOpt } from "../liu-util/index";
 
 
 export class ShowTip {
@@ -10,6 +10,32 @@ export class ShowTip {
       showCancel: false,
       confirm_key: "shared.confirm",
     })
+  }
+
+  static async showErrMsg(
+    title: string,
+    err?: any,
+  ) {
+    let content = "请截图本页面，联系客服"
+
+    if(typeof err === "string") {
+      content += `:\n${err}`
+    }
+    else if(err?.errMsg && typeof err.errMsg === "string") {
+      content += `:\n${err.errMsg}`
+    }
+    else if(err?.toString && typeof err.toString === "function") {
+      content += `:\n${err.toString()}`
+    }
+    const opt: CustomModalOpt = {
+      title,
+      content,
+      confirm_key: "shared.contact_us",
+    }
+    const res = await LiuUtil.showCustomModal(opt)
+    if(res.confirm) {
+      LiuUtil.toContactUs()
+    }
   }
 
 }

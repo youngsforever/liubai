@@ -21,7 +21,9 @@
     </view>
   </view>
 
-  <view class="liu-hover ca-box" hover-class="liu-skyline-hover">
+  <view class="liu-hover ca-box" hover-class="liu-skyline-hover"
+    catchtap="onTapClipboard"
+  >
     <view class="cab-icon">
       <text>🔗</text>
     </view>

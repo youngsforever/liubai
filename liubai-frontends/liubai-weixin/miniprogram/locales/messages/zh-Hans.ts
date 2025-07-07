@@ -25,6 +25,8 @@ export default {
     "contact_us": "联系客服",
     "try_again_later": "请稍后再试",
     "cannot_use_1": "功能不开放",
+    "privacy_tip": "隐私提示🔏",
+    "ok": "好",
   },
   "err": {
     "no_data": "找不到耶",
@@ -43,6 +45,12 @@ export default {
     "tip_3": "去休息一下吧🧘",
     "tip_4": "看太多啦🤯",
     "tip_5": "赶紧去聊天吧！",
-    
   },
+  "coupon-related": {
+    "tip_1": "太多优惠券啦",
+    "tip_2": "去管理一下吧！",
+    "tip_3": "这将会读取你的剪贴板内容，助力你一键上传！",
+    "tip_4": "请确定剪贴板的内容为优惠信息",
+    "manage": "去管理",
+  }
 }

@@ -1531,7 +1531,6 @@ class BaseBot {
         TellUser.text(entry, text, { fromBot: bot })
         return
       }
-      console.log("我去设置 _hasVoiceReplied 为 true 了！")
       this._hasVoiceReplied = true
       TellUser.audio(entry, { buffer: res2_3 }, { fromBot: bot })
       return

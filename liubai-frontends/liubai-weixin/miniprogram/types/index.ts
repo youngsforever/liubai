@@ -26,7 +26,10 @@ export interface LiuLoginData {
   lastSetStamp: number
 }
 
-
+export interface LiuOnceData {
+  initClipboardStamp?: number
+  
+}
 
 export interface DataPass_A {
   pass: false

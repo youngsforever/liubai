@@ -6,6 +6,8 @@ import { ShowTip } from "~/utils/managers/ShowTip"
 import { ImageHelper } from "~/packageA/utils/ImageHelper"
 import { CouponAddManager } from "../shared/CouponAddManager"
 import { CouponManager } from "../shared/CouponManager"
+import { LiuUtil } from "~/utils/liu-util/index"
+import { LiuTime } from "~/utils/LiuTime"
 
 Component({
 
@@ -21,6 +23,7 @@ Component({
   
   data: {
     pageName: "coupon-add-select",
+    _initClipboardStamp: 0,
   },
 
   methods: {
@@ -62,9 +65,54 @@ Component({
       }, this.router)
     },
 
+    async onTapClipboard() {
+      // 0. are you ok
+      if(!this.areYouOK()) return
+
+      // 1. show tip if never ever used clipboard
+      if(!this.data._initClipboardStamp) {
+        const res1 = await LiuUtil.showCustomModal({
+          title_key: "shared.privacy_tip",
+          content_key: "coupon-related.tip_3",
+          confirm_key: "shared.ok",
+        })
+        if(!res1.confirm) return
+        const now1 = LiuTime.getTime()
+        this.data._initClipboardStamp = now1
+        LiuUtil.setOneKey("once-data", "initClipboardStamp", now1)
+      }
+      
+      // 2. get clipboard
+      const res2 = await LiuApi.getClipboardData()
+      if(!res2) {
+        this.showClipboardErr()
+        return
+      }
+      const txt2 = res2.data.trim()
+      if(!txt2 || txt2.length < 20) {
+        LiuUtil.showCustomModal({
+          title: "🤨",
+          content_key: "coupon-related.tip_4",
+          confirm_key: "shared.got_it",
+          showCancel: false,
+        })
+        return
+      }
+
+    },
+
+    showClipboardErr(err?: any) {
+      ShowTip.showErrMsg("读取剪贴板失败", err)
+    },
+
     onShow() {
       CouponManager.fetchStatus()
-      
+      this.getOnceData()
+    },
+
+    async getOnceData() {
+      const stamp = await LiuUtil.getOneKey<number>("once-data", "initClipboardStamp")
+      this.data._initClipboardStamp = stamp ?? 0
     },
 
     areYouOK() {
@@ -74,7 +122,41 @@ Component({
         ShowTip.cannotUse()
         return false
       }
+      const { 
+        membership,
+        max_coupons = 3, 
+        posted_coupons = 0,
+      } = couponStatus
+      if(posted_coupons >= max_coupons) {
+        if(membership === "premium") {
+          this.showReachedMaxCouponsForPremium()
+        }
+        else if(membership === "free") {
+          this.goToPremium()
+        }
+        return false
+      }
+
       return true
+    },
+
+    async showReachedMaxCouponsForPremium() {
+      const res = await LiuUtil.showCustomModal({
+        title_key: "coupon-related.tip_1",
+        content_key: "coupon-related.tip_2",
+        confirm_key: "coupon-related.manage",
+      })
+      if(res.confirm) {
+        LiuApi.navigateTo({
+          url: "/packageA/pages/coupon-mine/coupon-mine",
+        })
+      }
+    },
+
+    goToPremium() {
+      LiuApi.navigateTo({ 
+        url: "/packageA/pages/landing-subscription/landing-subscription",
+      })
     }
 
   }

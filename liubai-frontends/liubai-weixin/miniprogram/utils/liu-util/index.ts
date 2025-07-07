@@ -2,6 +2,7 @@ import { defaultData } from "~/config/default-data";
 import { LiuApi } from "../LiuApi";
 import { handleCharacteristic, handleDeviceString } from "./tools/characteristic";
 import { useI18n } from "~/locales/index";
+import { envData } from "~/config/env-data";
 import type { SupportedTheme } from "~/types/types-atom";
 
 
@@ -157,6 +158,50 @@ export class LiuUtil {
     const appBaseInfo = LiuApi.getAppBaseInfo()
     const theme = appBaseInfo?.theme ?? defaultData.theme as SupportedTheme
     return theme
+  }
+
+  static async getOneKey<T = any>(
+    key1: string,
+    key2: string,
+  ) {
+    const res1 = await LiuApi.getStorage({ key: key1 })
+    if(res1 && res1.data) {
+      return res1.data[key2] as T
+    }
+    return null
+  }
+
+  static async setOneKey(
+    key1: string,
+    key2: string,
+    value: any,
+  ) {
+    let obj: Record<string, any> = {}
+    const res1 = await LiuApi.getStorage({ key: key1 })
+    if(res1 && res1.data) {
+      obj = res1.data
+    }
+    obj[key2] = value
+    await LiuApi.setStorage({ key: key1, data: obj })
+  }
+
+  static toContactUs() {
+    const link = envData.LIU_CUSTOMER_SERVICE
+    const corpId = envData.LIU_WECOM_CORPID
+    if(!link || !corpId) return
+    LiuApi.vibrateShort({ type: "medium" })
+    LiuApi.openCustomerServiceChat({
+      extInfo: {
+        url: link,
+      },
+      corpId,
+      success(res) {
+        console.log("openCustomerServiceChat success: ", res)
+      },
+      fail(err) {
+        console.error("openCustomerServiceChat fail: ", err)
+      }
+    })
   }
 
 }

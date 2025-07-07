@@ -25,6 +25,8 @@ export default {
     "contact_us": "聯繫客服",
     "try_again_later": "請稍後再試",
     "cannot_use_1": "功能未開放",
+    "privacy_tip": "隱私提示🔏",
+    "ok": "好",
   },
   "err": {
     "no_data": "找不到耶",
@@ -44,4 +46,10 @@ export default {
     "tip_4": "看太多啦🤯",
     "tip_5": "快去聊天吧！",
   },
+  "coupon-related": {
+    "tip_1": "太多優惠券啦",
+    "tip_2": "去管理一下吧！",
+    "tip_3": "這將會讀取你的剪貼板內容，幫助你快速上傳！",
+    "manage": "去管理"
+  }
 }
