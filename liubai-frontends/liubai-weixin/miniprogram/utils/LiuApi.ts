@@ -408,5 +408,29 @@ export class LiuApi {
     }
   }
 
+  static async showLoading(opt: WechatMiniprogram.ShowLoadingOption) {
+    try {
+      const res = await wx.showLoading(opt)
+      return res
+    }
+    catch(err) {
+      console.warn("showLoading err: ")
+      console.log(err)
+      return
+    }
+  }
+
+  static async hideLoading() {
+    try {
+      const res = await wx.hideLoading()
+      return res
+    }
+    catch(err) {
+      console.warn("hideLoading err: ")
+      console.log(err)
+      return
+    }
+  }
+
 
 }

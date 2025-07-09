@@ -18,7 +18,7 @@ export class CouponAddManager {
   private static _copytext: string | null = null
 
   // for both
-  private static _checkPromise: Promise<LiuRqReturn<HappySystemAPI.Res_CouponCheck>> | null = null
+  private static _credPromise: Promise<LiuRqReturn<HappySystemAPI.Res_CouponCheck>> | null = null
 
   static async addPoster(file: WechatMiniprogram.MediaFile) {
     this._file = file
@@ -33,6 +33,15 @@ export class CouponAddManager {
     
   }
 
+  static async getCredential() {
+    
+    
+
+  }
+
+
+
+
   static async addCopytext(copytext: string) {
     this._copytext = copytext
     this._checkText()
@@ -46,7 +55,7 @@ export class CouponAddManager {
       operateType: "coupon-check",
       copytext,
     }
-    this._checkPromise = LiuReq.request<HappySystemAPI.Res_CouponCheck>(url1, opt1)
+    this._credPromise = LiuReq.request<HappySystemAPI.Res_CouponCheck>(url1, opt1)
     return true
   }
 
@@ -66,7 +75,7 @@ export class CouponAddManager {
       operateType: "coupon-check",
       image_url,
     }
-    this._checkPromise = LiuReq.request<HappySystemAPI.Res_CouponCheck>(url1, opt1)
+    this._credPromise = LiuReq.request<HappySystemAPI.Res_CouponCheck>(url1, opt1)
     return true
   }
 
@@ -74,7 +83,7 @@ export class CouponAddManager {
     this._file = null
     this._uploadPromise = null
     this._copytext = null
-    this._checkPromise = null
+    this._credPromise = null
   }
 
 

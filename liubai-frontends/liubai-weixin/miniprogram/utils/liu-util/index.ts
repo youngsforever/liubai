@@ -19,6 +19,11 @@ export interface CustomToastOpt extends Partial<WechatMiniprogram.ShowToastOptio
   title_key?: string
 }
 
+export interface CustomLoadingOpt extends Partial<WechatMiniprogram.ShowLoadingOption> {
+  title?: string
+  title_key?: string
+}
+
 export class LiuUtil {
 
   static getCharacteristic() {
@@ -154,6 +159,17 @@ export class LiuUtil {
     await LiuApi.showToast(opt as WechatMiniprogram.ShowToastOption)
   }
 
+  static async showCustomLoading(opt: CustomLoadingOpt) {
+    if(opt.title_key) {
+      const { t } = useI18n()
+      if(!opt.title) {
+        opt.title = t(opt.title_key)
+      }
+      delete opt.title_key
+    }
+    await LiuApi.showLoading(opt as WechatMiniprogram.ShowLoadingOption)
+  }
+  
   static getCurrentTheme(): SupportedTheme {
     const appBaseInfo = LiuApi.getAppBaseInfo()
     const theme = appBaseInfo?.theme ?? defaultData.theme as SupportedTheme
