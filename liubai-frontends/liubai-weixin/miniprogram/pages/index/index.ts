@@ -150,6 +150,14 @@ Component({
       })
     },
 
+    async onTapMine() {
+      LiuApi.vibrateShort({ type: "medium" })
+      const res = await LiuApi.openChatTool({
+        url: "/packageB/pages/task-create/task-create",
+      })
+      console.log("openChatTool res: ", res)
+    },
+
     onLoad(query: Record<string, string>) {
       if(query?.key1) {
         this.data._key1 = query.key1

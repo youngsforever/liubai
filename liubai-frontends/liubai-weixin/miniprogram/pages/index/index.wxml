@@ -68,7 +68,9 @@
         </view>
       </view>
 
-      <view class="liu-hover index-mine" hover-class="liu-skyline-hover">
+      <view class="liu-hover index-mine" hover-class="liu-skyline-hover"
+        catchtap="onTapMine"
+      >
         <image src="{{imagePath}}account.png" class="iam-icon-two" />
       </view>
       

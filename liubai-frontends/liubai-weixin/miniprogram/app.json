@@ -17,6 +17,25 @@
         "pages/coupon-mine/coupon-mine",
         "pages/landing-subscription/landing-subscription"
       ]
+    },
+    {
+      "root": "packageB",
+      "name": "packageB",
+      "pages": [
+        "pages/task-create/task-create",
+        "pages/task-detail/task-detail"
+      ],
+      "independent": true,
+      "entry": "entry.js",
+      "componentFramework": "glass-easel",
+      "renderer": "skyline"
+    }
+  ],
+  "chatTools": [
+    {
+      "root": "packageB",
+      "entryPagePath": "pages/task-create/task-create",
+      "desc": "用微信群做任务管理"
     }
   ],
   "usingComponents": {

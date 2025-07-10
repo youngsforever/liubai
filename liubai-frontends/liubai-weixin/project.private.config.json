@@ -4,11 +4,18 @@
     "miniprogram": {
       "list": [
         {
+          "name": "创建任务",
+          "pathName": "packageB/pages/task-create/task-create",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "index",
           "pathName": "pages/index/index",
           "query": "",
-          "scene": null,
-          "launchMode": "singlePage"
+          "launchMode": "singlePage",
+          "scene": null
         },
         {
           "name": "视频",

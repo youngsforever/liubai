@@ -1,0 +1,32 @@
+export default {
+  "shared": {
+    "copied": "已复制",
+    "tip": "提示",
+    "long_press": "请长按图片，识别二维码",
+    "confirm": "确定",
+    "cancel": "取消",
+    "got_it": "了解",
+    "contact_us": "联系客服",
+    "try_again_later": "请稍后再试",
+    "cannot_use_1": "功能不开放",
+    "privacy_tip": "隐私提示🔏",
+    "ok": "好",
+  },
+  "err": {
+    "no_data": "找不到耶",
+    "no_auth": "没有访问权限",
+    "network": "网络异常",
+    "unknown_err": "未知的异常",
+    "too_hot": "太火爆了",
+    "come_later": "请稍后再来",
+    "video_err": "视频加载失败",
+    "err_reason": "原因: {msg}; 状态码: {code}",
+  },
+  "task-create": {
+    "title": "创建任务",
+    "placeholder": "记一件事...",
+    "add_photo": "添加照片",
+    "assign_to": "指派给",
+    "done": "就这样",
+  },
+}

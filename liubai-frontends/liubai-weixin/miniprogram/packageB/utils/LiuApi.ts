@@ -3,7 +3,6 @@ import type { BoolFunc, StrFunc } from "./basic/type-tool"
 
 export class LiuApi {
 
-
   static getPages() {
     const pages = getCurrentPages()
     return pages
@@ -167,18 +166,6 @@ export class LiuApi {
     return new Promise(_wait)
   }
 
-  static openOfficialAccountProfile(
-    opt: WechatMiniprogram.OpenOfficialAccountProfileOption
-  ) {
-    wx.openOfficialAccountProfile(opt)
-  }
-
-  static openOfficialAccountArticle(
-    opt: WechatMiniprogram.OpenOfficialAccountArticleOption,
-  ) {
-    wx.openOfficialAccountArticle(opt)
-  }
-
   static async setClipboardData(
     opt: WechatMiniprogram.SetClipboardDataOption,
   ) {
@@ -200,13 +187,6 @@ export class LiuApi {
     opt: WechatMiniprogram.PreviewImageOption,
   ) {
     const res = await wx.previewImage(opt)
-    return res
-  }
-
-  static createRewardedVideoAd(
-    opt: WechatMiniprogram.CreateRewardedVideoAdOption,
-  ) {
-    const res = wx.createRewardedVideoAd(opt)
     return res
   }
 
@@ -443,6 +423,5 @@ export class LiuApi {
       return
     }
   }
-
 
 }

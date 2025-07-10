@@ -1,0 +1,145 @@
+
+
+/************** extend from app.wxss *************/
+
+page {
+  --big-word-style: 36px;
+  --head-font: 28px;
+  --title-font: 22px;
+  --desc-font: 20px;
+  --btn-font: 17px;
+  --mini-font: 15px;
+
+  --max-mobile: 600px;
+
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.liu-light {
+  --primary-color: #2a6885;   /** 皇家蓝 #00416A */
+  --on-primary: #fafafa;
+  --primary-hover: #1c5671;
+  --primary-active: #15455e;
+
+  --card-bg: #f1f3f6;
+  --bg-color: #fff;
+  --main-text: #1f2429;
+  --main-normal: #3f4549;
+  --main-note: #ababab;
+  --skeleton-bg: linear-gradient(135deg, #fff 27%, #eaecef 38%, #fff 63%);
+}
+
+.liu-dark {
+  --primary-color: #88d1ff;   /**  88c4e3 */
+  --on-primary: #003354;
+  --primary-hover: #68c4f3;
+  --primary-active: #48abdd;
+
+  --card-bg: #2a2c2e;
+  --bg-color: #232323;
+  --main-text: #e7e9ea;
+  --main-normal: #c7c9ca;
+  --main-note: #686868;
+  --skeleton-bg: linear-gradient(135deg, #232323 27%, #2a2c2e 38%, #232323 63%);
+}
+
+.liu-scroll-view {
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-color);
+}
+
+.liu-virtual {
+  width: 100%;
+  height: 16px;
+}
+
+.liu-pointer {
+  cursor: pointer;
+}
+
+.liu-can-tap {
+  cursor: pointer;
+  transition: .15s;
+}
+
+.liu-can-tap_hovered {
+  opacity: .75;
+}
+
+
+
+/************** for webview *************/
+
+.liu-hover {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+}
+
+.liu-hover::before {
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  content: "";
+  transition: .1s;
+  opacity: 0;
+  background-color: var(--primary-color);
+}
+
+.liu-hover2 {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+  transition: .15s;
+}
+
+@media(hover: hover) {
+  .liu-hover:focus-visible {
+    outline: 2px solid var(--main-normal);
+  }
+
+  .liu-hover:hover::before {
+    opacity: .06;
+  }
+
+  .liu-hover2:hover {
+    opacity: .8;
+  }
+}
+
+.liu-hover:active::before {
+  opacity: .1;
+}
+
+/************** for skyline *************/
+
+.liu-skyline-hover {
+  position: relative;
+  cursor: pointer;
+  outline: 0;
+}
+
+.liu-skyline-hover::before {
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  content: "";
+  transition: .1s;
+  opacity: .1;
+  background-color: var(--primary-color);
+}
+
+.liu-skyline-hover2 {
+  transform: scale(.95);
+}

@@ -1,0 +1,32 @@
+export default {
+  "shared": {
+    "copied": "已複製",
+    "tip": "提示",
+    "long_press": "請長按圖片，識別 QR Code",
+    "confirm": "確定",
+    "cancel": "取消",
+    "got_it": "了解",
+    "contact_us": "聯繫客服",
+    "try_again_later": "請稍後再試",
+    "cannot_use_1": "功能未開放",
+    "privacy_tip": "隱私提示🔏",
+    "ok": "好",
+  },
+  "err": {
+    "no_data": "找不到耶",
+    "no_auth": "沒有訪問權限",
+    "network": "網路異常",
+    "unknown_err": "未知的異常",
+    "too_hot": "太火爆了",
+    "come_later": "請稍候再來",
+    "video_err": "影片加載失敗",
+    "err_reason": "原因: {msg}; 狀態代碼: {code}",
+  },
+  "task-create": {
+    "title": "創建任務",
+    "placeholder": "記一件事...",
+    "add_photo": "新增照片",
+    "assign_to": "指派給",
+    "done": "就這樣",
+  },
+}
