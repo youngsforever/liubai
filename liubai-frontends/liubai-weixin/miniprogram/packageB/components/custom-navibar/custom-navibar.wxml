@@ -48,7 +48,7 @@
     </view>
 
     <view wx:if="{{title}}" class="cn-title">
-      <text>{{title}}</text>
+      <text>{{title}} pageLength: {{pageLength}}</text>
     </view>
 
     <!-- virtual box to placeholder -->

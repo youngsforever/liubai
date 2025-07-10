@@ -5,17 +5,10 @@ export default {
     "appName": "Liubai"
   },
   "index": {
-    "slogan": "Find coupons? Use Liubai's drawer!",
-    "title": "Find Coupons👇",
+    "slogan": "Done everything using Liubai!",
     "powered_by": "Get the infinite future using Liubai",
-    "placeholder": "Product or brand name",
-    "share_mine": "Add coupons",
-    "try_1": "Try to Input",
-    "try_2": '"Luckin Coffee"\n"Chagee Tea"\n......',
-    "got_it": "Got it",
-    "search": "Search",
-    "open_mini_1": "Open MiniProgram",
-    "open_mini_2": "Please click \"前往小程序\" on the bottom right corner",
+    "find_coupon": "Find Coupons",
+    "create_task": "Create Tasks",
   },
   "shared": {
     "copied": "Copied",
@@ -29,6 +22,8 @@ export default {
     "cannot_use_1": "Function not open",
     "privacy_tip": "Privacy 🔏",
     "ok": "OK",
+    "open_mini_1": "Open MiniProgram",
+    "open_mini_2": "Please click \"前往小程序\" on the bottom right corner",
   },
   "err": {
     "no_data": "Nothing Here",
@@ -52,6 +47,10 @@ export default {
     "tip_1": "Too many coupons",
     "tip_2": "Let's manange them!",
     "tip_3": "This will read your clipboard content, helping you upload quickly!",
-    "manage": "Manage"
+    "manage": "Manage",
+    "slogan": "All you coupons are received by Liubai!",
+    "try_1": "Try to Input",
+    "try_2": '"Luckin Coffee"\n"Chagee Tea"\n......',
+    "got_it": "Got it",
   }
 }

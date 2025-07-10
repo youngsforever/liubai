@@ -3,17 +3,10 @@ export default {
     "appName": "留白记事"
   },
   "index": {
-    "slogan": "找优惠，用留小白的抽屉！",
-    "title": "找优惠👇",
+    "slogan": "用留白记事，消灭所有杂事！",
     "powered_by": "用留白记事，探索无限可能",
-    "placeholder": "输入商品或品牌名",
-    "share_mine": "分享我的优惠",
-    "try_1": "试试看，输入",
-    "try_2": "“瑞幸”\n“霸王茶姬”\n......",
-    "got_it": "知道了",
-    "search": "找找看",
-    "open_mini_1": "前往小程序",
-    "open_mini_2": "请点击右下角“前往小程序”",
+    "find_coupon": "找优惠",
+    "create_task": "建任务",
   },
   "shared": {
     "copied": "已复制",
@@ -27,6 +20,8 @@ export default {
     "cannot_use_1": "功能不开放",
     "privacy_tip": "隐私提示🔏",
     "ok": "好",
+    "open_mini_1": "前往小程序",
+    "open_mini_2": "请点击右下角“前往小程序”",
   },
   "err": {
     "no_data": "找不到耶",
@@ -52,5 +47,9 @@ export default {
     "tip_3": "这将会读取你的剪贴板内容，助力你一键上传！",
     "tip_4": "请确定剪贴板的内容为优惠信息",
     "manage": "去管理",
+    "slogan": "你的优惠券，都被收进留小白的抽屉里！",
+    "try_1": "试试看，输入",
+    "try_2": "“瑞幸”\n“霸王茶姬”\n......",
+    "got_it": "知道了",
   }
 }

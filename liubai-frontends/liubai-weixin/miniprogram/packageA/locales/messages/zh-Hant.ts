@@ -9,6 +9,12 @@ export default {
     "tip_1": "由影片觀看\n兌換來的可聊天次數",
     "learn_more": "檢視詳情",
   },
+  "coupon-home": {
+    "title": "找優惠👇",
+    "placeholder": "輸入商品或品牌名",
+    "share_mine": "分享我的優惠",
+    "search": "找找看",
+  },
   "coupon-add-select": {
     "title": "選擇類型",
     "btn_1": "海報（圖片）",

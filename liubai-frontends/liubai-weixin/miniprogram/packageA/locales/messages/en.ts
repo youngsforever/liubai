@@ -9,6 +9,12 @@ export default {
     "tip_1": "The number of conversations\n redeemed from video viewing",
     "learn_more": "Learn More",
   },
+  "coupon-home": {
+    "title": "Find Coupons👇",
+    "placeholder": "Product or brand name",
+    "share_mine": "Add coupons",
+    "search": "Search",
+  },
   "coupon-add-select": {
     "title": "Select Type",
     "btn_1": "Poster (Image)",

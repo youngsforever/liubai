@@ -9,6 +9,12 @@ export default {
     "tip_1": "由视频观看\n兑换来的可聊天次数",
     "learn_more": "查看详情",
   },
+  "coupon-home": {
+    "title": "找优惠👇",
+    "placeholder": "输入商品或品牌名",
+    "share_mine": "分享我的优惠",
+    "search": "找找看",
+  },
   "coupon-add-select": {
     "title": "选择类型",
     "btn_1": "海报（图片）",

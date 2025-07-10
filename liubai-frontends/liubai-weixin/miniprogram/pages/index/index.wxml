@@ -1,89 +1,32 @@
 <!-- index.wxml -->
-<scroll-view 
-  class="liu-{{theme}} liu-scroll-view" 
-  scroll-y 
-  type="list"
->
-  
-  <view class="index-container {{renderer}}">
 
-    <view class="index-virtual-one"></view>
+<view class="liu-{{theme}} index-container">
 
-    <!-- title -->
-    <view class="index-title">
-      <text>{{t1.title}}</text>
-    </view>
+  <view class="index-virtual-one"></view>
 
-    <!-- search box -->
-    <view class="index-search-box">
-
-      <!-- mock input for browseOnly -->
-      <view wx:if="{{isBrowseOnly}}" 
-        class="index-search-input input-search-placeholder"
-        catchtap="toOpenMiniProgram"
-      >
-        <text>{{t1.placeholder}}</text>
-      </view>
-
-      <input wx:else class="index-search-input" 
-        placeholder-class="input-search-placeholder"
-        placeholder="{{t1.placeholder}}" 
-        cursor-spacing="20"
-        always-embed
-        maxlength="30"
-        confirm-type="search"
-        cursor-color="{{ theme === 'light' ? light_primary_color : dark_primary_color }}"
-        bindinput="onSearchInput"
-        bindconfirm="toSearch"
-      />
-
-      <view class="index-search-bar">
-        <!-- search by image -->
-        <view class="liu-hover index-image-box"
-          hover-class="liu-skyline-hover"
-          catchtap="onTapImage"
-        >
-          <image src="{{imagePath}}photo.png" class="isb-image-icon" />
-        </view>
-
-        <!-- search button -->
-        <view class="isb-footer">
-          <index-search-button can-search="{{canSearch}}"
-            bind:tap="toSearch"
-          ></index-search-button>
-        </view>
-
-      </view>
-    </view>
-
-    <!-- add & mine --> 
-    <view class="index-add-mine">
-
-      <view class="liu-hover index-add" hover-class="liu-skyline-hover"
-        catchtap="onTapAdd"
-      >
-        <image src="{{imagePath}}add.png" class="iam-icon" />
-        <view class="index-add-text">
-          <text>{{t1.share_mine}}</text>
-        </view>
-      </view>
-
-      <view class="liu-hover index-mine" hover-class="liu-skyline-hover"
-        catchtap="onTapMine"
-      >
-        <image src="{{imagePath}}account.png" class="iam-icon-two" />
-      </view>
-      
-    </view>
-
-    <view class="index-virtual-two"></view>
-  </view>
-
-  <view class="index-footer-container" catchtap="onTapFollowUs">
-    <image src="/images/shared/logo_256x256_v3.png" class="index-logo"/>
-    <view class="index-powered-by">
-      <text>{{t1.powered_by}}</text>
+  <view class="liu-hover index-button" hover-class="liu-skyline-hover"
+    catchtap="goToCoupons"
+  >
+    <image src="/images/shared/star-struck_3d.png" class="ib-image" />
+    <view class="ib-title">
+      <text>{{t1.find_coupon}}</text>
     </view>
   </view>
 
-</scroll-view>
+  <view class="liu-hover index-button" hover-class="liu-skyline-hover">
+    <image src="/images/shared/memo_3d.png" class="ib-image" />
+    <view class="ib-title">
+      <text>{{t1.create_task}}</text>
+    </view>
+  </view>
+
+  <view class="index-virtual-two"></view>
+
+</view>
+
+<view class="liu-{{theme}} index-footer-container" catchtap="onTapFollowUs">
+  <image src="/images/shared/logo_256x256_v3.png" class="index-logo"/>
+  <view class="index-powered-by">
+    <text>{{t1.powered_by}}</text>
+  </view>
+</view>

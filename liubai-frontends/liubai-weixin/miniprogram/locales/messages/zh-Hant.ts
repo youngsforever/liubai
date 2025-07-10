@@ -3,17 +3,10 @@ export default {
     "appName": "留白記事"
   },
   "index": {
-    "slogan": "找優惠，用留小白的抽屜！",
-    "title": "找優惠👇",
+    "slogan": "用留白記事，消滅所有雜事！",
     "powered_by": "用留白記事，探索無限可能",
-    "placeholder": "輸入商品或品牌名",
-    "share_mine": "分享我的優惠",
-    "try_1": "試試看，鍵入",
-    "try_2": "“瑞幸”\n“霸王茶姬”\n......",
-    "got_it": "知道了",
-    "search": "找找看",
-    "open_mini_1": "前往小程式",
-    "open_mini_2": "請輕觸右下角「前往小程式」",
+    "find_coupon": "找優惠",
+    "create_task": "建任務",
   },
   "shared": {
     "copied": "已複製",
@@ -27,6 +20,8 @@ export default {
     "cannot_use_1": "功能未開放",
     "privacy_tip": "隱私提示🔏",
     "ok": "好",
+    "open_mini_1": "前往小程式",
+    "open_mini_2": "請輕觸右下角「前往小程式」",
   },
   "err": {
     "no_data": "找不到耶",
@@ -50,6 +45,10 @@ export default {
     "tip_1": "太多優惠券啦",
     "tip_2": "去管理一下吧！",
     "tip_3": "這將會讀取你的剪貼板內容，幫助你快速上傳！",
-    "manage": "去管理"
+    "manage": "去管理",
+    "slogan": "你的優惠券，都被收進留小白的抽屜裡！",
+    "try_1": "試試看，鍵入",
+    "try_2": "“瑞幸”\n“霸王茶姬”\n......",
+    "got_it": "知道了",
   }
 }

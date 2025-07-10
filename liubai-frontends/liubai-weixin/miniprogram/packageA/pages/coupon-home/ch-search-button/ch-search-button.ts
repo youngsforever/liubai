@@ -1,7 +1,7 @@
-import { themeBehavior } from "~/behaviors/theme-behavior"
-import { i18nBehavior } from "~/behaviors/i18n-behavior"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
+import { i18nBehavior } from "~/packageA/behaviors/i18n-behavior"
+import { themeBehavior } from "~/packageA/behaviors/theme-behavior"
 
 Component({
 
@@ -13,7 +13,7 @@ Component({
   },
 
   behaviors: [
-    i18nBehavior("index"),
+    i18nBehavior("coupon-home"),
     themeBehavior(),
   ],
 
@@ -24,9 +24,9 @@ Component({
       if(!canSearch) {
         LiuApi.vibrateShort({ type: "light" })
         LiuUtil.showCustomModal({
-          title_key: "index.try_1",
-          content_key: "index.try_2",
-          confirm_key: "index.got_it",
+          title_key: "coupon-related.try_1",
+          content_key: "coupon-related.try_2",
+          confirm_key: "coupon-related.got_it",
           showCancel: false,
         })
         return

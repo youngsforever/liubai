@@ -10,7 +10,6 @@ import { useI18n } from "~/locales/index"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
 import valTool from "~/utils/val-tool"
-import { handleImageSearch } from "./tools/useIndexPage"
 import { Loginer } from "~/utils/login/Loginer"
 
 Component({
@@ -43,12 +42,6 @@ Component({
   },
 
   methods: {
-
-    goToShowcase() {
-      LiuApi.vibrateShort({ type: "medium" })
-      const url = "/pages/showcase/showcase?key=cuiyanzhe"
-      LiuUtil.navigateWithPopup(url)
-    },
 
     onTapFollowUs() {
       // 0. vibrate
@@ -88,10 +81,6 @@ Component({
       })
     },
 
-    onTapImage() {
-      handleImageSearch()
-    },
-
     toOpenGzh() {
       const username = envData.GZH_USERNAME
       if(!username) {
@@ -106,58 +95,6 @@ Component({
       } }) 
     },
 
-    onSearchInput(e: any) {
-      const inputTxt: string = e.detail.value ?? ""
-      const trimTxt = inputTxt.trim()
-      const canSearch = Boolean(trimTxt.length > 1)
-      if(canSearch !== this.data.canSearch) {
-        this.setData({ canSearch })
-      }
-      this.data._searchValue = trimTxt
-    },
-
-    toSearch() {
-      const searchValue = this.data._searchValue
-      const canSearch = this.data.canSearch
-      if(!searchValue || !canSearch) return
-      
-      LiuApi.vibrateShort({ type: "heavy" })
-      console.log("to search: ", searchValue)
-    },
-
-    toOpenMiniProgram() {
-      LiuUtil.showCustomModal({
-        title_key: "index.open_mini_1",
-        content_key: "index.open_mini_2",
-        confirm_key: "index.got_it",
-        showCancel: false,
-      })
-    },
-
-    onTapAdd() {
-      LiuApi.vibrateShort({ type: "medium" })
-      LiuApi.navigateTo({
-        url: "/packageA/pages/coupon-add-select/coupon-add-select",
-        routeType: "wx://modal",
-        routeConfig: {
-          barrierColor: "rgba(0, 0, 0, 0.6)",
-          barrierDismissible: true,
-          popGestureDirection: "multi",
-          fullscreenDrag: false,
-          allowEnterRouteSnapshotting: true,
-          allowExitRouteSnapshotting: true,
-        },
-      })
-    },
-
-    async onTapMine() {
-      LiuApi.vibrateShort({ type: "medium" })
-      const res = await LiuApi.openChatTool({
-        url: "/packageB/pages/task-create/task-create",
-      })
-      console.log("openChatTool res: ", res)
-    },
-
     onLoad(query: Record<string, string>) {
       if(query?.key1) {
         this.data._key1 = query.key1
@@ -166,6 +103,12 @@ Component({
       if(!canLogin) {
         this.setData({ isBrowseOnly: true })
       }
+    },
+
+    goToCoupons() {
+      LiuApi.navigateTo({ 
+        url: "/packageA/pages/coupon-home/coupon-home",
+      })
     },
 
     onReady() {
