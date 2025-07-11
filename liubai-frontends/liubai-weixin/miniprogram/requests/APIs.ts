@@ -10,4 +10,5 @@ export default {
   UPLOAD_FILE: d + "file-set",
   USER_SETTINGS: d + "user-settings",
   HAPPY_SYSTEM: d + "happy-system",
+  PPL_TASKS: d + "people-tasks",
 }

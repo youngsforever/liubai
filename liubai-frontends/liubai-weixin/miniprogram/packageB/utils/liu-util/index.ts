@@ -37,7 +37,7 @@ export class LiuUtil {
   static goHome() {
     const res1 = this.naviBackToHome()
     if(res1) return
-    LiuApi.redirectTo({ url: defaultData.homePath })
+    LiuApi.reLaunch({ url: defaultData.homePath })
   }
 
   private static naviBackToHome() {

@@ -95,6 +95,17 @@ Component({
       } }) 
     },
 
+    onTapTask() {
+
+      LiuApi.openChatTool({
+        url: "/packageB/pages/task-create/task-create",
+        fail(err) {
+          console.warn("openChatTool fail", err)
+        }
+      })
+
+    },
+
     onLoad(query: Record<string, string>) {
       if(query?.key1) {
         this.data._key1 = query.key1

@@ -1,6 +1,7 @@
 import { navibarBehavior } from "../../behaviors/navibar-behavior";
 import { i18nBehavior } from "../../behaviors/i18n-behavior";
 import { themeBehavior } from "../../behaviors/theme-behavior";
+import { TaskManager } from "../shared/TaskManager";
 
 Component({
 
@@ -15,6 +16,10 @@ Component({
   ],
 
   methods: {
+
+    onLoad() {
+      TaskManager.init()
+    }
 
   },
 

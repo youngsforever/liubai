@@ -412,16 +412,18 @@ export class LiuApi {
     }
   }
 
-  static async openChatTool(opt: WechatMiniprogram.OpenChatToolOption) {
+  static async getChatToolInfo() {
     try {
-      const res = await wx.openChatTool(opt)
+      const res = await wx.getChatToolInfo({})
       return res
     }
     catch(err) {
-      console.warn("openChatTool err: ")
+      console.warn("getChatToolInfo err: ")
       console.log(err)
       return
     }
   }
+
+  
 
 }

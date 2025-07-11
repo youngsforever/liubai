@@ -13,7 +13,9 @@
     </view>
   </view>
 
-  <view class="liu-hover index-button" hover-class="liu-skyline-hover">
+  <view class="liu-hover index-button" hover-class="liu-skyline-hover"
+    catchtap="onTapTask"
+  >
     <image src="/images/shared/memo_3d.png" class="ib-image" />
     <view class="ib-title">
       <text>{{t1.create_task}}</text>

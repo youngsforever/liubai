@@ -2767,6 +2767,39 @@ export class WxMiniHandler {
   }
 
 
+  static decryptUserData<T>(
+    appid: string,
+    session_key: string,
+    encryptedData: string,
+    iv: string,
+  ) {
+    const sessionKeyBuf = Buffer.from(session_key, "base64")
+    const encryptedDataBuf = Buffer.from(encryptedData, "base64")
+    const ivBuf = Buffer.from(iv, "base64")
+   
+    let decrypted = ""
+    try {
+      const decipher = crypto.createDecipheriv("aes-128-cbc", sessionKeyBuf, ivBuf)
+      decipher.setAutoPadding(true)
+      decrypted = decipher.update(encryptedDataBuf, undefined, 'utf8')
+      decrypted += decipher.final('utf8')
+    }
+    catch(err) {
+      console.warn("decryptUserData failed")
+      console.log(err)
+      return
+    }
+    
+    const decryptedObj = valTool.strToObj(decrypted)
+    const theAppid = decryptedObj?.watermark?.appid
+    if(theAppid && theAppid !== appid) {
+      console.warn("appid not match")
+      return
+    }
+    
+    return decryptedObj as T
+  }
+
 
 }
 
