@@ -6,9 +6,12 @@ import {
   type LiuRqReturn, 
   type VerifyTokenRes_B,
   type PeopleTasksAPI,
-  WxMiniAPI, 
+  WxMiniAPI,
+  type Table_WxBond,
+  type Partial_Id, 
 } from "@/common-types"
 import * as vbot from "valibot"
+import { getBasicStampWhileAdding } from "./common-time"
 
 const db = cloud.database()
 const _ = db.command
@@ -59,10 +62,47 @@ async function enter_wx_chat_tool(
   if(!res3) {
     return { code: "E5001", errMsg: "fail to decrypt wxData" }
   }
+
+  // 4. save chat info
+  const userId = vRes.userData._id
+  saveChatInfo(userId, res3)
+
+  // 5. return data
   const result: PeopleTasksAPI.Res_EnterWxChatTool = {
     operateType: "enter-wx-chat-tool",
     chatInfo: res3,
   }
 
   return { code: "0000", data: result }
+}
+
+async function saveChatInfo(
+  userId: string,
+  chatInfo: WxMiniAPI.ChatInfo,
+) {
+  const group_openid = chatInfo.group_openid
+  const chat_type = chatInfo.chat_type
+  if(!group_openid || !chat_type) return false
+  const wbCol = db.collection("WxBond")
+  const w1: Partial<Table_WxBond> = {
+    userId,
+    infoType: "chat-tool",
+    group_openid,
+  }
+  const res1 = await wbCol.where(w1).get<Table_WxBond>()
+  const list1 = res1.data
+  if(list1.length > 0) return true
+
+  const b2 = getBasicStampWhileAdding()
+  const newData: Partial_Id<Table_WxBond> = {
+    ...b2,
+    infoType: "chat-tool",
+    userId,
+    opengid: chatInfo.opengid,
+    open_single_roomid: chatInfo.open_single_roomid,
+    group_openid,
+    chat_type,
+  }
+  await wbCol.add(newData)
+  return true
 }

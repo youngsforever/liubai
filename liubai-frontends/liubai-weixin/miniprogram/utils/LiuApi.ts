@@ -83,14 +83,14 @@ export class LiuApi {
     return res as WechatMiniprogram.ApiCategory
   }
 
-  static getSkylineInfoSync() {
-    return wx.getSkylineInfoSync()
-  }
-
   static onApiCategoryChange(
     listener: WechatMiniprogram.OnApiCategoryChangeCallback
   ) {
     wx.onApiCategoryChange(listener)
+  }
+
+  static getSkylineInfoSync() {
+    return wx.getSkylineInfoSync()
   }
 
   static getDeviceInfo() {

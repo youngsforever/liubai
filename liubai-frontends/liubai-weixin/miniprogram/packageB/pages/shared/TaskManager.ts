@@ -51,6 +51,16 @@ export class TaskManager {
       this.chatInfo = res3.data.chatInfo
     }
 
+    // 4. listen to api category change
+    const _this = this
+    LiuApi.onApiCategoryChange(res4 => {
+      const apiCategory4 = res4.apiCategory
+      if(apiCategory4 !== "chatTool") {
+        _this.chatInfo = null
+        LiuApi.offApiCategoryChange()
+      }
+    })
+
     return true
   }
 

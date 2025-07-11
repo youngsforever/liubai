@@ -1907,6 +1907,15 @@ export interface Table_HappyReception extends BaseTable {
   couponId?: string
 }
 
+export interface Table_WxBond extends BaseTable {
+  infoType: "chat-tool"
+  userId: string
+  opengid?: string
+  open_single_roomid?: string
+  group_openid?: string
+  chat_type?: 1 | 2 | 3 | 4
+}
+
 
 /*********************** 基于 Table 的扩展类型 ***********************/
 
