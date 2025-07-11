@@ -1,6 +1,5 @@
 import { LiuUtil, type CustomModalOpt } from "../liu-util/index";
 
-
 export class ShowTip {
 
   static cannotUse() {
@@ -31,11 +30,13 @@ export class ShowTip {
       title,
       content,
       confirm_key: "shared.contact_us",
+      success(res) {
+        if(res.confirm) {
+          LiuUtil.toContactUs()
+        }
+      }
     }
-    const res = await LiuUtil.showCustomModal(opt)
-    if(res.confirm) {
-      LiuUtil.toContactUs()
-    }
+    LiuUtil.showCustomModal(opt)
   }
 
 }

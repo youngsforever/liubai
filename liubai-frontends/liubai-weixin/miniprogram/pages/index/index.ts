@@ -11,6 +11,7 @@ import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
 import valTool from "~/utils/val-tool"
 import { Loginer } from "~/utils/login/Loginer"
+import { ShowTip } from "~/utils/managers/ShowTip"
 
 Component({
 
@@ -23,8 +24,8 @@ Component({
     light_primary_color: defaultData.light_primary_color,
     dark_primary_color: defaultData.dark_primary_color,
     canSearch: false,
-    isBrowseOnly: false,
     _key1: "",
+    _key2: "",
     _searchValue: "",
   },
 
@@ -43,9 +44,19 @@ Component({
 
   methods: {
 
+    isEverythingOK() {
+      const canLogin = Loginer.canILogin()
+      if(!canLogin) {
+        ShowTip.showOpenMiniForBrowseOnly()
+        return false
+      }
+      return true
+    },
+
     onTapFollowUs() {
       // 0. vibrate
       LiuApi.vibrateShort({ type: "light" })
+      if(!this.isEverythingOK()) return
 
       // 1. check out whether the current version supports 
       // opening the WeChat official account profile
@@ -96,27 +107,32 @@ Component({
     },
 
     onTapTask() {
+      if(!this.isEverythingOK()) return
+      this.toCreateTask()
+    },
 
+    toCreateTask() {
       LiuApi.openChatTool({
         url: "/packageB/pages/task-create/task-create",
         fail(err) {
           console.warn("openChatTool fail", err)
+          ShowTip.showErrMsg("fail to open chat tool", err)
         }
       })
-
     },
+
 
     onLoad(query: Record<string, string>) {
       if(query?.key1) {
         this.data._key1 = query.key1
       }
-      const canLogin = Loginer.canILogin()
-      if(!canLogin) {
-        this.setData({ isBrowseOnly: true })
+      else if(query?.key2) {
+        this.data._key2 = query.key2
       }
     },
 
-    goToCoupons() {
+    onTapCoupon() {
+      if(!this.isEverythingOK()) return
       LiuApi.navigateTo({ 
         url: "/packageA/pages/coupon-home/coupon-home",
       })
@@ -127,12 +143,20 @@ Component({
       if(key1) {
         const url = `/pages/showcase/showcase?key=${key1}`
         LiuUtil.navigateWithPopup(url)
+        return
+      }
+
+      const key2 = this.data._key2
+      if(key2 === "CREATE_TASK") {
+        this.toCreateTask()
+        return
       }
     },
 
     onUnload() {
       // reset 
       this.data._key1 = ""
+      this.data._key2 = ""
     },
 
     onShareAppMessage() {

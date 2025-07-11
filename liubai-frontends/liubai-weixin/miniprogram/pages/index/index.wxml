@@ -5,7 +5,7 @@
   <view class="index-virtual-one"></view>
 
   <view class="liu-hover index-button" hover-class="liu-skyline-hover"
-    catchtap="goToCoupons"
+    catchtap="onTapCoupon"
   >
     <image src="/images/shared/star-struck_3d.png" class="ib-image" />
     <view class="ib-title">

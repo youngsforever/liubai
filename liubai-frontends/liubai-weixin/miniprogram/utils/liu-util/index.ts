@@ -138,7 +138,7 @@ export class LiuUtil {
     }
     
     const res = await LiuApi.showModal(opt)
-    if(res.confirm) {
+    if(res?.confirm) {
       LiuApi.vibrateShort({ type: "light" })
     }
 
@@ -215,7 +215,7 @@ export class LiuUtil {
         console.log("openCustomerServiceChat success: ", res)
       },
       fail(err) {
-        console.error("openCustomerServiceChat fail: ", err)
+        console.warn("openCustomerServiceChat fail: ", err)
       }
     })
   }

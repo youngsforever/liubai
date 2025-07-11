@@ -4,12 +4,12 @@ import { navibarBehavior } from "~/behaviors/navibar-behavior"
 import { sharedBehavior } from "~/behaviors/shared-behavior"
 import { defaultData } from "~/config/default-data"
 import { useI18n } from "~/locales/index"
-import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
 import { handleImageSearch } from "./tools/useCouponHome"
 import { Loginer } from "~/utils/login/Loginer"
 import { i18nBehavior } from "~/packageA/behaviors/i18n-behavior"
 import { themeBehavior } from "~/packageA/behaviors/theme-behavior"
+import { ShowTip } from "~/utils/managers/ShowTip"
 
 Component({
 
@@ -65,12 +65,7 @@ Component({
     },
 
     toOpenMiniProgram() {
-      LiuUtil.showCustomModal({
-        title_key: "shared.open_mini_1",
-        content_key: "shared.open_mini_2",
-        confirm_key: "shared.got_it",
-        showCancel: false,
-      })
+      ShowTip.showOpenMiniForBrowseOnly()
     },
 
     onTapAdd() {

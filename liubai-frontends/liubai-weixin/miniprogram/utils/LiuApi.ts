@@ -87,6 +87,12 @@ export class LiuApi {
     return wx.getSkylineInfoSync()
   }
 
+  static onApiCategoryChange(
+    listener: WechatMiniprogram.OnApiCategoryChangeCallback
+  ) {
+    wx.onApiCategoryChange(listener)
+  }
+
   static getDeviceInfo() {
     // 在快照模式 browseOnly 的情况下，可能返回 undefined
     const res = wx.getDeviceInfo()

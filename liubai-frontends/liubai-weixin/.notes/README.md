@@ -13,6 +13,10 @@
 
 `key1`: 表示打开 showcase
 
+### index?key2=
+
+`CREATE_TASK`: 拉起 wx.openChatTool 去创建任务
+
 ### watch-video?r=
 
 `r`: 表示 room id

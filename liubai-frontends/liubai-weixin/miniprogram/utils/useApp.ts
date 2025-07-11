@@ -44,17 +44,18 @@ export async function useForwardMaterials(
 
 export class LiuApp {
 
-
   private static _hasLogged = false
   private static _waitList: BoolFunc[] = []
 
   static async init() {
-    const apiCategory = LiuApi.getApiCategory()
-    if(apiCategory === "browseOnly") return
     const _this = this
+    let currentApiCategory = LiuApi.getApiCategory()
 
     // 1. to define a function to fetch login data
     const _run = async () => {
+      const latestApiCategory = LiuApi.getApiCategory()
+      if(latestApiCategory === "browseOnly") return false
+
       // 1.1 time calibrate
       const res1_1 = await timeCalibrate()
       if (!res1_1) return false
@@ -70,30 +71,45 @@ export class LiuApp {
       return true
     }
 
-    // 2. try to login
-    const res2 = await _run()
-    if (res2) return
+    // 2.2 try to login
+    const res2_2 = await _run()
+    if (res2_2) return
 
     // 3. define network change and custom timeout
     let _timeout: LiuTimeout
-    const _whenNetworkChange = async (
+    const _whenCtxChange = async (
       res?: WechatMiniprogram.OnNetworkStatusChangeListenerResult,
     ) => {
       if (res && !res.isConnected) return
       const res3 = await _run()
       if (!res3) return
-      LiuApi.offNetworkStatusChange(_whenNetworkChange)
+      LiuApi.offNetworkStatusChange(_whenCtxChange)
       _timeout && clearTimeout(_timeout)
       _timeout = undefined
     }
 
     // 4. listen to network change
-    LiuApi.onNetworkStatusChange(_whenNetworkChange)
+    LiuApi.onNetworkStatusChange(_whenCtxChange)
 
     // 5. custom timeout
+    let duration5 = LiuTime.MINUTE
+    if(currentApiCategory === "browseOnly") {
+      duration5 = LiuTime.SECOND * 5
+    }
     _timeout = setTimeout(async () => {
-      _whenNetworkChange()
-    }, LiuTime.MINUTE)
+      _whenCtxChange()
+    }, duration5)
+
+    // 6. listen to onApiCategoryChange
+    LiuApi.onApiCategoryChange(res6 => {
+      console.log("onApiCategoryChange: ", res6)
+      const newApiCategory = res6.apiCategory
+      if(currentApiCategory === "browseOnly" && newApiCategory !== "browseOnly") {
+        _whenCtxChange()
+      }
+      currentApiCategory = newApiCategory
+    })
+
   }
 
 
