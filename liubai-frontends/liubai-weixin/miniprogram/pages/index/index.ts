@@ -22,8 +22,6 @@ Component({
 
   data: {
     pageName: "index",
-    light_primary_color: defaultData.light_primary_color,
-    dark_primary_color: defaultData.dark_primary_color,
     canSearch: false,
     _key1: "",
     _key2: "",

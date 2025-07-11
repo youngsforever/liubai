@@ -34,6 +34,7 @@
   align-items: center;
   justify-content: center;
   transition: .15s;
+  flex: none;
 }
 
 .cn-close-box_active {
@@ -59,10 +60,21 @@
   height: 66%;
 }
 
-.cn-title {
+.cn-title-box {
   flex: 1;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  min-width: 0;
+}
+
+.cn-title {
+  max-width: 80%;
   text-align: center;
   font-size: var(--desc-font);
   font-weight: 700;
   color: var(--main-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }

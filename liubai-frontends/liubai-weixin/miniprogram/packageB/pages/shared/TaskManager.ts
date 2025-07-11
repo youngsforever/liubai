@@ -29,11 +29,11 @@ export class TaskManager {
     // 2. get chat tool info which is encrypted
     const res2 = await LiuApi.getChatToolInfo()
     if(!res2) {
-      await LiuUtil.showCustomModal({
-        content: "fail to get chat tool info",
-        showCancel: false,
-      })
-      LiuUtil.goHome()
+      // await LiuUtil.showCustomModal({
+      //   content: "fail to get chat tool info",
+      //   showCancel: false,
+      // })
+      // LiuUtil.goHome()
       return
     }
 

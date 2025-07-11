@@ -24,7 +24,7 @@ export default {
   },
   "task-create": {
     "title": "創建任務",
-    "placeholder": "記一件事...",
+    "placeholder": "一句話描述...",
     "add_photo": "新增照片",
     "assign_to": "指派給",
     "done": "就這樣",

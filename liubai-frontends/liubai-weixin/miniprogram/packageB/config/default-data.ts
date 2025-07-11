@@ -10,6 +10,15 @@ export const defaultData = {
   frame_duration: 12,
   duration_ms_1: 150,     // 一个常用的等待时间，目前用于刷新图片的间隔
   duration_ms_2: 500,     // 一个常用的等待时间，用于一些后台请求，去分散频繁调用网络所使用
-  light_primary_color: "#2a6885",
-  dark_primary_color: "#88d1ff",
+}
+
+export const colorData = {
+  light: {
+    primary_color: "#2a6885",
+    main_note: "#ababab",
+  },
+  dark: {
+    primary_color: "#88d1ff",
+    main_note: "#686868",
+  }
 }

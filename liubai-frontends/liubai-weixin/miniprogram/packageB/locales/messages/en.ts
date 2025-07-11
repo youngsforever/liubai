@@ -25,4 +25,11 @@ export default {
     "video_err": "Video load failed",
     "err_reason": "Reason: {msg}; Status code: {code}",
   },
+  "task-create": {
+    "title": "New",
+    "placeholder": "Say something...",
+    "add_photo": "Add photo",
+    "assign_to": "Assign to",
+    "done": "Done",
+  },
 }

@@ -2,7 +2,6 @@
 
 import { navibarBehavior } from "~/behaviors/navibar-behavior"
 import { sharedBehavior } from "~/behaviors/shared-behavior"
-import { defaultData } from "~/config/default-data"
 import { useI18n } from "~/locales/index"
 import { LiuApi } from "~/utils/LiuApi"
 import { handleImageSearch } from "./tools/useCouponHome"
@@ -19,8 +18,6 @@ Component({
 
   data: {
     pageName: "coupon-home",
-    light_primary_color: defaultData.light_primary_color,
-    dark_primary_color: defaultData.dark_primary_color,
     canSearch: false,
     isBrowseOnly: false,
     _searchValue: "",

@@ -1,4 +1,4 @@
-import { defaultData } from "../../config/default-data";
+import { colorData, defaultData } from "../../config/default-data";
 import { LiuApi } from "../LiuApi";
 import { handleCharacteristic, handleDeviceString } from "./tools/characteristic";
 import { useI18n } from "../../locales/index";
@@ -90,10 +90,7 @@ export class LiuUtil {
     // 1. handle confirm color
     if(!opt.confirmColor) {
       const theme = LiuUtil.getCurrentTheme()
-      let confirmColor = defaultData.light_primary_color
-      if(theme === "dark") {
-        confirmColor = defaultData.dark_primary_color
-      }
+      const confirmColor = colorData[theme].primary_color
       opt.confirmColor = confirmColor
     }
 

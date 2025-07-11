@@ -52,8 +52,10 @@
       <image wx:else src="{{imagePath}}arrow-down.png" class="cn-close-image" />
     </view>
 
-    <view wx:if="{{title}}" class="cn-title">
-      <text>{{title}} pageLength: {{pageLength}}</text>
+    <view wx:if="{{title}}" class="cn-title-box">
+      <view class="cn-title">
+        <text>{{title}}</text>
+      </view>
     </view>
 
     <!-- virtual box to placeholder -->

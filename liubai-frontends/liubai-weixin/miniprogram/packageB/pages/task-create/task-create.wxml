@@ -7,7 +7,38 @@
   associative-container="pop-gesture"
 >
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
-  <text>here is task-create page!</text>
+  
+  <view class="liu-main-container">
+    <view class="liu-main-box">
+
+      <input placeholder="{{t1.placeholder}}" maxlength="66"
+        class="tc-input"
+        placeholder-style="color: {{ colors.main_note }};"
+        cursor-color="{{ colors.primary_color }}"
+        focus="{{focus}}"
+      />
+
+      <!-- Assign to -->
+      <view class="tc-box">
+        <view class="tc-first-bar"
+          hover-class="tc-hover"
+        >
+          <image src="{{imagePath}}group.png" class="tcfb-icon" />
+          <view class="tcfb-text">
+            <text>{{t1.assign_to}}</text>
+          </view>
+          <view class="tcfb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" 
+              class="tcfb-arrow {{assignees.length > 0 ? 'tcfb-arrow_rotated' : ''}}"
+            />
+          </view>
+        </view>
+
+      </view>
+
+
+    </view>
+  </view>
   
 </scroll-view>
 <custom-navibar 

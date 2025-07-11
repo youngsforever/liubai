@@ -11,6 +11,9 @@ page {
   --mini-font: 15px;
 
   --max-mobile: 600px;
+  --card-percent: 92%;
+  --card-min: 200px;
+  --card-max: 580px;
 
   height: 100vh;
   display: flex;
@@ -71,10 +74,25 @@ page {
   opacity: .75;
 }
 
+.liu-main-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.liu-main-box {
+  width: var(--card-percent);
+  max-width: var(--card-max);
+  min-width: var(--card-min);
+  position: relative;
+}
 
 
 /************** for webview *************/
 
+/** 靠 背景色 来实现 hover */
 .liu-hover {
   position: relative;
   cursor: pointer;
@@ -94,6 +112,7 @@ page {
   background-color: var(--primary-color);
 }
 
+/** 靠 透明度 来实现 hover */
 .liu-hover2 {
   position: relative;
   cursor: pointer;
@@ -140,6 +159,7 @@ page {
   background-color: var(--primary-color);
 }
 
+/** 靠 缩小 来实现 hover */
 .liu-skyline-hover2 {
   transform: scale(.95);
 }

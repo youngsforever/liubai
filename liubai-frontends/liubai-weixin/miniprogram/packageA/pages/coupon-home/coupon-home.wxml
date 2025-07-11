@@ -32,7 +32,7 @@
         always-embed
         maxlength="30"
         confirm-type="search"
-        cursor-color="{{ theme === 'light' ? light_primary_color : dark_primary_color }}"
+        cursor-color="{{ colors.primary_color }}"
         bindinput="onSearchInput"
         bindconfirm="toSearch"
       />
