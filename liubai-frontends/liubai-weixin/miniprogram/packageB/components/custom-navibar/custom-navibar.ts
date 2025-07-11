@@ -1,5 +1,6 @@
 // custom-navibar.ts
 
+import { defaultData } from "../../config/default-data";
 import { sharedBehavior } from "../../behaviors/shared-behavior";
 import { themeBehavior } from "../../behaviors/theme-behavior";
 import { LiuUtil } from "../../utils/liu-util/index";
@@ -9,6 +10,7 @@ Component({
 
   data: {
     isEmbedded: false,
+    preferIcon: "",   // arrow-down or arrow-back
   },
 
   behaviors: [
@@ -48,6 +50,15 @@ Component({
       const isEmbedded = Boolean(apiCategory === "embedded")
       if(isEmbedded) {
         this.setData({ isEmbedded })
+      }
+
+      const sizeInfo = LiuApi.getWindowInfo()
+      const screenHeight = sizeInfo?.screenHeight ?? defaultData.screenHeight
+      const windowHeight = sizeInfo?.windowHeight ?? defaultData.windowHeight
+      const pages = LiuApi.getPages()
+      const pLength = pages.length
+      if(screenHeight === windowHeight && pLength > 1) {
+        this.setData({ preferIcon: "arrow-back" })
       }
     }
   },

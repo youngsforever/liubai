@@ -42,6 +42,11 @@
         src="{{imagePath}}arrow-back.png" 
         class="cn-back-image"
       />
+      <image 
+        wx:elif="{{preferIcon === 'arrow-back'}}" 
+        src="{{imagePath}}arrow-back.png" 
+        class="cn-back-image"
+      />
        
       <!-- fallback: arrow down -->
       <image wx:else src="{{imagePath}}arrow-down.png" class="cn-close-image" />

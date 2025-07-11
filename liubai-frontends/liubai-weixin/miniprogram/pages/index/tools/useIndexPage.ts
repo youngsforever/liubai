@@ -2,6 +2,7 @@ import APIs from "~/requests/APIs";
 import { LiuReq } from "~/requests/LiuReq";
 import type { PeopleTasksAPI } from "~/requests/req-types";
 import { LiuApi } from "~/utils/LiuApi";
+import { LiuTunnel } from "~/utils/LiuTunnel";
 import { LiuApp } from "~/utils/useApp";
 
 export async function handleGroupInfo() {
@@ -10,6 +11,7 @@ export async function handleGroupInfo() {
   const enterInfo = LiuApi.getEnterOptionsSync()
   const scene = enterInfo.scene
 
+  // 1008: 群聊会话里的小程序卡片
   // 1158: 群工具打开小程序
   // 1160: 群待办
   // 1185: 群公告
@@ -59,6 +61,7 @@ async function fetchGroupInfo(
 
   // 3. invoke openChatTool
   const url3 = "/packageB/pages/task-create/task-create"
+  LiuTunnel.setStuff("wx-chat-info", chatInfo)
   LiuApi.openChatTool({
     url: url3,
     roomid,
@@ -68,6 +71,7 @@ async function fetchGroupInfo(
     },
     fail(err) {
       console.warn("fetchGroupInfo openChatTool fail", err)
+      LiuTunnel.clear()
     }
   })
 
