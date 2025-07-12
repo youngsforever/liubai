@@ -1,6 +1,3 @@
-
-
-
 export interface BcParam {
   code: string
   language?: string | null
@@ -12,3 +9,9 @@ export interface BcData {
   show: boolean
   enable: boolean
 }
+
+export interface BcResult {
+  closed: boolean
+}
+
+export type BcResolver = (res: BcResult) => void

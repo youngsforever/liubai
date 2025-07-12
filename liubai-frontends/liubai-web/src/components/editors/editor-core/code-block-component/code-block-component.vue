@@ -73,7 +73,7 @@
     <pre spellcheck="false"><code><node-view-content /></code></pre>
 
     <div v-if="!isBriefing && node.attrs?.needFold" class="cb-fold-container">
-      <div class="cb-fold-box">
+      <div class="cb-fold-box" @click.stop="onTapExpandCode">
         <div class="cb-fold-text">
           <span>{{ t('editor.expand_code') }}</span>
         </div>
@@ -104,6 +104,7 @@ import type { LiuTimeout } from '~/utils/basic/type-tool'
 import { editorBriefingKey, editorCanInteractKey } from "~/utils/provide-keys"
 import { useRouteAndLiuRouter } from '~/routes/liu-router'
 import { deviceChaKey } from '~/utils/provide-keys'
+import cui from '~/components/custom-ui'
 
 export default {
   components: {
@@ -180,6 +181,14 @@ export default {
       liuUtil.open.visualizeCode(text, { rr })
     }
 
+    const onTapExpandCode = () => {
+      const text = _getCodePlainText()
+      if(!text) return
+
+      const _lang = props.node.attrs.language
+      cui.browseCode({ code: text, language: _lang })
+    }
+
     const canInteract = inject(editorCanInteractKey, ref(true))
 
     return { 
@@ -194,6 +203,7 @@ export default {
       showVisualize,
       onTapCopyCode,
       onTapVisualize,
+      onTapExpandCode,
       showCopied,
       canInteract,
     }

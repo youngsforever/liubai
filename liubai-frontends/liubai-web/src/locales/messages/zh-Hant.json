@@ -75,7 +75,8 @@
     "opened": "已開啟",
     "saved": "已保存",
     "closed": "已關閉",
-    "crop": "剪裁"
+    "crop": "剪裁",
+    "click_to_close": "輕觸關閉"
   },
   "editor": {
     "when": "什麼時候",

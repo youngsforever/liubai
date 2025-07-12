@@ -75,7 +75,8 @@
     "opened": "Turned on",
     "saved": "Saved",
     "closed": "Turned off",
-    "crop": "Crop"
+    "crop": "Crop",
+    "click_to_close": "Click to close"
   },
   "editor": {
     "when": "When",
