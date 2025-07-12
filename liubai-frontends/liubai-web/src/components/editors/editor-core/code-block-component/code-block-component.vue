@@ -52,7 +52,7 @@
         :class="{ 'cbrt-btn_no_pointer': showCopied }"
         @click.stop="onTapCopyCode"
       >
-        <svg-icon name="copy" color="#a0a0a0" class="cbrt-btn-svg"></svg-icon>
+        <svg-icon name="copy" color="var(--code-btn-text)" class="cbrt-btn-svg"></svg-icon>
         <div class="liu-no-user-select cbrt-btn-text">
           <span 
             v-if="selectedLanguage === 'plaintext' || selectedLanguage === 'markdown'"
@@ -61,7 +61,7 @@
         </div>
 
         <div class="cbrt-copied" :class="{ 'cbrt-copied_show': showCopied }">
-          <svg-icon name="check" color="#a0a0a0" class="cbrt-btn-svg"></svg-icon>
+          <svg-icon name="check" color="var(--code-btn-text)" class="cbrt-btn-svg"></svg-icon>
           <div class="liu-no-user-select cbrt-btn-text">
             <span>{{ t('common.copied') }}</span>
           </div>
@@ -78,7 +78,7 @@
           <span>{{ t('editor.expand_code') }}</span>
         </div>
         <div class="cb-fold-circle">
-          <svg-icon name="arrow-right2" color="#a0a0a0" class="cb-fold-svg"></svg-icon>
+          <svg-icon name="arrow-right2" color="var(--code-btn-text)" class="cb-fold-svg"></svg-icon>
         </div>
       </div>
     </div>
@@ -343,7 +343,7 @@ export default {
 
     .cbrt-btn-text {
       margin-inline-start: 4px;
-      color: #a0a0a0;
+      color: var(--code-btn-text);
       font-size: var(--mini-font);
     }
 
@@ -396,9 +396,8 @@ export default {
 
     .cb-fold-text {
       margin-inline-end: 8px;
-      color: #a0a0a0;
+      color: var(--code-btn-text);
       font-size: var(--mini-font);
-      font-weight: 600;
       user-select: none;
       -webkit-user-select: none;
       cursor: pointer;
@@ -411,7 +410,7 @@ export default {
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1.6px solid #a0a0a0;
+      border: 1.6px solid var(--code-btn-text);
     }
 
     .cb-fold-svg {

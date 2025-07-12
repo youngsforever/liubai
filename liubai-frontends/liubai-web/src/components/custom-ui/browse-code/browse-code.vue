@@ -28,10 +28,15 @@ const { t } = useI18n()
           <span class="liu-no-user-select">{{ bcData.language }}</span>
         </div>
         <div class="bc-copy-btn" @click.stop="onTapCopy">
-          <svg-icon name="copy" color="var(--main-note)"
+          <svg-icon name="copy" color="#bbb"
             class="bc-copy-svg"
           ></svg-icon>
           <span>{{ t('editor.copy') }}</span>
+
+          <div class="cbrt-copied" :class="{ 'cbrt-copied_show': bcData.copiedTimeout }">
+            <svg-icon name="check" color="var(--code-btn-text)" class="bc-copy-svg"></svg-icon>
+            <span>{{ t('common.copied') }}</span>
+          </div>
         </div>
       </div>
       
@@ -81,14 +86,16 @@ const { t } = useI18n()
     right: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--frosted-glass-3);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
   }
 }
 
 .bc-code-area {
   position: relative;
   width: 95%;
-  max-width: 1200px;
+  max-width: 900px;
   height: 92vh;
   max-height: 92dvh;
   overflow: hidden;
@@ -118,28 +125,54 @@ const { t } = useI18n()
 .bc-lang-tag {
   padding: 4px 8px;
   border-radius: 6px;
-  background-color: #404040;
   font-size: var(--mini-font);
   color: #ddd;
   font-weight: 500;
+  letter-spacing: 1px;
 }
 
 .bc-copy-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 16px;
   border-radius: 6px;
   background-color: #404040;
   color: #bbb;
   font-size: var(--mini-font);
   cursor: pointer;
   transition: .15s;
+  position: relative;
+  box-sizing: border-box;
 
   .bc-copy-svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+    margin-inline-end: 4px;
   }
+}
+
+.cbrt-copied {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #404040;
+  opacity: 0;
+  visibility: hidden;
+  transition: .15s;
+  will-change: opacity;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cbrt-copied_show {
+  visibility: visible;
+  opacity: 1;
 }
 
 .bc-code-content {
@@ -192,19 +225,8 @@ const { t } = useI18n()
 }
 
 @media screen and (max-width: 500px) {
-  .bc-container {
-    padding-top: 3vh;
-  }
-  
-  .bc-code-area {
-    width: 98%;
-    height: 75vh;
-    max-height: 75vh;
-  }
-
   .bc-close-text {
     padding: 10px 20px;
-    font-size: var(--btn-font);
   }
 }
 

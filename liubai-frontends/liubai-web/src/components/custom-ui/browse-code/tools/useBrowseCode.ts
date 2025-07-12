@@ -11,6 +11,7 @@ import { openIt, closeIt, handleCustomUiQueryErr } from "../../tools/useCuiTool"
 import { toListenEscKeyUp, cancelListenEscKeyUp } from "../../tools/listen-keyup"
 import type { LiuTimeout } from "~/utils/basic/type-tool"
 import cfg from "~/config"
+import liuApi from "~/utils/liu-api"
 
 let _resolve: BcResolver | undefined
 
@@ -56,9 +57,16 @@ function onTapClose() {
 }
 
 function onTapCopy() {
-  if (!bcData.code) return
-  navigator.clipboard.writeText(bcData.code)
-  // TODO: 显示复制成功提示
+  const txt = bcData.code
+  if (!txt) return
+  liuApi.copyToClipboard(txt)
+
+  if(bcData.copiedTimeout) {
+    clearTimeout(bcData.copiedTimeout)
+  }
+  bcData.copiedTimeout = setTimeout(() => {
+    bcData.copiedTimeout = undefined
+  }, 2000)
 }
 
 export function browseCode(param: BcParam) {

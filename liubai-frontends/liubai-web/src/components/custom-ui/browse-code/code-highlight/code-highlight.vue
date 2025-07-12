@@ -15,14 +15,24 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// HTML 转义函数
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // 简单的 AST 转 HTML 函数
 function astToHtml(node: any): string {
   if (typeof node === 'string') {
-    return node
+    return escapeHtml(node)
   }
   
   if (node.type === 'text') {
-    return node.value || ''
+    return escapeHtml(node.value || '')
   }
   
   if (node.type === 'element') {
@@ -55,8 +65,8 @@ const highlightedCode = computed(() => {
     }
   } catch (error) {
     console.warn('Code highlighting failed:', error)
-    // 如果高亮失败，返回原始代码
-    return props.code
+    // 如果高亮失败，返回转义后的原始代码
+    return escapeHtml(props.code)
   }
 })
 </script>
