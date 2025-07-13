@@ -37,6 +37,7 @@ import type {
   LiuIDEType,
   Table_BlockList,
   WeixinAPI,
+  Wx_Res_GzhOAuthAccessToken,
 } from "@/common-types"
 import { clientMaximum, UserLoginAPI } from "@/common-types"
 import { 
@@ -151,6 +152,9 @@ export async function main(ctx: FunctionContext) {
   }
   else if(oT === "wx_gzh_oauth") {
     res = await handle_wx_gzh_oauth(ctx, body)
+  }
+  else if(oT === "wx_gzh_for_mini") {
+    res = await handle_wx_gzh_for_mini(ctx, body)
   }
   else if(oT === "wx_mini_session") {
     res = await handle_wx_mini_session(ctx, body)
@@ -1367,20 +1371,21 @@ async function handle_wx_mini_session(
   return { code: "0000", data: data9 }
 }
 
-async function handle_wx_gzh_base(
-  ctx: FunctionContext,
+
+async function prepareWxGzhOAuth(
   body: Record<string, string>,
-): Promise<LiuRqReturn<Res_UL_WxGzhBase>> {
+): Promise<DataPass<Wx_Res_GzhOAuthAccessToken>> {
+
   // 1. check out oauth_code
   const oauth_code = body.oauth_code
   if(!oauth_code) {
-    return { code: "E4000", errMsg: "no oauth_code" }
+    return { pass: false, err: { code: "E4000", errMsg: "no oauth_code" } }
   }
 
   // 2. check out state
   const state = body.state
   const res0 = await LoginStater.check(state)
-  if(res0) return res0
+  if(res0) return { pass: false, err: res0 }
 
   // 3. get access_token with code
   const res3 = await getWxGzhUserOAuthAccessToken(oauth_code)
@@ -1391,9 +1396,57 @@ async function handle_wx_gzh_base(
   if(!openid) {
     console.warn("no openid from wx gzh")
     console.log(res3)
-    return { code: "E5004", errMsg: "no openid from wx gzh" }
+    return { pass: false, err: { code: "E5004", errMsg: "no openid from wx gzh" } }
   }
 
+  return { pass: true, data: data4 }  
+}
+
+async function handle_wx_gzh_for_mini(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+): Promise<LiuRqReturn<UserLoginAPI.Res_WxGzhForMini>> {
+  // 1. prepare
+  const res1 = await prepareWxGzhOAuth(body)
+  console.log("prepareWxGzhOAuth: ", res1)
+  
+  if(res1.pass === false) return res1.err
+
+  // 2. get user's access_token & openid
+  const data2 = res1.data
+  const user_access_token = data2.access_token
+  if(!user_access_token) {
+    console.warn("no access_token from wx gzh for mini")
+    return { code: "E5004", errMsg: "no access_token from wx gzh for mini" }
+  }
+  const wx_gzh_openid = data2.openid
+
+  // 3. get user info
+  const data3 = await getWxGzhSnsUserInfo(wx_gzh_openid, user_access_token)
+  if(!data3?.nickname) {
+    console.warn("no nickname from wx gzh")
+    console.log(data3)
+    return { code: "E5004", errMsg: "no nickname from wx gzh for mini" }
+  }
+
+  // 4. return data
+  return { 
+    code: "0000", 
+    data: { 
+      operateType: "wx_gzh_for_mini",
+      nickname: data3.nickname,
+      headimgurl: data3.headimgurl,
+    }
+  }
+}
+
+async function handle_wx_gzh_base(
+  ctx: FunctionContext,
+  body: Record<string, string>,
+): Promise<LiuRqReturn<Res_UL_WxGzhBase>> {
+  const res = await prepareWxGzhOAuth(body)
+  if(res.pass === false) return res.err
+  const openid = res.data.openid
   return { 
     code: "0000", 
     data: { 

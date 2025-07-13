@@ -2059,6 +2059,7 @@ export type UserLoginOperate = "init" | "email" | "email_code"
   | "github_oauth" 
   | "google_oauth"
   | "wx_gzh_oauth"
+  | "wx_gzh_for_mini"
   | "wx_gzh_scan"
   | "wx_gzh_base"   // only for wx_gzh_openid
   | "wx_mini_session"
@@ -2790,6 +2791,12 @@ export namespace UserLoginAPI {
   export interface Res_WxMiniSession extends Res_UserLoginNormal {
     operateType: "wx_mini_session"
     wx_mini_openid: string
+  }
+
+  export interface Res_WxGzhForMini {
+    operateType: "wx_gzh_for_mini"
+    nickname: string
+    headimgurl?: string
   }
 
 }

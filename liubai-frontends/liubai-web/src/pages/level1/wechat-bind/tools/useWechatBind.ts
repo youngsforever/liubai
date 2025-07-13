@@ -42,7 +42,7 @@ export function useWechatBind() {
     }
 
     // 2.1 check out if agree rules
-    if(s === "logout") {
+    if(s === "logout" || s == "wxmini-login") {
       if(!wbData.agreeRule) {
         wbData.agreeShakingNum++
         return
@@ -86,7 +86,7 @@ async function redirectToWeChatOAuth(
   localCache.setOnceData("wxGzhOAuthState", state)
 
   // 3. construct redirect_uri
-  const redirect_uri = location.origin + "/wechat-bind"
+  const redirect_uri = location.origin + location.pathname
   const url = new URL(thirdLink.WX_GZH_OAUTH)
   const sp = url.searchParams
   sp.append("appid", wxGzhAppid)
@@ -149,7 +149,10 @@ function listenContext(
   const { memberId } = storeToRefs(wStore)
 
   watch([rr.route, memberId], ([newV1, newV2]) => {
-    if(newV1.name !== "wechat-bind") return
+    const pageName = newV1.name
+    if(pageName !== "wechat-bind" && pageName !== "wxmini-login") {
+      return
+    }
     const oAuthCode = newV1.query.code
     const oAuthState = newV1.query.state
 
@@ -161,7 +164,7 @@ function listenContext(
       }
     }
     else {
-      handleWithoutCode(wbData, newV2)
+      handleWithoutCode(rr, wbData, newV2)
     }
 
   }, { immediate: true })
@@ -281,9 +284,16 @@ async function loginWithWeChat(
 }
 
 async function handleWithoutCode(
+  rr: RouteAndLiuRouter,
   wbData: WbData,
   memberId: string,
 ) {
+  const pageName = rr.route.name
+  if(pageName === "wxmini-login") {
+    getLoginDataForWxMini(wbData)
+    return
+  }
+
   const hasLogged = localCache.hasLoginWithBackend()
   if(hasLogged && !memberId) {
     console.warn("member id dosen't exist but we are logged in")
@@ -298,6 +308,23 @@ async function handleWithoutCode(
     //【未登录】去获取登录时所需的数据 UserLoginAPI.Res_Init
     getLoginDataWhenLoggout(wbData)
   }
+}
+
+async function getLoginDataForWxMini(
+  wbData: WbData,
+) {
+  // 1. fetch
+  const res1 = await fetchLoginData()
+  if(!res1.pass) {
+    handleErr(wbData, res1.err)
+    return
+  }
+
+  // 2. handle view
+  const data2 = res1.data
+  wbData.pageState = pageStates.OK
+  wbData.loginData = data2
+  wbData.status = "wxmini-login"
 }
 
 
