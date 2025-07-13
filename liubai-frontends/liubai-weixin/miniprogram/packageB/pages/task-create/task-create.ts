@@ -31,9 +31,8 @@ Component({
       const _this = this
       LiuApi.vibrateShort({ type: "medium" })
 
-      const chatInfo = TaskManager.getChatInfo()
       const assignees = this.data.assignees
-      if(chatInfo?.open_single_roomid && assignees.length > 0) {
+      if(assignees.length > 0) {
         this.setData({ assignees: [] })
         return
       }
