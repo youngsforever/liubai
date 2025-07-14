@@ -33,6 +33,10 @@ export async function setLoginLocally(data: LiuLoginData) {
   return res
 }
 
+export function refreshLoginLocally() {
+  _lastGetLoginDataStamp = 0
+}
+
 export async function removeLoginLocally() {
   _loginData = undefined
   const res = await LiuApi.removeStorage({ key: LOGIN_KEY })

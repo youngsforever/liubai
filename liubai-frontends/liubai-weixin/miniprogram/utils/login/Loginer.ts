@@ -3,6 +3,7 @@ import { LiuApi } from "../LiuApi";
 import { fetchEnter, fetchLogin } from "./tools/fetch-user";
 import { 
   getLoginLocally, 
+  refreshLoginLocally, 
   removeLoginLocally, 
   setLoginLocally,
 } from "./tools/local-login";
@@ -36,6 +37,14 @@ export class Loginer {
   }
 
   static async run() {
+    // 0. listen to api category change
+    let apiCategory = LiuApi.getApiCategory()
+    LiuApi.onApiCategoryChange((res0) => {
+      if(apiCategory !== res0.apiCategory) {
+        refreshLoginLocally()
+      }
+    })
+
     // 1. get login data
     const res1 = await this.getLoginData(true)
     if(res1) {

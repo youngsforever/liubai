@@ -53,13 +53,16 @@ export class TaskManager {
 
     // 4. listen to api category change
     const _this = this
-    LiuApi.onApiCategoryChange(res4 => {
+    const _change: WechatMiniprogram.OnApiCategoryChangeCallback = (
+      res4
+    ) => {
       const apiCategory4 = res4.apiCategory
       if(apiCategory4 !== "chatTool") {
         _this.chatInfo = null
-        LiuApi.offApiCategoryChange()
+        LiuApi.offApiCategoryChange(_change)
       }
-    })
+    }
+    LiuApi.onApiCategoryChange(_change)
 
     return true
   }
