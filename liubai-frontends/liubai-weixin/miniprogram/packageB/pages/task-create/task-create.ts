@@ -6,6 +6,7 @@ import valTool from "../../utils/val-tool";
 import { defaultData } from "~/packageB/config/default-data";
 import { LiuApi } from "~/packageB/utils/LiuApi";
 import { ShowTip } from "~/packageB/utils/managers/ShowTip";
+import { handlePost } from "./tools/useTaskCreate";
 
 Component({
 
@@ -21,10 +22,23 @@ Component({
 
   data: {
     focus: false,
+    canSubmit: false,
     assignees: [] as string[],
+    _val: "",
   },
 
   methods: {
+
+    onInput(e: any) {
+      const inputTxt: string = e.detail.value ?? ""
+      const trimTxt = inputTxt.trim()
+      this.data._val = trimTxt
+      
+      const newCanSubmit = Boolean(trimTxt.length > 1)
+      if(newCanSubmit !== this.data.canSubmit) {
+        this.setData({ canSubmit: newCanSubmit })
+      }
+    },
 
 
     async onTapAsignees() {
@@ -61,8 +75,9 @@ Component({
     },
 
     onTapPost() {
+      if(!this.data.canSubmit) return
       LiuApi.vibrateShort({ type: "medium" })
-      
+      handlePost(this.data._val, this.data.assignees)
     },
 
     onLoad() {

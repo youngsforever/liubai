@@ -1408,8 +1408,6 @@ async function handle_wx_gzh_for_mini(
 ): Promise<LiuRqReturn<UserLoginAPI.Res_WxGzhForMini>> {
   // 1. prepare
   const res1 = await prepareWxGzhOAuth(body)
-  console.log("prepareWxGzhOAuth: ", res1)
-  
   if(res1.pass === false) return res1.err
 
   // 2. get user's access_token & openid
@@ -1747,8 +1745,12 @@ async function sign_in(
   const theUserInfo = userInfos[0]
   let { user, spaceMemberList } = theUserInfo
 
-  // 3. 检查 member 是否 "DEACTIVATED"，若是，恢复至 "OK"
-  spaceMemberList = await turnMembersIntoOkWhileSigningIn(theUserInfo)
+  // 3.1 检查 member 是否 "DEACTIVATED"，若是，恢复至 "OK"
+  spaceMemberList = await handleMember1(theUserInfo)
+
+  // 3.2 如果有第三方的简称，并且最前方的成员没有昵称，则赋予之
+  await handleMember2(spaceMemberList, opt)
+
   
   // 4. 检查 user 是否 "DEACTIVATED" 或 "REMOVED"，若是，恢复至 "NORMAL"
   //    检查 是否要用当前用户本地传来的 theme 或 language
@@ -2057,7 +2059,7 @@ async function handleUserWhileSigningIn(
 
 
 /** 将 DEACTIVATED 的 member 切换成 OK */
-async function turnMembersIntoOkWhileSigningIn(
+async function handleMember1(
   userInfo: LiuUserInfo,
 ) {
   const { spaceMemberList, user } = userInfo
@@ -2072,11 +2074,7 @@ async function turnMembersIntoOkWhileSigningIn(
   const w = { user: user._id, oState: "DEACTIVATED" }
   const u = { oState: "OK", updatedStamp: getNowStamp() }
   const q = db.collection("Member").where(w)
-  const res = await q.update(u, { multi: true })
-  console.warn("turnMembersIntoOkWhileSigningIn res.......")
-  console.log(res)
-  console.log(" ")
-
+  await q.update(u, { multi: true })
   spaceMemberList.forEach(v => {
     if(v.member_oState === "DEACTIVATED") {
       v.member_oState = "OK"
@@ -2085,6 +2083,34 @@ async function turnMembersIntoOkWhileSigningIn(
 
   return spaceMemberList
 }
+
+/** 查找没有昵称的 member，看能不能用第三方数据赋值 */
+async function handleMember2(
+  spaceMemberList: LiuSpaceAndMember[],
+  opt: SignInOpt,
+) {
+  // 1. return if member name has existed
+  const spaceMember = spaceMemberList[0]
+  if(spaceMember.member_name) return
+
+  // 2. get nickname from third-party
+  const wxGzh = opt.thirdData?.wx_gzh
+  const nickname = wxGzh?.nickname
+  if(!nickname) return
+
+  // 3. update member name
+  spaceMember.member_name = nickname
+  const memberId = spaceMember.memberId
+  const u3: Partial<Table_Member> = {
+    name: nickname,
+    updatedStamp: getNowStamp(),
+  }
+  const mCol = db.collection("Member")
+  const res3 = await mCol.doc(memberId).update(u3)
+  // console.log("update member's name with third-party nickname!", res3)
+}
+
+
 
 /********************* 有多个账号，供用户登录 **********************/
 async function sign_multi_in(

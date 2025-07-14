@@ -39,7 +39,6 @@ Component({
       const { data } = e.detail
       console.log("data: ", data)
       if(!data || data.length === 0) return
-
       
       const msg = data[0] as UserLoginAPI.Res_WxGzhForMini
       if(!msg) return
@@ -61,8 +60,6 @@ Component({
       if(headimgurl && !loginData.avatarUrl) {
         loginData.avatarUrl = headimgurl
       }
-
-      console.warn("see the latest user info: ", loginData)
       setLoginLocally(loginData)
     },
 
