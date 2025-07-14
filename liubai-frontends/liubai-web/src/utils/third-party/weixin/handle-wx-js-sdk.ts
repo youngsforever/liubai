@@ -2,14 +2,18 @@ import APIs from "~/requests/APIs";
 import liuReq from "~/requests/liu-req";
 import type { ServicePolyAPI } from "~/types/types-cloud";
 import type { BoolFunc } from "~/utils/basic/type-tool";
-import wx from "weixin-js-sdk";
+import wx, { LiuWx } from "weixin-js-sdk";
 
 const jsApiList: wx.jsApiList = [
   "closeWindow",
 ]
 
 export function getGlobalWx() {
-  return wx
+  return wx as LiuWx
+}
+
+export function isInWxMiniProgram() {
+  return window.__wxjs_environment === "miniprogram"
 }
 
 let activeUrl = ""

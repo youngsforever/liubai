@@ -11,6 +11,7 @@ export type WbStatus = "logout" | "waiting" | "bound" | "logged" | "wxmini-login
 
 export interface WbData {
   pageState: PageState
+  pageName: "wechat-bind" | "wxmini-login"
   oAuthCode: string
   status?: WbStatus
   loginData?: UserLoginAPI.Res_Init

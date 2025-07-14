@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-pwa/client" />
 /// <reference lib="webworker" />
+import _wx from "weixin-js-sdk"
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
@@ -22,7 +23,8 @@ interface LiuEnv {
 
 declare const LIU_ENV: LiuEnv
 
-// @see https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/jsapi-transfer-payment.html
+// document from wxpay: https://pay.weixin.qq.com/docs/merchant/apis/jsapi-payment/jsapi-transfer-payment.html
+// document from miniprogram: https://developers.weixin.qq.com/miniprogram/dev/component/web-view.html
 declare const WeixinJSBridge: {
   invoke: (method: string, ...args: any[]) => void
 }
@@ -34,6 +36,7 @@ interface Document {
 
 // extend Window
 interface Window {
+	__wxjs_environment: string
   showOpenFilePicker(options?: ShowOpenFilePickerOptions): Promise<FileSystemFileHandle[]>
 }
 
@@ -97,4 +100,15 @@ interface CSSStyleDeclaration {
 declare module 'another-vue3-blurhash' {
   import { DefineComponent } from 'vue';
   export const BlurHashCanvas: DefineComponent<any, any, any>;
+}
+
+declare module 'weixin-js-sdk' {
+	type OriginalWx = typeof _wx
+	export interface LiuWx extends OriginalWx {
+		miniProgram: OriginalWx["miniProgram"] & {
+			navigateBack: () => void
+		}
+	}
+	
+	export const wx: LiuWx
 }
