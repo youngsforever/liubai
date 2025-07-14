@@ -21,6 +21,8 @@ export default {
     "come_later": "請稍候再來",
     "video_err": "影片加載失敗",
     "err_reason": "原因: {msg}; 狀態代碼: {code}",
+    "skyline_1": "當前微信軟體不支援 skyline",
+    "skyline_2": "請切換裝置或升級微信",
   },
   "task-create": {
     "title": "創建任務",

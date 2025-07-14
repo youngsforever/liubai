@@ -24,6 +24,8 @@ export default {
     "come_later": "Come later please~",
     "video_err": "Video load failed",
     "err_reason": "Reason: {msg}; Status code: {code}",
+    "skyline_1": "Skyline is not supported",
+    "skyline_2": "Please switch device or upgrade WeChat",
   },
   "task-create": {
     "title": "New",

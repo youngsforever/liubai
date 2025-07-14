@@ -2,6 +2,7 @@
 import { pageStates } from "../../utils/atom-util"
 import { i18nBehavior } from "../../behaviors/i18n-behavior"
 import { defaultData } from "../../config/default-data"
+import { LiuApi } from "~/packageB/utils/LiuApi"
 
 const TRANSITION_MS = 300
 
@@ -28,6 +29,15 @@ Component({
         }
       }
     },
+    checkSkyline: {
+      type: Boolean,
+      value: false,
+      observer(newV) {
+        if(newV) {
+          this.toCheckSkyline()
+        }
+      }
+    },
     height3: {
       type: Number,
       value: 0,
@@ -41,9 +51,17 @@ Component({
     show: true,
     _toggleTimeout: 0,
     pageStates,
+    canUseSkyline: true,
   },
 
   methods: {
+
+    toCheckSkyline() {
+      const res = LiuApi.getSkylineInfoSync()
+      if(!res.isSupported) {
+        this.setData({ canUseSkyline: false })
+      }
+    },
 
     async toClose() {
       if(!this.data.enable) return

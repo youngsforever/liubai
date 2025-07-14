@@ -74,6 +74,8 @@ Component({
     },
 
     async toAutoFocus() {
+      const res = LiuApi.getSkylineInfoSync()
+      if(!res.isSupported) return
       await valTool.waitMilli(defaultData.duration_ms_2)
       this.setData({ focus: true })
     },

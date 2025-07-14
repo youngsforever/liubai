@@ -7,6 +7,9 @@
   associative-container="pop-gesture"
 >
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
+  <placeholder-view height3="{{height3}}" p-state="{{-1}}"
+    check-skyline
+  ></placeholder-view>
   
   <view class="liu-main-container">
     <view class="liu-main-box">

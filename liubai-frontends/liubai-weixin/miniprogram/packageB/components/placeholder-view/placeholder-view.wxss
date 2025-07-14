@@ -18,6 +18,11 @@
   justify-content: center;
 }
 
+.pv-container2 {
+  z-index: 1000;
+  background-color: var(--bg-color);
+}
+
 .pv-container_hidden {
   opacity: 0;
 }
@@ -41,7 +46,7 @@
 }
 
 .pv-err-title {
-  color: var(--main-normal);
+  color: var(--main-text);
   font-weight: 700;
   font-size: var(--title-font);
   line-height: 1.5;

@@ -1,5 +1,5 @@
 
-<view class="pv-shell" wx:if="{{enable}}">
+<view class="pv-shell" wx:if="{{enable && canUseSkyline}}">
   <view class="pv-container {{show ? '' : 'pv-container_hidden'}}"
     style="height: {{height3}}px; transition: {{TRANSITION_MS}}ms;"
   >
@@ -30,5 +30,32 @@
       <text wx:elif="{{pState === pageStates.TOO_HOT}}">{{t1.come_later}}</text>
     </view>
 
+  </view>
+</view>
+
+<!-- if we can not use skyline -->
+<view class="pv-shell" wx:elif="{{!canUseSkyline}}">
+  <view class="pv-container pv-container2"
+    style="height: {{height3}}px; transition: {{TRANSITION_MS}}ms;"
+  >
+
+    <!-- Emoji box -->
+    <view class="pv-emoji-box">
+      <image 
+        src="../../images/shared/face_in_clouds_3d.png"
+        class="pv-emoji-image"
+      />
+    </view>
+
+    <!-- Title -->
+    <view class="pv-err-title">
+      <text>{{t1.skyline_1}}</text>
+    </view>
+
+    <!-- Tip -->
+    <view class="pv-err-tip">
+      <text>{{t1.skyline_2}}</text>
+    </view>
+  
   </view>
 </view>
