@@ -2,7 +2,8 @@ import APIs from "~/requests/APIs";
 import liuReq from "~/requests/liu-req";
 import type { ServicePolyAPI } from "~/types/types-cloud";
 import type { BoolFunc } from "~/utils/basic/type-tool";
-import wx, { LiuWx } from "weixin-js-sdk";
+import type { LiuWx } from "./types";
+import wx from "weixin-js-sdk";
 
 const jsApiList: wx.jsApiList = [
   "closeWindow",

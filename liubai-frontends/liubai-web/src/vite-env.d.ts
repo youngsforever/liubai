@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-pwa/client" />
 /// <reference lib="webworker" />
-import _wx from "weixin-js-sdk"
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
@@ -100,15 +99,4 @@ interface CSSStyleDeclaration {
 declare module 'another-vue3-blurhash' {
   import { DefineComponent } from 'vue';
   export const BlurHashCanvas: DefineComponent<any, any, any>;
-}
-
-declare module 'weixin-js-sdk' {
-	type OriginalWx = typeof _wx
-	export interface LiuWx extends OriginalWx {
-		miniProgram: OriginalWx["miniProgram"] & {
-			navigateBack: () => void
-		}
-	}
-	
-	export const wx: LiuWx
 }
