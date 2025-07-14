@@ -24,6 +24,7 @@ export interface LiuLoginData {
   subscription?: UserSubscription
   wx_mini_openid?: string
   lastSetStamp: number
+  memberId?: string
 }
 
 export interface LiuOnceData {

@@ -62,6 +62,7 @@ Component({
         loginData.avatarUrl = headimgurl
       }
 
+      console.warn("see the latest user info: ", loginData)
       setLoginLocally(loginData)
     },
 

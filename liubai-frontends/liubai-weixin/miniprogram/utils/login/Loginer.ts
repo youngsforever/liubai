@@ -1,7 +1,11 @@
 import type { LiuLoginData } from "~/types/index";
 import { LiuApi } from "../LiuApi";
 import { fetchEnter, fetchLogin } from "./tools/fetch-user";
-import { getLoginLocally, removeLoginLocally, setLoginLocally } from "./tools/local-login";
+import { 
+  getLoginLocally, 
+  removeLoginLocally, 
+  setLoginLocally,
+} from "./tools/local-login";
 import { LiuTime } from "../LiuTime";
 import type { LiuSpaceAndMember } from "~/types/types-cloud";
 
@@ -59,15 +63,16 @@ export class Loginer {
     if(!data3.serial_id || !data3.token) return false
     
     // 4. get avatar & nickname
-    const avaNick = this._getAvatarAndNickname(data3.spaceMemberList)
+    const memberData = this._getMemberData(data3.spaceMemberList)
     const newLoginData: LiuLoginData = {
       theme: data3.theme,
       language: data3.language,
       token: data3.token,
       serial: data3.serial_id,
       subscription: data3.subscription,
-      nickname: avaNick.nickname,
-      avatarUrl: avaNick.avatarUrl,
+      nickname: memberData.nickname,
+      avatarUrl: memberData.avatarUrl,
+      memberId: memberData.memberId,
       wx_mini_openid: data3.wx_mini_openid,
       lastSetStamp: LiuTime.getTime(),
     }
@@ -96,15 +101,20 @@ export class Loginer {
 
     // 3. merge login data
     const oldData = await this.getLoginData()
-    const avaNick = this._getAvatarAndNickname(data1.spaceMemberList)
+    const data3 = this._getMemberData(data1.spaceMemberList)
     const newData: LiuLoginData = {
       ...oldData,
       theme: data1.theme,
       language: data1.language,
       subscription: data1.subscription,
-      nickname: avaNick.nickname,
-      avatarUrl: avaNick.avatarUrl,
+      memberId: data3.memberId,
       lastSetStamp: LiuTime.getTime(),
+    }
+    if(data3.nickname && data3.nickname !== oldData?.nickname) {
+      newData.nickname = data3.nickname
+    }
+    if(data3.avatarUrl && data3.avatarUrl !== oldData?.avatarUrl) {
+      newData.avatarUrl = data3.avatarUrl
     }
     if(data1.new_serial && data1.new_token) {
       newData.serial = data1.new_serial
@@ -118,14 +128,15 @@ export class Loginer {
   }
 
 
-  private static _getAvatarAndNickname(
+  private static _getMemberData(
     spaceMemberList?: LiuSpaceAndMember[],
   ) {
     if(!spaceMemberList) return {}
     const spaceMember = spaceMemberList[0]
     const avatarUrl = spaceMember.member_avatar?.url
     const nickname = spaceMember.member_name
-    return { avatarUrl, nickname }
+    const memberId = spaceMember.memberId
+    return { avatarUrl, nickname, memberId }
   }
 
 
