@@ -42,7 +42,7 @@ export class ShowTip {
   static showBug1() {
     LiuUtil.showCustomModal({
       title: "🐛",
-      content: "三个人以下的小群可能会遭遇 Bug，我们已经向微信反馈了！",
+      content_key: "err.group_1",
       confirm_key: "shared.got_it",
       showCancel: false,
     })

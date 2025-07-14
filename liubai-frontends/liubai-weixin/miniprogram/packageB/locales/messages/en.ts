@@ -26,6 +26,7 @@ export default {
     "err_reason": "Reason: {msg}; Status code: {code}",
     "skyline_1": "Skyline is not supported",
     "skyline_2": "Please switch device or upgrade WeChat",
+    "group_1": "It may not work in groups with less than four people. We have already reported this issue to WeChat team!",
   },
   "task-create": {
     "title": "New",

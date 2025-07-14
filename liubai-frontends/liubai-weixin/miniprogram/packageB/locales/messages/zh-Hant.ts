@@ -23,6 +23,7 @@ export default {
     "err_reason": "原因: {msg}; 狀態代碼: {code}",
     "skyline_1": "當前微信軟體不支援 skyline",
     "skyline_2": "請切換裝置或升級微信",
+    "group_1": "三個人以下的群組可能會遭遇 Bug，我們已經向微信團隊反映了！",
   },
   "task-create": {
     "title": "創建任務",
