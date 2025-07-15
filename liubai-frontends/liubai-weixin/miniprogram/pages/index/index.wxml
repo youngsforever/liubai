@@ -1,17 +1,17 @@
 <!-- index.wxml -->
 
-<view class="liu-{{theme}} index-container">
+<view class="liu-{{theme}} liu-{{locale}} index-container">
 
   <view class="index-virtual-one"></view>
 
-  <view class="liu-hover index-button" hover-class="liu-skyline-hover"
+  <!-- <view class="liu-hover index-button" hover-class="liu-skyline-hover"
     catchtap="onTapCoupon"
   >
     <image src="/images/shared/star-struck_3d.png" class="ib-image" />
     <view class="ib-title">
       <text>{{t1.find_coupon}}</text>
     </view>
-  </view>
+  </view> -->
 
   <view class="liu-hover index-button" hover-class="liu-skyline-hover"
     catchtap="onTapTask"

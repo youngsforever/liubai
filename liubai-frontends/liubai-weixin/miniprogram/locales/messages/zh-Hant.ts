@@ -4,7 +4,7 @@ export default {
   },
   "index": {
     "slogan": "用留白記事，消滅所有雜事！",
-    "powered_by": "用留白記事，探索無限可能",
+    "powered_by": "用留白記事，消滅所有雜事",
     "find_coupon": "找優惠",
     "create_task": "建任務",
   },

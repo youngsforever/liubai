@@ -11,7 +11,7 @@
   "devDependencies": {
     "@types/node": "^22.14.1",
     "dotenv": "^16.5.0",
-    "miniprogram-api-typings": "^4.0.7",
+    "miniprogram-api-typings": "^4.1.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   }

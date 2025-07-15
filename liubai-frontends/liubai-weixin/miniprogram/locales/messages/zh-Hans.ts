@@ -4,7 +4,7 @@ export default {
   },
   "index": {
     "slogan": "用留白记事，消灭所有杂事！",
-    "powered_by": "用留白记事，探索无限可能",
+    "powered_by": "用留白记事，消灭所有杂事",
     "find_coupon": "找优惠",
     "create_task": "建任务",
   },

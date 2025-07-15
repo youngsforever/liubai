@@ -30,6 +30,8 @@ function normalizeLanguage(val: string): SupportedLocale {
 export function getLocale(): SupportedLocale {
   const appBaseInfo = LiuApi.getAppBaseInfo()
   const lang = appBaseInfo?.language ?? defaultData.language
+
+  // return "en"
   if(isSupportedLocale(lang)) return lang
   return normalizeLanguage(lang)
 }

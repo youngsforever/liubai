@@ -112,7 +112,6 @@ async function create_wx_task(
 
   // 3. call wx to create activity id 
   const res3 = await WxMiniHandler.createActivityId()
-  console.log("create_wx_task res3: ", res3)
   if(!res3.pass) {
     console.warn("fail to create activity id", res3.err)
     return res3.err

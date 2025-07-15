@@ -46,6 +46,11 @@ page {
   font-weight: 700;
   width: 50%;
   text-align: center;
+  line-height: 1.25;
+}
+
+.liu-en .ib-title {
+  width: 66%;
 }
 
 .index-virtual-two {

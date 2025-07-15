@@ -75,7 +75,16 @@ async function navigateToDetailById(
   }
 
   const url = `/packageB/pages/task-detail/task-detail?id=${id}`
-  LiuApi.redirectTo({ url })
+  console.log("navigateToDetailById url: ", url)
+  LiuApi.redirectTo({ 
+    url,
+    success(res) {
+      console.log("navigateToDetailById success: ", res)
+    },
+    fail(err) {
+      console.log("navigateToDetailById fail: ", err)
+    }
+  })
 }
 
 

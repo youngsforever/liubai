@@ -6,7 +6,7 @@ export default {
   },
   "index": {
     "slogan": "Done everything using Liubai!",
-    "powered_by": "Get the infinite future using Liubai",
+    "powered_by": "Done everything using Liubai",
     "find_coupon": "Find Coupons",
     "create_task": "Create Tasks",
   },
