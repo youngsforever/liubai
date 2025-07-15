@@ -1,6 +1,8 @@
 <custom-navibar 
   height1="{{height1}}" height2="{{height2}}" 
-  visible="{{visible}}" always-go-home
+  visible="{{visible}}"
+  back-target-page-name="coupon-home"
+  target-page-url="/packageA/pages/coupon-home/coupon-home"
 ></custom-navibar>
 <view class="liu-{{theme}} liu-scroll-view ca-container">
 

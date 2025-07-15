@@ -161,7 +161,7 @@ Component({
 
     goToPremium() {
       LiuApi.navigateTo({ 
-        url: "/packageA/pages/landing-subscription/landing-subscription",
+        url: "/packageB/pages/landing-premium/landing-premium?key=max-coupon",
       })
     }
 

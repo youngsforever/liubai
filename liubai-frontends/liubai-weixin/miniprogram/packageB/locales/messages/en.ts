@@ -28,6 +28,8 @@ export default {
     "skyline_1": "Skyline is not supported",
     "skyline_2": "Please switch device or upgrade WeChat",
     "group_1": "It may not work in groups with less than four people. We have already reported this issue to WeChat team!",
+    "not_in_room_1": "You are not in the chat",
+    "not_in_room_2": "Please confirm that you have not deleted this friend related to the task, or you are still in the group chat.",
   },
   "task-create": {
     "title": "New",

@@ -21,6 +21,7 @@
       <text wx:if="{{pState === pageStates.NO_DATA}}">{{t1.no_data}}</text>
       <text wx:elif="{{pState === pageStates.NETWORK_ERR}}">{{t1.network}}</text>
       <text wx:elif="{{pState === pageStates.TOO_HOT}}">{{t1.too_hot}}</text>
+      <text wx:elif="{{pState === pageStates.NOT_IN_ROOM}}">{{t1.not_in_room_1}}</text>
       <text wx:else>{{t1.unknown_err}}</text>
     </view>
 
@@ -28,6 +29,7 @@
     <view wx:if="{{pState >= 50}}" class="pv-err-tip">
       <text wx:if="{{errTip}}">{{errTip}}</text>
       <text wx:elif="{{pState === pageStates.TOO_HOT}}">{{t1.come_later}}</text>
+      <text wx:elif="{{pState === pageStates.NOT_IN_ROOM}}">{{t1.not_in_room_2}}</text>
     </view>
 
   </view>

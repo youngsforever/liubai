@@ -7,6 +7,8 @@ import { fetchTaskDetail } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import { JustCreateTask } from "~/packageB/types/types-tunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
+import { PeopleTasksAPI } from "~/packageB/requests/req-types";
+import { pageStates } from "~/packageB/utils/atom-util";
 
 Component({
 
@@ -24,6 +26,8 @@ Component({
     pageName: "task-detail",
     _id: "",
     _whenLoadStamp: 0,
+    detail: null as PeopleTasksAPI.Res_GetWxTask | null,
+    pState: pageStates.LOADING,
   },
 
   methods: {
@@ -64,11 +68,21 @@ Component({
       if(!id) return
 
       // 2. wait for chatInfo
-      await TaskManager.init()
+      const res2 = await TaskManager.init()
+      if(!res2) {
+        this.youAreNotInTheRoom()
+        return
+      }
 
       // 3. fetch task detail
       const res3 = await fetchTaskDetail(id)
 
+
+
+    },
+
+    youAreNotInTheRoom() {
+      
 
     },
 

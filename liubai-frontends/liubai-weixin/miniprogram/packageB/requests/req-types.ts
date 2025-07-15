@@ -87,4 +87,16 @@ export namespace PeopleTasksAPI {
     chatInfo: WxMiniAPI.ChatInfo
   }
 
+  export interface Res_GetWxTask {
+    operateType: "get-wx-task"
+    id: string
+    activity_id?: string
+    desc: string
+    owner_openid: string
+    opengid?: string
+    open_single_roomid?: string
+    chat_type: number
+    endStamp?: number
+  }
+
 }

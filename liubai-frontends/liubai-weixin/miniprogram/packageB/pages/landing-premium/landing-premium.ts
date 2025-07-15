@@ -9,13 +9,13 @@ Component({
   },
 
   behaviors: [
-    i18nBehavior("landing-subscription"),
+    i18nBehavior("landing-premium"),
     navibarBehavior(),
     themeBehavior(),
   ],
   
   data: {
-    pageName: "landing-subscription",
+    pageName: "landing-premium",
   },
 
   methods: {

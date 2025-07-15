@@ -25,6 +25,8 @@ export default {
     "skyline_1": "当前微信客户端不支持 skyline",
     "skyline_2": "请切换设备或升级微信",
     "group_1": "三个人以下的小群可能会遭遇 Bug，我们已经向微信团队反馈了！",
+    "not_in_room_1": "你似乎不在聊天室中",
+    "not_in_room_2": "请确认你没有删除对方好友或仍在群聊中",
   },
   "task-create": {
     "title": "创建任务",
