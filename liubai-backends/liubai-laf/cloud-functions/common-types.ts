@@ -1913,11 +1913,22 @@ export interface Table_WxBond extends BaseTable {
   opengid?: string
   open_single_roomid?: string
   group_openid?: string
-  chat_type?: 1 | 2 | 3 | 4
+  chat_type?: WxMiniAPI.ChatType
 }
 
 export interface Table_WxTask extends BaseTable {
-  
+  oState: OState_Cool
+  taskState: "DEFAULT" | "CLOSED"
+  owner_userid: string
+  owner_openid: string
+  opengid?: string
+  open_single_roomid?: string
+  chat_type: WxMiniAPI.ChatType
+  desc: string
+  assignees: string[]
+  related_openids: string[]
+  activity_id?: string
+  endStamp?: number
 }
 
 
@@ -4303,11 +4314,13 @@ export namespace WxMiniAPI {
     iv: vbot.string(),
   })
 
+  export type ChatType = 1 | 2 | 3 | 4
+
   export interface ChatInfo {
     opengid?: string               // 多聊群下返回的群唯一标识
     open_single_roomid?: string    // 单聊下的房间唯一标识
     group_openid?: string          // 用户在当前聊天室的唯一标识
-    chat_type?: 1 | 2 | 3 | 4      // 1: 单聊, 
+    chat_type?: ChatType           // 1: 单聊
                                    // 2: 企业微信联系人
                                    // 3: 普通微信群聊
                                    // 4: 企业微信互通群聊

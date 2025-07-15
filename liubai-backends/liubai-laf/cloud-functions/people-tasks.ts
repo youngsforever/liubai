@@ -1,7 +1,9 @@
 
 // Function Name: people-tasks
 import cloud from "@lafjs/cloud"
-import { checker, verifyToken, WxMiniHandler } from "@/common-util"
+import { 
+  checker, getDocAddId, valTool, verifyToken, WxMiniHandler,
+} from "@/common-util"
 import { 
   type LiuRqReturn, 
   type VerifyTokenRes_B,
@@ -9,7 +11,8 @@ import {
   WxMiniAPI,
   type Table_WxBond,
   type Partial_Id,
-  LiuErrReturn, 
+  type LiuErrReturn,
+  type Table_WxTask, 
 } from "@/common-types"
 import * as vbot from "valibot"
 import { getBasicStampWhileAdding, getNowStamp } from "@/common-time"
@@ -31,7 +34,7 @@ export async function main(ctx: FunctionContext) {
     res = await enter_wx_chat_tool(body, vRes)
   }
   else if(oT === "create-wx-task") {
-    create_wx_task(body, vRes)
+    res = await create_wx_task(body, vRes)
   }
 
   return res
@@ -49,12 +52,13 @@ async function create_wx_task(
     const errMsg = checker.getErrMsgFromIssues(res1.issues)
     return { code: "E4000", errMsg }
   }
+  const userId = vRes.userData._id
   const desc = body.desc as string
   const assignees = body.assignees as string[]
   const chatInfo = body.chatInfo as WxMiniAPI.ChatInfo
 
   // 2. check chat info
-  const res2 = await checkChatInfo(chatInfo, vRes)
+  const res2 = await checkChatInfo(chatInfo, userId)
   if(res2) return res2
 
   // 3. call wx to create activity id 
@@ -77,20 +81,42 @@ async function create_wx_task(
     endStamp = endStamp * 1000
   }
 
-  // 5. create the task
+  // 5. calculate related_openids
+  const owner_openid = chatInfo.group_openid as string
+  let related_openids = [...assignees, owner_openid]
+  related_openids = valTool.uniqueArray(related_openids)
 
-
-
-
-  
+  // 6. create the task
+  const b6 = getBasicStampWhileAdding()
+  const data6: Partial_Id<Table_WxTask> = {
+    ...b6,
+    oState: "OK",
+    taskState: "DEFAULT",
+    owner_userid: userId,
+    owner_openid,
+    opengid: chatInfo.opengid,
+    open_single_roomid: chatInfo.open_single_roomid,
+    chat_type: chatInfo.chat_type as WxMiniAPI.ChatType,
+    desc,
+    assignees,
+    related_openids,
+    activity_id,
+    endStamp,
+  }
+  const wtCol = db.collection("WxTask")
+  const res6 = await wtCol.add(data6)
+  const docId = getDocAddId(res6)
+  if(!docId) {
+    return { code: "E5001", errMsg: "fail to create task, with operating db" }
+  }
+  return { code: "0000", data: { id: docId } }
 }
 
 
 async function checkChatInfo(
   chatInfo: WxMiniAPI.ChatInfo,
-  vRes: VerifyTokenRes_B,
+  userId: string,
 ): Promise<LiuErrReturn | undefined> {
-  const userId = vRes.userData._id
   const group_openid = chatInfo.group_openid
   if(!group_openid) {
     return { code: "E4000", errMsg: "no group_openid" }
