@@ -43,7 +43,7 @@ export function showDetail(
     owner_openid_list: [data.owner_openid],
     activity_id: data.activity_id,
     assigneeList,
-    assignees: data.assigneeList.map(v => v.group_openid),
+    assignees: assigneeList.map(v => v.group_openid),
     insertedStamp: data.insertedStamp,
     editedStamp: data.editedStamp,
     endStamp: data.endStamp,

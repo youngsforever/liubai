@@ -50,6 +50,7 @@ export default {
     "forward_1": "I created a task",
     "forward_2": "Task Reminder",
     "closed_1": "Task CLOSED",
+    "assign_to": "Assign to",
   },
   "date": {
     "show_1": "{yyyy}-{mm}-{dd} {hr}:{min}",

@@ -47,6 +47,7 @@ export default {
     "forward_1": "我創建了任務",
     "forward_2": "任務提醒",
     "closed_1": "任務已結束",
+    "assign_to": "指派給",
   },
   "date": {
     "show_1": "{mm}月{dd}日 {hr}:{min}",
