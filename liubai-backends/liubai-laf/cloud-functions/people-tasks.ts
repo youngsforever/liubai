@@ -15,7 +15,8 @@ import {
   type Table_WxTask, 
 } from "@/common-types"
 import * as vbot from "valibot"
-import { getBasicStampWhileAdding, getNowStamp } from "@/common-time"
+import { getBasicStampWhileAdding, getNowStamp, HOUR, SECOND } from "@/common-time"
+import { ppl_system_cfg } from "@/common-config"
 
 const db = cloud.database()
 const _ = db.command
@@ -40,10 +41,10 @@ export async function main(ctx: FunctionContext) {
     res = await get_wx_task(body, vRes)
   }
   else if(oT === "complete-wx-task") {
-    await complete_wx_task(body, vRes)
+    res = await complete_wx_task(body, vRes)
   }
   else if(oT === "close-wx-task") {
-    await close_wx_task(body, vRes)
+    res = await close_wx_task(body, vRes)
   }
 
   return res
@@ -54,7 +55,47 @@ async function close_wx_task(
   body: Record<string, any>,
   vRes: VerifyTokenRes_B,
 ) {
+  const id = body.id
+  if(!valTool.isStringWithVal(id)) {
+    return { code: "E4000", errMsg: "no id" }
+  }
+  const userId = vRes.userData._id
+
+  const wtCol = db.collection("WxTask")
+  const res1 = await wtCol.doc(id).get<Table_WxTask>()
+  const data1 = res1.data
+  if(!data1 || data1.oState !== "OK") {
+    return { code: "E4004", errMsg: "no such task" }
+  }
+  if(data1.owner_userid !== userId) {
+    return { code: "E4003", errMsg: "you are not the owner of this task" }
+  }
+  if(data1.taskState === "CLOSED") {
+    return { code: "0000" }
+  }
+
+  const now3 = getNowStamp()
+  const w3: Partial<Table_WxTask> = {
+    taskState: "CLOSED",
+    closedStamp: now3,
+    updatedStamp: now3,
+  }
+  await wtCol.doc(id).update(w3)
+
+  // notify wechat if needed
+  const endStamp = data1.endStamp ?? now3
+  const activity_id = data1.activity_id
+  if(!activity_id) return { code: "0000" }
+  if(now3 >= (endStamp - SECOND)) return { code: "0000" }
+  if(data1.closedStamp) return { code: "0000" }
+
+  // get to notify
+  const tmpl_id = ppl_system_cfg.chat_tool_tmpl_id_1
+  const target_state = 3
+  const res4 = await WxMiniHandler.setChatToolMsg(activity_id, target_state, tmpl_id)
+  console.log("close_wx_task setChatToolMsg res: ", res4)
   
+  return { code: "0000" }
 }
 
 
@@ -62,7 +103,80 @@ async function complete_wx_task(
   body: Record<string, any>,
   vRes: VerifyTokenRes_B,
 ) {
+  const id = body.id
+  if(!valTool.isStringWithVal(id)) {
+    return { code: "E4000", errMsg: "no id" }
+  }
+  const userId = vRes.userData._id
 
+  const wtCol = db.collection("WxTask")
+  const res1 = await wtCol.doc(id).get<Table_WxTask>()
+  const data1 = res1.data
+  if(!data1 || data1.oState !== "OK") {
+    return { code: "E4004", errMsg: "no such task" }
+  }
+  
+  const w2: Partial<Table_WxBond> = {
+    userId,
+    infoType: "chat-tool",
+  }
+  if(data1.open_single_roomid) {
+    w2.open_single_roomid = data1.open_single_roomid
+  }
+  if(data1.opengid) {
+    w2.opengid = data1.opengid
+  }
+  const wbCol = db.collection("WxBond")
+  const res2 = await wbCol.where(w2).getOne<Table_WxBond>()
+  const data2 = res2.data
+  const my_group_openid = data2?.group_openid
+  if(!my_group_openid) {
+    return { code: "E4003", errMsg: "you are not the member of this chat" }
+  }
+
+  const assigneeList = data1.assigneeList
+  const myAssignee = assigneeList.find(v => v.group_openid === my_group_openid)
+  if(!myAssignee) {
+    return { code: "PT002", errMsg: "you are not the assignee of this task" }
+  }
+  if(myAssignee.doneStamp) {
+    return { code: "0001" }
+  }
+
+  // update the task in db
+  const now4 = getNowStamp()
+  myAssignee.doneStamp = now4
+  const u4: Partial<Table_WxTask> = {
+    assigneeList,
+    updatedStamp: now4,
+  }
+  wtCol.doc(id).update(u4)
+
+  // notify wechat if needed
+  const endStamp = data1.endStamp ?? now4
+  const activity_id = data1.activity_id
+  if(!activity_id) return { code: "0000" }
+  if(now4 >= (endStamp - SECOND)) return { code: "0000" }
+  if(data1.closedStamp) return { code: "0000" }
+
+  // get to notify
+  const tmpl_id = ppl_system_cfg.chat_tool_tmpl_id_1
+  const thresholdStamp = endStamp - ppl_system_cfg.coming_soom_hrs * HOUR
+  const isComingSoon = now4 >= thresholdStamp
+  const target_state = isComingSoon ? 2 : 1
+  const myInfo: WxMiniAPI.ChatToolParticipatorInfo = {
+    group_openid: my_group_openid,
+    state: 1,
+  }
+  const res5 = await WxMiniHandler.setChatToolMsg(
+    activity_id,
+    target_state,
+    tmpl_id,
+    [myInfo]
+  )
+  console.log("complete_wx_task setChatToolMsg res: ", res5)
+
+  return { code: "0000" }
 }
 
 

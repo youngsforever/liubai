@@ -47,6 +47,12 @@ export const wx_expired_tmpl = {
 }
 
 
+export const ppl_system_cfg = {
+  chat_tool_tmpl_id_1: "4A68CBB88A92B0A9311848DBA1E94A199B166463",
+  coming_soom_hrs: 3,
+}
+
+
 /********************* tencent SES template config ****************/
 export const tencent_ses_tmpl_cfg = {
   "confirmation": {

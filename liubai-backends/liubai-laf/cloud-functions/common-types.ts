@@ -4334,6 +4334,11 @@ export namespace WxMiniAPI {
     chat_type: Sch_Opt_Num,
   })
 
+  export interface ChatToolParticipatorInfo {
+    group_openid: string
+    state: 1
+  }
+
 }
 
 

@@ -2658,7 +2658,7 @@ export class WxMiniHandler {
     IMG_CHECK: "https://api.weixin.qq.com/wxa/media_check_async",
     USER_RISK: "https://api.weixin.qq.com/wxa/getuserriskrank",
     CREATE_ACT_ID: "https://api.weixin.qq.com/cgi-bin/message/wxopen/activityid/create",
-
+    CHAT_TOOL_MSG: "https://api.weixin.qq.com/cgi-bin/message/wxopen/chattoolmsg/send",
   }
 
   static async getAccessToken() {
@@ -2714,6 +2714,14 @@ export class WxMiniHandler {
     }
 
     return { pass: true, data: res.data }
+  }
+
+  private static getVersionType() {
+    const _env = process.env
+    const v = _env.LIU_WX_MINI_VERTION_TYPE
+    if(v === "1") return 1
+    if(v === "2") return 2
+    return 0
   }
 
   // https://developers.weixin.qq.com/miniprogram/dev/OpenApiDoc/sec-center/sec-check/msgSecCheck.html
@@ -2806,6 +2814,24 @@ export class WxMiniHandler {
     }
     
     return decryptedObj as T
+  }
+
+  static async setChatToolMsg(
+    activity_id: string,
+    target_state: number,
+    template_id: string,
+    participator_info_list?: WxMiniAPI.ChatToolParticipatorInfo[],
+  ) {
+    const obj = {
+      activity_id,
+      target_state,
+      template_id,
+      participator_info_list,
+      version_type: this.getVersionType(),
+    }
+    const url = this.idToUrl.CHAT_TOOL_MSG
+    const res = await this.toRequest(url, obj)
+    return res
   }
 
 

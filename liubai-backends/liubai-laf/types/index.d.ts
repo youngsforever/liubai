@@ -103,6 +103,9 @@ declare global {
       LIU_WX_MINI_APPSECRET?: string
       LIU_WX_MINI_TMPL_ID_1?: string       // 优惠券即将过期通知
       LIU_WX_MINI_TMPL_ID_2?: string       // 如果有相似的优惠券，要发送的通知
+      LIU_WX_MINI_VERTION_TYPE?: "0" | "1" | "2"    // 0: 正式版
+                                                    // 1: 开发版
+                                                    // 2: 体验版
       
 
       /** 企业微信 企业内部自建应用 */
