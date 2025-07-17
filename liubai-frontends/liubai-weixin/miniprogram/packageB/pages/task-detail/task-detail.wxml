@@ -88,12 +88,14 @@
         </custom-button>
 
         <!-- Complete -->
-        <custom-button wx:if="{{detail.canIComplete}}" btn-type="normal">
+        <custom-button wx:if="{{detail.canIComplete}}" btn-type="normal"
+          catchtap="onTapCompleteTask"
+        >
           <text>{{t1.complete_task}}</text>
         </custom-button>
 
         <!-- Close the task -->
-        <custom-button btn-type="normal">
+        <custom-button btn-type="normal" catchtap="onTapCloseTask">
           <text>{{t1.close_task}}</text>
         </custom-button>
 
@@ -107,7 +109,7 @@
       <!-- Buttons for assignee still incomplete -->
       <view wx:elif="{{!detail.closedStamp && detail.canIComplete}}" class="td-buttons">
         <!-- Complete -->
-        <custom-button>
+        <custom-button catchtap="onTapCompleteTask">
           <text>{{t1.complete_task}}</text>
         </custom-button>
 

@@ -60,6 +60,11 @@ export default {
     "create_other": "創建其他任務",
     "complete_task": "🎯 完成任務",
     "share": "分享",
+    "close_1": "確定要關閉任務嗎？",
+    "complete_1": "真的假的🤨",
+    "complete_2": "你真的完成了嗎？",
+    "it_is_true": "真的",
+    "it_is_not_true": "假的",
   },
   "date": {
     "show_1": "{mm}月{dd}日 {hr}:{min}",

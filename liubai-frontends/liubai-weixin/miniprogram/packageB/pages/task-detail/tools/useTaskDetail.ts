@@ -90,7 +90,7 @@ export function toNotifyMembers(
   console.log("getNotifyTitle result:", title)
 
   // 3. handle entrancePath
-  const entrancePath = `/packageB/pages/task-detail/task-detail?id=${id}`
+  const entrancePath = `packageB/pages/task-detail/task-detail?id=${id}`
 
   // 4. to call notifyMembers
   LiuApi.notifyGroupMembers({
@@ -157,4 +157,24 @@ function getNotifyTitle(desc: string) {
   }
 
   return title
+}
+
+export async function fetchCloseTask(id: string) {
+  const w1 = {
+    operateType: "close-wx-task",
+    id,
+  }
+  const url1 = APIs.PPL_TASKS
+  const res1 = await LiuReq.request(url1, w1)
+  return res1
+}
+
+export async function fetchCompleteTask(id: string) {
+  const w1 = {
+    operateType: "complete-wx-task",
+    id,
+  }
+  const url1 = APIs.PPL_TASKS
+  const res1 = await LiuReq.request(url1, w1)
+  return res1
 }

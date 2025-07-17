@@ -63,6 +63,11 @@ export default {
     "create_other": "Create other task",
     "complete_task": "🎯 Complete task",
     "share": "Share",
+    "close_1": "Are you sure to close the task?",
+    "complete_1": "True or false 🤨",
+    "complete_2": "Is is true that you've completed the task?",
+    "it_is_true": "True",
+    "it_is_not_true": "False",
   },
   "date": {
     "show_1": "{yyyy}-{mm}-{dd} {hr}:{min}",

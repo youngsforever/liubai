@@ -476,6 +476,10 @@ export class LiuApi {
   static notifyGroupMembers(opt: WechatMiniprogram.NotifyGroupMembersOption) {
     wx.notifyGroupMembers(opt)
   }
+
+  static shareEmojiToGroup(opt: WechatMiniprogram.ShareEmojiToGroupOption) {
+    wx.shareEmojiToGroup(opt)
+  }
   
 
 }

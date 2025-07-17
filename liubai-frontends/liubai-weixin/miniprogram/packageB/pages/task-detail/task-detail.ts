@@ -8,6 +8,8 @@ import {
   showDetail, 
   toNotifyMembers,
   toForward,
+  fetchCloseTask,
+  fetchCompleteTask,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -20,6 +22,7 @@ import valTool from "~/packageB/utils/val-tool";
 import { useI18n } from "~/packageB/locales/index";
 import { DateUtil } from "~/packageB/utils/date-util";
 import { waitForCreateTask } from "../shared/useTaskCreate";
+import { envData } from "~/packageB/config/env-data";
 
 Component({
 
@@ -223,6 +226,117 @@ Component({
       LiuApi.vibrateShort({ type: "medium" })
       LiuUtil.navigateWithPopup("/packageB/pages/task-create/task-create")
     },
+
+    async onTapCloseTask() {
+      LiuApi.vibrateShort({ type: "medium" })
+      const { detail, _id } = this.data
+      if(!detail || !_id) return
+
+      const res1 = await LiuUtil.showCustomModal({
+        title: "📥",
+        content_key: "task-detail.close_1",
+      })
+      if(!res1.confirm) return
+
+      const bind: Record<string, any> = {}
+      bind["detail.closedStamp"] = LiuTime.getTime()
+      this.setData(bind)
+      
+      const res2 = await fetchCloseTask(_id)
+      console.log("fetchCloseTask res2: ", res2)
+    },
+
+    async onTapCompleteTask() {
+      // 1. vibrate & get param
+      LiuApi.vibrateShort({ type: "medium" })
+      const { detail, _id, chatInfo } = this.data
+      if(!detail || !_id || !chatInfo) return
+
+      // 2. find my idx
+      const assigneeList = detail.assigneeList
+      const idx = assigneeList.findIndex(v => {
+        return v.group_openid === chatInfo.group_openid
+      })
+      if(idx < 0) return
+
+      // 3. show modal
+      const _this = this
+      LiuUtil.showCustomModal({
+        title_key: "task-detail.complete_1",
+        content_key: "task-detail.complete_2",
+        confirm_key: "task-detail.it_is_true",
+        cancel_key: "task-detail.it_is_not_true",
+        success(res) {
+          if(!res.confirm) return
+          _this.toCompleteTask(_id, idx)
+        }
+      })
+    },
+
+    async toCompleteTask(
+      id: string,
+      idx: number,
+    ) {
+      // 1. get param
+      const detail = this.data.detail
+      if(!detail) return
+      const assigneeList = detail.assigneeList
+      if(!assigneeList) return
+
+      // 2. call wx.shareEmojiToGroup to say I've completed it
+      const now2 = LiuTime.getTime()
+      const closedStamp = detail.closedStamp
+      const endStamp = detail.endStamp ?? now2
+      if(closedStamp || now2 > endStamp) {
+        // to call  wx.shareEmojiToGroup
+        this.toShareIComplete(id)
+      }
+
+      // 3. set new state
+      const bind: Record<string, any> = {}
+      assigneeList[idx].doneStamp = now2
+      bind["detail.hasAnyIncomplete"] = assigneeList.some(v => !v.doneStamp)
+      bind["detail.canIComplete"] = false
+      bind[`detail.assigneeList[${idx}].doneStamp`] = now2
+      this.setData(bind)
+      
+      // 3. fetch
+      const res5 = await fetchCompleteTask(id)
+      console.log("fetchCompleteTask res5: ", res5)
+
+    },
+
+    toShareIComplete(id: string) {
+      const entrancePath = `packageB/pages/task-detail/task-detail?id=${id}`
+      const _share = (imagePath: string) => {
+        LiuApi.shareEmojiToGroup({
+          imagePath,
+          needShowEntrance: true,
+          entrancePath,
+          success(res) {
+            console.log("toShareIComplete success: ", res)
+          },
+          fail(err) {
+            console.warn("toShareIComplete fail: ", err)
+          }
+        })
+      }
+
+      const url = envData.LIU_I_COMPLETED
+      if(!url) {
+        console.warn("LIU_I_COMPLETED is not set")
+        return
+      }
+      LiuApi.downloadFile({
+        url,
+        success(res) {
+          _share(res.tempFilePath)
+        },
+        fail(err) {
+          console.warn("downloadFile fail: ", err)
+        }
+      })
+    }
 
   },
 
