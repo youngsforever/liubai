@@ -6,6 +6,8 @@ import type { TaskDetail } from "./types";
 import { DateUtil } from "~/packageB/utils/date-util";
 import valTool from "~/packageB/utils/val-tool";
 import { LiuApi } from "~/packageB/utils/LiuApi";
+import { ShowTip } from "~/packageB/utils/managers/ShowTip";
+import { useI18n } from "~/packageB/locales/index";
 
 export async function fetchTaskDetail(
   id: string,
@@ -74,22 +76,18 @@ export function toNotifyMembers(
 
   // 2. handle title
   const desc = detail.desc
-  let title = desc
-  if(valTool.getTextCharNum(title) > 30) {
-    title = ""
-    let num = 0
-    for(let i=0; i<desc.length; i++) {
-      let char = desc[i]
-      if(char === "\n") char = " "
-      title += char
-      num += valTool.getTextCharNum(char)
-      if(num >= 27) {
-        title += "..."
-        break
-      }
-    }
+  const title = getNotifyTitle(detail.desc)
+  if(!title) {
+    toForward()
+    return
   }
-  console.log("title: ", title)
+  const res2 = Math.abs(desc.length - title.length)
+  if(res2 > 5 && title.length < 10) {
+    toForward()
+    return
+  }
+  
+  console.log("getNotifyTitle result:", title)
 
   // 3. handle entrancePath
   const entrancePath = `/packageB/pages/task-detail/task-detail?id=${id}`
@@ -105,6 +103,58 @@ export function toNotifyMembers(
     },
     fail(err) {
       console.warn("notifyGroupMembers fail: ", err)
+      const errMsg = err?.errMsg
+      if(errMsg.includes("cancel")) return
+      ShowTip.showErrMsg("提醒失败", err)
     }
   })
+}
+
+export async function toForward(
+  justCreated = false,
+) {
+  const { t } = useI18n()
+  const key = justCreated ? "task-detail.forward_1" : "task-detail.forward_2"
+  const title = t(key)
+  await LiuApi.shareAppMessageToGroup({ title })
+}
+
+function getNotifyTitle(desc: string) {
+  desc = desc.trim()
+  let title = ""
+  let num = 0
+  for(let i=0; i<desc.length; i++) {
+    const char = desc[i]
+
+    if(num >= 30) break
+
+    // 1. for chinese
+    const cnNum = valTool.getChineseCharNum(char)
+    if(cnNum > 0) {
+      if(valTool.isChinesePunctuation(char)) {
+        console.warn("isChinesePunctuation: ", char)
+        continue
+      }
+      num += 2
+      title += char
+      continue
+    }
+
+    // 2. for english
+    if(valTool.isAllEnglishChar(char)) {
+      num += 1
+      title += char
+      continue
+    }
+
+    // 3. for number
+    if(valTool.isStringAsNumber(char)) {
+      num += 1
+      title += char
+      continue
+    }
+    
+  }
+
+  return title
 }

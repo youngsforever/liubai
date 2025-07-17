@@ -3,7 +3,12 @@ import { i18nBehavior } from "../../behaviors/i18n-behavior";
 import { themeBehavior } from "../../behaviors/theme-behavior";
 import { LiuTime } from "~/packageB/utils/LiuTime";
 import { TaskManager } from "../shared/TaskManager";
-import { fetchTaskDetail, showDetail, toNotifyMembers } from "./tools/useTaskDetail";
+import { 
+  fetchTaskDetail, 
+  showDetail, 
+  toNotifyMembers,
+  toForward,
+} from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
@@ -129,7 +134,7 @@ Component({
       if(!res6.confirm) return
 
       // 7. forward
-      this.toForward(true)
+      toForward(true)
     },
 
     async toUpdateShareMenu() {
@@ -197,13 +202,6 @@ Component({
       })
     },
 
-    async toForward(justCreated = false) {
-      const { t } = useI18n()
-      const key = justCreated ? "task-detail.forward_1" : "task-detail.forward_2"
-      const title = t(key)
-      await LiuApi.shareAppMessageToGroup({ title })
-    },
-
     youAreNotInTheRoom() {
       this.setData({ pState: pageStates.NOT_IN_ROOM, alwaysGoHome: true })
     },
@@ -218,9 +216,8 @@ Component({
 
     onTapShare() {
       LiuApi.vibrateShort({ type: "medium" })
-      this.toForward()
+      toForward()
     },
-
 
     onTapCreateTask() {
       LiuApi.vibrateShort({ type: "medium" })

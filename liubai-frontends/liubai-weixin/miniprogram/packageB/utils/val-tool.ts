@@ -230,6 +230,15 @@ const getValFromObj = (
   return obj[key]
 }
 
+function isChinesePunctuation(char: string) {
+  if (char.length !== 1) return false;
+  
+  // 匹配中文标点符号的正则表达式
+  const chinesePunctuationRegex = /[\u3000-\u303F\uFF00-\uFFEF\uFE30-\uFE4F\u2E80-\u2EFF\u31C0-\u31EF]/;
+  
+  return chinesePunctuationRegex.test(char);
+}
+
 export default {
   waitMilli,
   copyObject,
@@ -254,4 +263,5 @@ export default {
   isStringWithVal,
   objHasAnyKey,
   getValFromObj,
+  isChinesePunctuation,
 }

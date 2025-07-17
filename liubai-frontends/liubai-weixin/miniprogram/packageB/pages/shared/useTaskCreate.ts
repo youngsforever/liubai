@@ -14,7 +14,6 @@ type CreateTaskResolver = (res: LiuRqReturn<any> | null) => void
 let hasCreatedTask = false
 let createTaskPromise: Promise<LiuRqReturn<any> | null> | undefined
 
-
 function toCreateTask(
   desc: string,
   assignees: string[],
@@ -88,7 +87,7 @@ export async function waitForCreateTask() {
   if(isShowLoading) {
     LiuApi.hideLoading()
   }
-  hasCreatedTask = false
+  resetStates()
   if(!res1) return
   
   // 2. handle result
@@ -100,6 +99,11 @@ export async function waitForCreateTask() {
     return
   }
   showCreated(id)
+}
+
+function resetStates() {
+  hasCreatedTask = false
+  createTaskPromise = undefined
 }
 
 
