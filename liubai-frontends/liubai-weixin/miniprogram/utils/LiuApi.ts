@@ -454,5 +454,8 @@ export class LiuApi {
     wx.getGroupEnterInfo(opt)
   }
 
+  static setNavigationBarColor(opt: WechatMiniprogram.SetNavigationBarColorOption) {
+    wx.setNavigationBarColor(opt)
+  }
 
 }

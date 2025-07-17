@@ -56,9 +56,9 @@ export default {
     "remind_ta": "🛎️ 提醒 TA",
     "share_to_group": "分享到群聊",
     "share_to_ta": "分享给 TA",
-    "close_task": "结束任务",
+    "close_task": "关闭任务",
     "create_other": "创建其他任务",
-    "complete_task": "完成任务",
+    "complete_task": "🎯 完成任务",
     "share": "分享",
   },
   "date": {

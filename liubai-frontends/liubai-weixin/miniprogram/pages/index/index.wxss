@@ -13,6 +13,7 @@ page {
   align-items: center;
   width: 100%;
   min-height: 90vh;
+  background-color: var(--bg-color);
 }
 
 .index-virtual-one {
@@ -67,6 +68,7 @@ page {
   min-height: 50px;
   box-sizing: border-box;
   padding-top: 10px;
+  background-color: var(--bg-color);
 }
 
 .index-logo {

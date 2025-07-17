@@ -464,6 +464,10 @@ export class LiuApi {
     }
   }
 
+  static setNavigationBarColor(opt: WechatMiniprogram.SetNavigationBarColorOption) {
+    wx.setNavigationBarColor(opt)
+  }
+
   
 
 }

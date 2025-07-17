@@ -61,7 +61,7 @@ export default {
     "share_to_ta": "Share to him/her",
     "close_task": "Close task",
     "create_other": "Create other task",
-    "complete_task": "Complete task",
+    "complete_task": "🎯 Complete task",
     "share": "Share",
   },
   "date": {
