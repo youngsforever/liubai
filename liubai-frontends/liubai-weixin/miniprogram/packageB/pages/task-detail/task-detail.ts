@@ -25,6 +25,7 @@ import { DateUtil } from "~/packageB/utils/date-util";
 import { waitForCreateTask } from "../shared/useTaskCreate";
 import { envData } from "~/packageB/config/env-data";
 import { pageBehavior } from "~/packageB/behaviors/page-behavior";
+import { checkNameExisted } from "../shared/some-funcs";
 
 Component({
 
@@ -258,6 +259,8 @@ Component({
       LiuApi.vibrateShort({ type: "medium" })
       const { detail, _id, chatInfo } = this.data
       if(!detail || !_id || !chatInfo) return
+      const res1 = checkNameExisted()
+      if(!res1) return
 
       // 2. find my idx
       const assigneeList = detail.assigneeList

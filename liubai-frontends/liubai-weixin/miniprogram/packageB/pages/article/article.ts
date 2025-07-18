@@ -1,10 +1,7 @@
 import { envData } from "~/packageB/config/env-data"
 import type { ArticleKey } from "./tools/types"
 import type { UserLoginAPI } from "~/packageB/requests/req-types"
-import { 
-  getLoginLocally,
-  setLoginLocally,
-} from "~/packageB/utils/login/tools/local-login"
+import { Loginer } from "~/packageB/utils/login/Loginer"
 
 Component({
 
@@ -51,7 +48,7 @@ Component({
       const { nickname, headimgurl } = msg
       if(!nickname) return
 
-      const loginData = await getLoginLocally()
+      const loginData = await Loginer.getLoginData()
       if(!loginData) return
 
       if(!loginData.nickname) {
@@ -60,7 +57,7 @@ Component({
       if(headimgurl && !loginData.avatarUrl) {
         loginData.avatarUrl = headimgurl
       }
-      setLoginLocally(loginData)
+      await Loginer.setLoginData(loginData)
     },
 
     

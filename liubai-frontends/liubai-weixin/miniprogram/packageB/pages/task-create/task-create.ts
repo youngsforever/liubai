@@ -7,11 +7,8 @@ import { defaultData } from "~/packageB/config/default-data";
 import { LiuApi } from "~/packageB/utils/LiuApi";
 import { ShowTip } from "~/packageB/utils/managers/ShowTip";
 import { prePost } from "../shared/useTaskCreate";
-import type { LiuLoginData } from "~/packageB/types";
-import type { LiuTimeout } from "~/packageB/utils/basic/type-tool";
-import { LiuTime } from "~/packageB/utils/LiuTime";
-import { Loginer } from "~/packageB/utils/login/Loginer";
 import { pageBehavior } from "../../behaviors/page-behavior";
+import { checkNameExisted } from "../shared/some-funcs";
 
 Component({
 
@@ -33,36 +30,9 @@ Component({
     assignees: [] as string[],
     inputValue: "",
     _val: "",
-    _loginData: null as LiuLoginData | null,
-    _syncLoginDataInterval: undefined as LiuTimeout,
   },
 
   methods: {
-
-    onShow() {
-      this.syncLoginData()
-    },
-
-    async syncLoginData() {
-      const _this = this
-      const int1 = this.data._syncLoginDataInterval
-      if(int1) {
-        clearInterval(int1)
-      }
-
-      let runTimes = 0
-      this.data._syncLoginDataInterval = setInterval(async () => {
-        runTimes++
-        const res2 = await Loginer.getLoginData()
-        if(res2) {
-          _this.setData({ _loginData: res2 })
-        }
-        if(runTimes > 5 || res2) {
-          const int2 = _this.data._syncLoginDataInterval as number
-          clearInterval(int2)
-        }
-      }, LiuTime.SECOND * 5)
-    },
 
     onInput(e: any) {
       const inputTxt: string = e.detail.value ?? ""
@@ -115,14 +85,9 @@ Component({
       if(!this.data.canSubmit) return
       LiuApi.vibrateShort({ type: "medium" })
       
-      // 1. check login
-      const loginData = this.data._loginData
-      if(!loginData?.nickname) {
-        LiuApi.navigateTo({ 
-          url: "/packageB/pages/article/article?key=wxmini-login",
-        })
-        return
-      }
+      // 1. check nickname
+      const res1 = checkNameExisted()
+      if(!res1) return
 
       // 2. ready to post
       const res2 = prePost(this.data._val, this.data.assignees)

@@ -10,10 +10,9 @@ import {
 import { LiuTime } from "../LiuTime";
 import type { LiuSpaceAndMember } from "~/types/types-cloud";
 
-
 export class Loginer {
 
-  static hasFetched = false
+  private static _loginData: LiuLoginData | undefined
 
   static canILogin() {
     const res = LiuApi.getApiCategory()
@@ -34,6 +33,10 @@ export class Loginer {
     if(!res2) return
 
     return res1
+  }
+
+  static getLoginDataSync() {
+    return this._loginData
   }
 
   static async run() {
@@ -87,8 +90,7 @@ export class Loginer {
     }
     
     // 5. to set login data
-    await setLoginLocally(newLoginData)
-    this.hasFetched = true
+    await this.setLoginData(newLoginData)
     return true
   }
 
@@ -102,6 +104,7 @@ export class Loginer {
     // 2. if the login state has been expired
     if(code1 === "E4003" || code1 === "E4004") {
       removeLoginLocally()
+      this._loginData = undefined
       const res2 = await this.toLogin()
       return res2
     }
@@ -131,11 +134,14 @@ export class Loginer {
     }
     
     // 4. to update
-    await setLoginLocally(newData)
-    this.hasFetched = true
+    await this.setLoginData(newData)
     return true
   }
 
+  static async setLoginData(newData: LiuLoginData) {
+    this._loginData = newData
+    await setLoginLocally(newData)
+  }
 
   private static _getMemberData(
     spaceMemberList?: LiuSpaceAndMember[],
