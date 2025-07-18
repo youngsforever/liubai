@@ -2586,6 +2586,11 @@ export namespace HappySystemAPI {
     footer?: string
   }
 
+  export interface Res_GetAdData {
+    operateType: "get-ad-data"
+    rewardedAdUnitId?: string
+  }
+
   export interface Res_GetWeixinAd {
     operateType: "get-weixin-ad"
     adUnitId: string
@@ -2600,6 +2605,7 @@ export namespace HappySystemAPI {
   }
 
   export type OperateType = "get-showcase"
+    | "get-ad-data"
     | "get-weixin-ad"
     | "post-weixin-ad"
     | "coupon-status"

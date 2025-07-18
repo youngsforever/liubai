@@ -62,6 +62,14 @@ export namespace UserSettingsAPI {
 }
 
 
+export namespace HappySystemAPI {
+  export interface Res_GetAdData {
+    operateType: "get-ad-data"
+    rewardedAdUnitId?: string
+  }
+}
+
+
 /************************ Uploading File ********************/
 export namespace FileSetAPI {
   export interface Param {

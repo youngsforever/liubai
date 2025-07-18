@@ -79,6 +79,7 @@ async function close_wx_task(
     taskState: "CLOSED",
     closedStamp: now3,
     updatedStamp: now3,
+    related_openids: [],
   }
   await wtCol.doc(id).update(w3)
 
@@ -103,12 +104,12 @@ async function complete_wx_task(
   body: Record<string, any>,
   vRes: VerifyTokenRes_B,
 ) {
+  // 1. get task
   const id = body.id
   if(!valTool.isStringWithVal(id)) {
     return { code: "E4000", errMsg: "no id" }
   }
   const userId = vRes.userData._id
-
   const wtCol = db.collection("WxTask")
   const res1 = await wtCol.doc(id).get<Table_WxTask>()
   const data1 = res1.data
@@ -116,6 +117,7 @@ async function complete_wx_task(
     return { code: "E4004", errMsg: "no such task" }
   }
   
+  // 2. find my bond about the chat
   const w2: Partial<Table_WxBond> = {
     userId,
     infoType: "chat-tool",
@@ -134,7 +136,9 @@ async function complete_wx_task(
     return { code: "E4003", errMsg: "you are not the member of this chat" }
   }
 
+  // 3. update the state
   const assigneeList = data1.assigneeList
+  const related_openids = data1.related_openids
   const myAssignee = assigneeList.find(v => v.group_openid === my_group_openid)
   if(!myAssignee) {
     return { code: "PT002", errMsg: "you are not the assignee of this task" }
@@ -142,15 +146,20 @@ async function complete_wx_task(
   if(myAssignee.doneStamp) {
     return { code: "0001" }
   }
+  const idx3 = related_openids.indexOf(my_group_openid)
+  if(idx3 >= 0) {
+    related_openids.splice(idx3, 1)
+  }
 
-  // update the task in db
+  // 4. update the task in db
   const now4 = getNowStamp()
   myAssignee.doneStamp = now4
   const u4: Partial<Table_WxTask> = {
     assigneeList,
+    related_openids,
     updatedStamp: now4,
   }
-  wtCol.doc(id).update(u4)
+  await wtCol.doc(id).update(u4)
 
   // notify wechat if needed
   const endStamp = data1.endStamp ?? now4
@@ -174,7 +183,9 @@ async function complete_wx_task(
     tmpl_id,
     [myInfo]
   )
-  console.log("complete_wx_task setChatToolMsg res: ", res5)
+  if(!res5.pass) {
+    console.warn("WxMiniHandler.setChatToolMsg failed", res5.err)
+  }
 
   return { code: "0000" }
 }

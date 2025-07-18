@@ -10,6 +10,7 @@ import {
   toForward,
   fetchCloseTask,
   fetchCompleteTask,
+  afterCompleteTask,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -287,7 +288,8 @@ Component({
       const now2 = LiuTime.getTime()
       const closedStamp = detail.closedStamp
       const endStamp = detail.endStamp ?? now2
-      if(closedStamp || now2 > endStamp) {
+      let needShare = Boolean(closedStamp || now2 > endStamp)
+      if(needShare) {
         // to call  wx.shareEmojiToGroup
         this.toShareIComplete(id)
       }
@@ -303,6 +305,12 @@ Component({
       // 3. fetch
       const res5 = await fetchCompleteTask(id)
       console.log("fetchCompleteTask res5: ", res5)
+      const code5 = res5.code
+      if(code5 === "0000" || code5 === "0001") {
+        if(!needShare) {
+          afterCompleteTask()
+        }
+      }
 
     },
 
@@ -315,6 +323,7 @@ Component({
           entrancePath,
           success(res) {
             console.log("toShareIComplete success: ", res)
+            afterCompleteTask()
           },
           fail(err) {
             console.warn("toShareIComplete fail: ", err)

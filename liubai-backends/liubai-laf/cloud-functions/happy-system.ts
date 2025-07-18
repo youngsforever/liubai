@@ -72,6 +72,9 @@ export async function main(ctx: FunctionContext) {
   if(oT === "get-showcase") {
     res = await get_showcase(body)
   }
+  else if(oT === "get-ad-data") {
+    res = get_ad_data()
+  }
   else if(oT === "get-weixin-ad") {
     res = await get_weixin_ad(body)
   }
@@ -100,11 +103,22 @@ export async function main(ctx: FunctionContext) {
     res = await coupon_delete(body, vRes)
   }
   else if(oT === "coupon-search" && vRes?.pass) {
-    coupon_search(body, vRes)
+    res = await coupon_search(body, vRes)
   }
   
   return res
 }
+
+function get_ad_data() {
+  const _env = process.env
+  const rewardedAdUnitId = _env.LIU_WX_REWARDED_VIDEO_AD
+  const obj: HappySystemAPI.Res_GetAdData = {
+    operateType: "get-ad-data",
+    rewardedAdUnitId,
+  }
+  return { code: "0000", data: obj }
+}
+
 
 async function post_weixin_ad(
   body: Record<string, any>,

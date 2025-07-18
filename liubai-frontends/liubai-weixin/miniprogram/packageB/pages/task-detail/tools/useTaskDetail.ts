@@ -1,13 +1,18 @@
 import { LiuReq } from "~/packageB/requests/LiuReq";
 import APIs from "../../../requests/APIs";
 import type { WxMiniAPI } from "~/packageB/types/types-wx";
-import type { PeopleTasksAPI } from "~/packageB/requests/req-types";
+import type { 
+  HappySystemAPI, 
+  PeopleTasksAPI,
+} from "~/packageB/requests/req-types";
 import type { TaskDetail } from "./types";
 import { DateUtil } from "~/packageB/utils/date-util";
 import valTool from "~/packageB/utils/val-tool";
 import { LiuApi } from "~/packageB/utils/LiuApi";
 import { ShowTip } from "~/packageB/utils/managers/ShowTip";
 import { useI18n } from "~/packageB/locales/index";
+import { LiuRewardedVideo } from "./liu-rewarded-video";
+import { LiuUtil } from "~/packageB/utils/liu-util/index";
 
 export async function fetchTaskDetail(
   id: string,
@@ -177,4 +182,46 @@ export async function fetchCompleteTask(id: string) {
   const url1 = APIs.PPL_TASKS
   const res1 = await LiuReq.request(url1, w1)
   return res1
+}
+
+export async function afterCompleteTask() {
+  // 1. pull ad
+  const req1 = { operateType: "get-ad-data" }
+  const url1 = APIs.HAPPY_SYSTEM
+  const res1 = await LiuReq.request<HappySystemAPI.Res_GetAdData>(url1, req1)
+  const rewardedAdUnitId = res1.data?.rewardedAdUnitId
+  if(!rewardedAdUnitId) return
+
+  let hasShownModal = false
+  const ad = LiuRewardedVideo.init(rewardedAdUnitId)
+  if(!ad) {
+    showYouAreGreat()
+    return
+  }
+  ad.onLoad(res => {
+    console.log("rewardedVideoAd onLoad......", res)
+    if(hasShownModal) return
+    hasShownModal = true
+    showYouAreGreat()
+  })
+  ad.onError(err => {
+    console.warn("rewardedVideoAd onError: ", err)
+  })
+  LiuRewardedVideo.tryToLoad() 
+}
+
+function showYouAreGreat() {
+  const list = ["1", "2", "3", "4", "5"]
+  const r = Math.floor(Math.random() * list.length)
+  const index = list[r]
+  const content_key = `task-detail.great_${index}`
+  LiuUtil.showCustomModal({
+    title_key: "task-detail.done_it",
+    content_key,
+    showCancel: false,
+    success(res) {
+      if(!res.confirm) return
+      LiuRewardedVideo.showRewardedVideoAd()
+    }
+  })
 }

@@ -202,6 +202,20 @@ export class LiuApi {
     return res
   }
 
+  static createRewardedVideoAd(
+    opt: WechatMiniprogram.CreateRewardedVideoAdOption,
+  ) {
+    try {
+      const res = wx.createRewardedVideoAd(opt)
+      return res
+    }
+    catch(err) {
+      console.warn("createRewardedVideoAd err: ")
+      console.log(err)
+      return
+    }
+  }
+
   static openCustomerServiceChat(
     opt: WechatMiniprogram.OpenCustomerServiceChatOption,
   ) {
