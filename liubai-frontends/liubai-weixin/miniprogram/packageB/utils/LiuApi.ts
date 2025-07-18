@@ -481,12 +481,7 @@ export class LiuApi {
   static setNavigationBarColor(opt: WechatMiniprogram.SetNavigationBarColorOption) {
     wx.setNavigationBarColor(opt)
   }
-
-  static onAppRouteDone(listener: WechatMiniprogram.OnAppRouteDoneCallback) {
-    if(typeof wx.onAppRouteDone !== "function") return
-    wx.onAppRouteDone(listener)
-  }
-
+  
   static notifyGroupMembers(opt: WechatMiniprogram.NotifyGroupMembersOption) {
     wx.notifyGroupMembers(opt)
   }

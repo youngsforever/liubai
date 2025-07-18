@@ -11,6 +11,7 @@ import type { LiuLoginData } from "~/packageB/types";
 import type { LiuTimeout } from "~/packageB/utils/basic/type-tool";
 import { LiuTime } from "~/packageB/utils/LiuTime";
 import { Loginer } from "~/packageB/utils/login/Loginer";
+import { pageBehavior } from "../../behaviors/page-behavior";
 
 Component({
 
@@ -22,6 +23,7 @@ Component({
     i18nBehavior("task-create"),
     navibarBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
 
   data: {
@@ -88,6 +90,9 @@ Component({
         maxSelectCount: 20,
         success(res1) {
           _this.setData({ assignees: res1.members })
+        },
+        fail(err) {
+          console.warn("selectGroupMembers fail: ", err)
         }
       })
     },

@@ -91,11 +91,18 @@ export function navibarBehavior() {
   
           // 7.1 consider status bar or not
           if(considerStatusBar) {
-            alwaysArrowBack = true
             if(height1 > 10) {
               height1 -= 6
               height2 += 12
             }
+
+            // judge alwaysArrowBack
+            const pages = LiuApi.getPages()
+            const pageLength = pages.length
+            if(pageLength > 1) {
+              alwaysArrowBack = true
+            }
+            
           }
           else {
             console.log(height2, mbTop, mbHeight)
@@ -130,7 +137,7 @@ export function navibarBehavior() {
           height3 = Math.max(0, height3)
           newData.height3 = height3
   
-          // console.log("see new data: ", newData)
+          console.log("navibarBehavior new data: ", newData)
   
           if(valTool.objHasAnyKey(newData)) {
             this.setData(newData)

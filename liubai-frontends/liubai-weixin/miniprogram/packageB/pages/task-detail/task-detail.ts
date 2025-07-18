@@ -24,6 +24,7 @@ import { useI18n } from "~/packageB/locales/index";
 import { DateUtil } from "~/packageB/utils/date-util";
 import { waitForCreateTask } from "../shared/useTaskCreate";
 import { envData } from "~/packageB/config/env-data";
+import { pageBehavior } from "~/packageB/behaviors/page-behavior";
 
 Component({
 
@@ -35,6 +36,7 @@ Component({
     i18nBehavior("task-detail"),
     navibarBehavior(),
     themeBehavior(),
+    pageBehavior()
   ],
 
   data: {

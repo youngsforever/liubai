@@ -8,25 +8,12 @@ import type { BoolFunc, LiuTimeout } from "./basic/type-tool"
 import valTool from "./val-tool"
 import { AuthManager } from "./managers/AuthManager"
 import { defaultData } from "../config/default-data"
-import { setNaviForNewTheme } from "./theme-util"
 
 export async function usePackageB() {
-  listenToRouteDoneChange()
   await LiuApp.init()
   await valTool.waitMilli(defaultData.duration_ms_2)
   await AuthManager.init()
 }
-
-function listenToRouteDoneChange() {
-  // to fix navigation bar's color changed when navigateBack
-  LiuApi.onAppRouteDone(res => {
-    if(res.openType !== "navigateBack") return
-    const apiCategory = LiuApi.getApiCategory()
-    if(apiCategory !== "chatTool") return
-    setNaviForNewTheme()
-  })
-}
-
 
 export class LiuApp {
 
