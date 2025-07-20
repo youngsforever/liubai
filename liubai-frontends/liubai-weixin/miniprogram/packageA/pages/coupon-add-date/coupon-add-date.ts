@@ -1,4 +1,5 @@
 import { navibarBehavior } from "~/behaviors/navibar-behavior"
+import { pageBehavior } from "~/behaviors/page-behavior"
 import { i18nBehavior } from "~/packageA/behaviors/i18n-behavior"
 import { themeBehavior } from "~/packageA/behaviors/theme-behavior"
 import { LiuApi } from "~/utils/LiuApi"
@@ -13,6 +14,7 @@ Component({
     i18nBehavior("coupon-add-date"),
     navibarBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
   
   data: {

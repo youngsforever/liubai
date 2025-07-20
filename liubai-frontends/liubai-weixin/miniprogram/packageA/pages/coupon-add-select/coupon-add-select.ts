@@ -8,6 +8,7 @@ import { CouponAddManager } from "../shared/CouponAddManager"
 import { CouponManager } from "../shared/CouponManager"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuTime } from "~/utils/LiuTime"
+import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
 
@@ -19,6 +20,7 @@ Component({
     i18nBehavior("coupon-add-select"),
     navibarBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
   
   data: {

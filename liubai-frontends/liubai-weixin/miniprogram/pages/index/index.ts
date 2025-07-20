@@ -13,6 +13,7 @@ import valTool from "~/utils/val-tool"
 import { Loginer } from "~/utils/login/Loginer"
 import { ShowTip } from "~/utils/managers/ShowTip"
 import { handleGroupInfo } from "./tools/useIndexPage"
+import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
 
@@ -33,6 +34,7 @@ Component({
     navibarBehavior(),
     sharedBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
 
   lifetimes: {

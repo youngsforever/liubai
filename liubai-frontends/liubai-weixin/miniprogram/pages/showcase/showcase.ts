@@ -9,6 +9,7 @@ import type { HappySystemAPI } from "~/requests/req-types"
 import { LiuUtil } from "~/utils/liu-util/index"
 import { LiuApi } from "~/utils/LiuApi"
 import { themeBehavior } from "~/behaviors/theme-behavior"
+import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
 
@@ -20,6 +21,7 @@ Component({
     sharedBehavior(), 
     navibarBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
 
   data: {

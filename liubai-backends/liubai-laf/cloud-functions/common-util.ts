@@ -2720,7 +2720,7 @@ export class WxMiniHandler {
 
   private static getVersionType() {
     const _env = process.env
-    const v = _env.LIU_WX_MINI_VERTION_TYPE
+    const v = _env.LIU_WX_MINI_VERSION_TYPE
     if(v === "1") return 1
     if(v === "2") return 2
     return 0
