@@ -60,7 +60,14 @@ Component({
       const id = query.id
       if(!id || typeof id !== "string") return
       const now = LiuTime.getTime()
-      this.setData({ _whenLoadStamp: now, _id: id })
+      const pages = LiuApi.getPages()
+      const pLength = pages.length
+      let bind: Record<string, any> = {
+        _whenLoadStamp: now,
+        _id: id
+      }
+      if(pLength === 1) bind.alwaysGoHome = true
+      this.setData(bind)
 
       this.getTaskDetail(true)
     },
@@ -128,7 +135,7 @@ Component({
 
       // 4. show
       const detail = showDetail(chatInfo, data3)
-      this.setData({ detail, pState: pageStates.OK, alwaysGoHome: false })
+      this.setData({ detail, pState: pageStates.OK })
       this.toUpdateShareMenu()
 
       // 5. if just created
@@ -252,11 +259,13 @@ Component({
       const { detail, _id } = this.data
       if(!detail || !_id) return
 
-      const res1 = await LiuUtil.showCustomModal({
-        title: "📥",
-        content_key: "task-detail.close_1",
-      })
-      if(!res1.confirm) return
+      if(detail.hasAnyIncomplete) {
+        const res1 = await LiuUtil.showCustomModal({
+          title: "📥",
+          content_key: "task-detail.close_1",
+        })
+        if(!res1.confirm) return
+      }
 
       const bind: Record<string, any> = {}
       bind["detail.closedStamp"] = LiuTime.getTime()
