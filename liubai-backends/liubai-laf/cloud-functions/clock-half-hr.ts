@@ -16,19 +16,22 @@ import type {
   Shared_TokenUser,
   Table_Credential,
   Table_Order,
+  Table_WxTask,
 } from "@/common-types"
-import { getNowStamp, MINUTE } from "@/common-time"
+import { getNowStamp, MINUTE, HOUR } from "@/common-time"
 import { 
   getWwQynbAccessToken, 
   liuReq, 
   SafeGuard,
 } from '@/common-util'
+import { notifyWxToCloseTask } from '@/people-tasks'
 
 const db = cloud.database()
 const _ = db.command
 
 const MIN_20 = 20 * MINUTE
 const MIN_15 = 15 * MINUTE
+const HR_23 = 23 * HOUR
 
 const API_WECOM_DEL_CONTACT_WAY = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/del_contact_way"
 
@@ -41,9 +44,63 @@ export async function main(ctx: FunctionContext) {
   clearTokenUser()
   await clearExpiredOrder()
   await checkSecurity()
+  await checkWxTasks()
   // console.log("---------- End 清理缓存程序 ----------")
   // console.log(" ")
 
+  return true
+}
+
+
+
+async function checkWxTasks() {
+  const HR_23_AGO = getNowStamp() - HR_23
+  const ONE_DAY_AGO = HR_23_AGO - HOUR
+  const w1 = {
+    oState: "OK",
+    taskState: "DEFAULT",
+    updatedStamp: _.lt(HR_23_AGO),
+    assigneeList: _.elemMatch({
+      doneStamp: _.gte(ONE_DAY_AGO),
+    }),
+  }
+  const wtCol = db.collection("WxTask")
+  const q1 = wtCol.where(w1).limit(50).orderBy("updatedStamp", "desc")
+  const res1 = await q1.get<Table_WxTask>()
+  const tasks = res1.data
+  if(tasks.length < 1) return true
+
+  let closedNum = 0
+  const originalNum = tasks.length
+  for(let i=0; i<tasks.length; i++) {
+    const v = tasks[i]
+    const { assigneeList, _id } = v
+    if(!assigneeList || assigneeList.length < 1) continue
+    const someoneNotDone = assigneeList.find(v => !Boolean(v.doneStamp))
+    if(someoneNotDone) continue
+
+    // update db
+    const now2 = getNowStamp()
+    const u2: Partial<Table_WxTask> = {
+      taskState: "CLOSED",
+      related_openids: [],
+      closedStamp: now2,
+      updatedStamp: now2,
+    }
+    await wtCol.doc(_id).update(u2)
+    closedNum++
+
+    // notify wechat
+    const activity_id = v.activity_id
+    if(!activity_id) continue
+    const resFromWx = await notifyWxToCloseTask(activity_id)
+    if(!resFromWx.pass) {
+      console.warn("fail to notify wechat to close task: ", activity_id)
+      console.log(resFromWx)
+    }
+  }
+  
+  console.log(`closed ${closedNum} tasks from ${originalNum}`)
   return true
 }
 

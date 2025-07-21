@@ -2831,10 +2831,8 @@ export class WxMiniHandler {
       participator_info_list,
       version_type: this.getVersionType(),
     }
-    console.log("see setChatToolMsg obj: ", obj)
     const url = this.idToUrl.CHAT_TOOL_MSG
     const res = await this.toRequest(url, obj)
-    console.log("see setChatToolMsg res: ", res)
     return res
   }
 

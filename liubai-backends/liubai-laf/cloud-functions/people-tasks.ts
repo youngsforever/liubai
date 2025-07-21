@@ -84,19 +84,24 @@ async function close_wx_task(
   await wtCol.doc(id).update(w3)
 
   // notify wechat if needed
-  const endStamp = data1.endStamp ?? now3
+  // const endStamp = data1.endStamp ?? now3
   const activity_id = data1.activity_id
   if(!activity_id) return { code: "0000" }
-  if(now3 >= (endStamp - SECOND)) return { code: "0000" }
-  if(data1.closedStamp) return { code: "0000" }
+  // if(now3 >= (endStamp - SECOND)) return { code: "0000" }
 
   // get to notify
+  await notifyWxToCloseTask(activity_id)
+  
+  return { code: "0000" }
+}
+
+export async function notifyWxToCloseTask(
+  activity_id: string,
+) {
   const tmpl_id = ppl_system_cfg.chat_tool_tmpl_id_1
   const target_state = 3
   const res4 = await WxMiniHandler.setChatToolMsg(activity_id, target_state, tmpl_id)
-  console.log("close_wx_task setChatToolMsg res: ", res4)
-  
-  return { code: "0000" }
+  return res4
 }
 
 
