@@ -90,7 +90,7 @@ async function close_wx_task(
   // if(now3 >= (endStamp - SECOND)) return { code: "0000" }
 
   // get to notify
-  await notifyWxToCloseChatTool(activity_id, data1.infoType === "ACTIVITY")
+  await notifyWxToCloseChatTool(activity_id, data1.infoType === "ACTIVITY", body)
   
   return { code: "0000" }
 }
@@ -98,10 +98,17 @@ async function close_wx_task(
 export async function notifyWxToCloseChatTool(
   activity_id: string,
   isActivity: boolean,
+  body?: Record<string, any>,
 ) {
   const tmpl_id = isActivity ? ppl_system_cfg.activity_tmpl_id : ppl_system_cfg.task_tmpl_id
   const target_state = 3
-  const res4 = await WxMiniHandler.setChatToolMsg(activity_id, target_state, tmpl_id)
+  const res4 = await WxMiniHandler.setChatToolMsg(
+    activity_id, 
+    target_state, 
+    tmpl_id,
+    undefined,
+    body,
+  )
   return res4
 }
 
@@ -208,7 +215,8 @@ async function complete_wx_task(
     activity_id,
     target_state,
     tmpl_id,
-    [myInfo]
+    [myInfo],
+    body,
   )
   if(!res5.pass) {
     console.warn("WxMiniHandler.setChatToolMsg failed", res5.err)

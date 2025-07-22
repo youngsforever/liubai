@@ -912,6 +912,9 @@ export const Sch_X_Liu = vbot.object({
   x_liu_device: Sch_Opt_Str,
   x_liu_ide_type: vbot.optional(Sch_LiuIDEType),
   x_liu_machine_id: Sch_Opt_Str,
+
+  // for wx mini
+  x_liu_mini_env_type: Sch_Opt_Str,
 })
 
 export const Sch_IP = vbot.string([vbot.ip()])
