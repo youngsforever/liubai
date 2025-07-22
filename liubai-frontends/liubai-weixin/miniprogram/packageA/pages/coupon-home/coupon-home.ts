@@ -9,6 +9,7 @@ import { Loginer } from "~/utils/login/Loginer"
 import { i18nBehavior } from "~/packageA/behaviors/i18n-behavior"
 import { themeBehavior } from "~/packageA/behaviors/theme-behavior"
 import { ShowTip } from "~/utils/managers/ShowTip"
+import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
 
@@ -28,6 +29,7 @@ Component({
     navibarBehavior(),
     sharedBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
 
   lifetimes: {

@@ -21,8 +21,6 @@
 
 📲 [前往安装](https://docs.liubai.cc/guide/install)
 
-🗞️ [最新功能: 使用 WPS 或钉钉备份记事](https://mp.weixin.qq.com/s/72uvagowsaOaT2r6bUA2sw)
-
 
 ## 已实现 🥂
 
@@ -38,9 +36,9 @@
 
 ✅ 浅色/深色模式
 
-✅ 本地优先: PWA 的 service-worker 让你断网也能使用
+✅ 本地优先: PWA 的 service-worker 让你断网也能使用（注：仅限 Web，不包含微信小程序端）
 
-✅ 微信集成: 日程提醒，使用[微信通知你](https://my.liubai.cc/connect/wechat)
+✅ 微信集成: 个人日程提醒，使用[微信通知你](https://my.liubai.cc/connect/wechat)；协作任务，让你直接无缝选择[微信联络人](./liubai-frontends/liubai-weixin/README.md)。
 
 ✅ VS Code 插件，[快速记事](https://mp.weixin.qq.com/s/Nd3q4LKT_rJoMNo-AU-uuw)
 
@@ -57,6 +55,7 @@
 ├─ liubai-docs
 └─ liubai-frontends
    └─ liubai-web
+   ├─ liubai-weixin
    └─ liubai-vscode-extension
 ```
 
@@ -65,6 +64,8 @@
 `liubai-docs` 为文档根目录，使用 [VitePress](https://vitepress.dev/) 构建。
 
 `liubai-web` 为前端根目录，主要基于 [Vue 3.x](https://vuejs.org/) + [Vite](https://vite.dev/) + [VueUse](https://vueuse.org/) + [TypeScript](https://www.typescriptlang.org/) + [Dexie.js](https://dexie.org/docs/) + [TipTap](https://tiptap.dev/) ...... 等一系列前端工具链构建，在该目录下运行 `pnpm i` 和 `pnpm dev` 即可启动留白前端。
+
+`liubai-weixin` 微信小程序根目录，使用 Skyline + TypeScript + [Chat Tool API](https://developers.weixin.qq.com/miniprogram/dev/framework/open-ability/chatTool.html) 构建，让你直接跟微信联络人一起做任务管理！
 
 `liubai-vscode-extension` 为 vscode 插件根目录，使用 typescript 编写，[esbuild](https://code.visualstudio.com/api/working-with-extensions/bundling-extension#using-esbuild) 打包，[vsce](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#vsce) 发布。该插件除了能在常见的 node 环境运行，还支持 [vscode for web](https://code.visualstudio.com/docs/editor/vscode-web)，让你在 github.dev / gitpod.io / codespaces 等浏览器 IDE 环境中也能使用。
 

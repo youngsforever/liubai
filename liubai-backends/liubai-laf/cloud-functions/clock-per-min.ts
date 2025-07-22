@@ -22,6 +22,7 @@ import { commonLang, getCurrentLocale, useI18n } from "@/common-i18n";
 import { wx_reminder_tmpl } from "@/common-config";
 import { WxGzhSender } from "@/service-send";
 import { invoke_by_clock } from "@/ai-system-two";
+import { getNowStamp } from "@/common-time";
 
 const db = cloud.database()
 const _ = db.command
@@ -83,8 +84,19 @@ async function handle_system_two() {
   await invoke_by_clock()
 }
 
+async function handle_count_unionid() {
+  const w1 = {
+    wx_unionid: _.exists(true),
+  }
+  const uCol = db.collection("User")
+  const res1 = await uCol.where(w1).count()
+  console.log("see res1: ", res1)
+  return { code: "0000", data: res1 }
+}
+
 async function handle_update_unionid() {
   const w1 = {
+    oState: "NORMAL",
     wx_unionid: _.exists(false),
     wx_gzh_openid: _.exists(true),
     thirdData: {
@@ -98,13 +110,25 @@ async function handle_update_unionid() {
   const res = await q1.get<Table_User>()
   const users = res.data
   if (!users || users.length === 0) {
-    console.warn("no need to update unionid")
     return
   }
   const access_token = await checkAndGetWxGzhAccessToken()
   if (!access_token) {
     console.warn("handle_update_unionid: access_token is not found")
     return
+  }
+
+  const _unsubscribe = async (user: Table_User) => {
+    const userId = user._id
+    const wx_gzh = user.thirdData?.wx_gzh
+    if(!wx_gzh) return
+    wx_gzh.subscribe = 0
+    const now3 = getNowStamp()
+    const u3 = {
+      "thirdData.wx_gzh": _.set(wx_gzh),
+      "updatedStamp": now3,
+    }
+    await uCol.doc(userId).update(u3)
   }
 
   let updatedNum = 0
@@ -123,6 +147,9 @@ async function handle_update_unionid() {
     if(!wx_unionid) {
       console.warn("handle_update_unionid: unionid is not found", wx_gzh_openid)
       console.log(userInfoRes)
+      if(userInfoRes.subscribe === 0) {
+        await _unsubscribe(user)
+      }
       continue
     }
 
@@ -132,7 +159,9 @@ async function handle_update_unionid() {
     await valTool.waitMilli(200)
   }
 
-  console.log(`update ${updatedNum} for wx_unionid`)
+  if(updatedNum > 0) {
+    console.log(`update ${updatedNum} for wx_unionid from ${users.length}`)
+  }
 }
 
 

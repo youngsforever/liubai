@@ -13,6 +13,7 @@ import valTool from "~/utils/val-tool"
 import { Loginer } from "~/utils/login/Loginer"
 import { ShowTip } from "~/utils/managers/ShowTip"
 import { handleGroupInfo } from "./tools/useIndexPage"
+import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
 
@@ -33,6 +34,7 @@ Component({
     navibarBehavior(),
     sharedBehavior(),
     themeBehavior(),
+    pageBehavior(),
   ],
 
   lifetimes: {
@@ -178,10 +180,20 @@ Component({
       this.data._key2 = ""
     },
 
+    onShareTimeline() {
+      return {
+        title: defaultData.timeline_title,
+        imageUrl: "/images/shared/index-cover-for-moment.jpg"
+      }
+    },
+
     onShareAppMessage() {
       const { t } = useI18n()
       const title = t("index.slogan")
-      return { title }
+      return { 
+        title,
+        imageUrl: "/images/shared/index-cover.jpg"
+      }
     }
 
   },

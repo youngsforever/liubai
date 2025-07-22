@@ -4,8 +4,6 @@ import { colorData } from "../config/default-data";
 import type { SupportedTheme } from "../types/types-atom";
 import { LiuApi } from "./LiuApi";
 
-let hasInitTheme = false
-
 export function setNaviForNewTheme(theme?: SupportedTheme) {
   if(!theme) {
     theme = LiuUtil.getCurrentTheme()
@@ -21,10 +19,6 @@ export function getThemeBehavior(
   const theme = LiuUtil.getCurrentTheme()
   const imagePath = getImagePath()
   const colors = colorData[theme]
-  if(!hasInitTheme) {
-    hasInitTheme = true
-    setNaviForNewTheme(theme)
-  }
 
   const behavior = Behavior({
     data: {

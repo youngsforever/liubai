@@ -2720,7 +2720,7 @@ export class WxMiniHandler {
 
   private static getVersionType() {
     const _env = process.env
-    const v = _env.LIU_WX_MINI_VERTION_TYPE
+    const v = _env.LIU_WX_MINI_VERSION_TYPE
     if(v === "1") return 1
     if(v === "2") return 2
     return 0
@@ -2831,10 +2831,8 @@ export class WxMiniHandler {
       participator_info_list,
       version_type: this.getVersionType(),
     }
-    console.log("see setChatToolMsg obj: ", obj)
     const url = this.idToUrl.CHAT_TOOL_MSG
     const res = await this.toRequest(url, obj)
-    console.log("see setChatToolMsg res: ", res)
     return res
   }
 

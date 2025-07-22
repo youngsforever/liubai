@@ -31,6 +31,7 @@ Component({
     },
     title: {
       type: String,
+      value: "",
     },
     alwaysArrowBack: {
       type: Boolean,
