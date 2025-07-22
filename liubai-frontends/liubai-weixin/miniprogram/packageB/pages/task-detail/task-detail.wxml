@@ -106,7 +106,7 @@
 
       </view>
 
-      <!-- Buttons for assignees -->
+      <!-- Buttons during available period -->
       <view wx:elif="{{!detail.closedStamp && detail.hasAnyIncomplete}}" class="td-buttons">
         <!-- Complete -->
         <custom-button wx:if="{{detail.canIComplete}}" catchtap="onTapCompleteTask">
@@ -132,7 +132,7 @@
         </custom-button>
       </view>
 
-      <!-- Buttons for closed or completed assignee -->
+      <!-- Buttons for the rest -->
       <view wx:else class="td-buttons">
         <!-- Create others -->
         <custom-button catchtap="onTapCreateTask">
