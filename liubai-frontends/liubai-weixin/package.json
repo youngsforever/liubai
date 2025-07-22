@@ -5,7 +5,7 @@
   "scripts": {
     "pre-build": "tsx build/pre-build.ts"
   },
-  "keywords": [],
+  "keywords": ["task", "weixin-miniprogram", "chat-tool"],
   "author": "yenche123 <tsuiyenche@outlook.com> (https://github.com/yenche123)",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
