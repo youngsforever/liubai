@@ -2719,7 +2719,16 @@ export class WxMiniHandler {
     return { pass: true, data: res.data }
   }
 
-  private static getVersionType() {
+  private static getVersionType(
+    body?: Record<string, any>,
+  ) {
+    const envType = body?.x_liu_mini_env_type
+    const versionTypes = ["release", "develop", "trial"]
+    if(typeof envType === "string") {
+      const idx = versionTypes.indexOf(envType)
+      if(idx >= 0) return idx
+    }
+
     const _env = process.env
     const v = _env.LIU_WX_MINI_VERSION_TYPE
     if(v === "1") return 1
@@ -2824,13 +2833,14 @@ export class WxMiniHandler {
     target_state: number,
     template_id: string,
     participator_info_list?: WxMiniAPI.ChatToolParticipatorInfo[],
+    body?: Record<string, any>,
   ) {
     const obj = {
       activity_id,
       target_state,
       template_id,
       participator_info_list,
-      version_type: this.getVersionType(),
+      version_type: this.getVersionType(body),
     }
     const url = this.idToUrl.CHAT_TOOL_MSG
     const res = await this.toRequest(url, obj)

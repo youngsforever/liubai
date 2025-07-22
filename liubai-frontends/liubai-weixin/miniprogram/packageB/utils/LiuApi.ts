@@ -495,6 +495,10 @@ export class LiuApi {
   static shareEmojiToGroup(opt: WechatMiniprogram.ShareEmojiToGroupOption) {
     wx.shareEmojiToGroup(opt)
   }
+
+  static getAccountInfoSync() {
+    return wx.getAccountInfoSync()
+  }
   
 
 }

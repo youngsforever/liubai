@@ -3,6 +3,8 @@ import { pageStates } from "../../utils/atom-util"
 import { i18nBehavior } from "../../behaviors/i18n-behavior"
 import { defaultData } from "../../config/default-data"
 import { LiuApi } from "~/packageB/utils/LiuApi"
+import valTool from "~/packageB/utils/val-tool"
+import { LiuUtil } from "~/packageB/utils/liu-util/index"
 
 const TRANSITION_MS = 300
 
@@ -57,8 +59,10 @@ Component({
   methods: {
 
     toCheckSkyline() {
-      const res = LiuApi.getSkylineInfoSync()
-      if(!res.isSupported) {
+      const res1 = LiuApi.getSkylineInfoSync()
+      const cha = LiuUtil.getCharacteristic()
+      const res2 = valTool.compareVersion(cha.SDKVersion, "3.7.8")
+      if(!res1.isSupported || res2 < 0) {
         this.setData({ canUseSkyline: false })
       }
     },

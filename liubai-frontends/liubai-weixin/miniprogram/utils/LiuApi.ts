@@ -458,4 +458,8 @@ export class LiuApi {
     wx.setNavigationBarColor(opt)
   }
 
+  static getAccountInfoSync() {
+    return wx.getAccountInfoSync()
+  }
+
 }

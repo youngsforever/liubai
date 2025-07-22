@@ -8,8 +8,12 @@ import type { BoolFunc, LiuTimeout } from "./basic/type-tool"
 import valTool from "./val-tool"
 import { AuthManager } from "./managers/AuthManager"
 import { defaultData } from "../config/default-data"
+import { envData } from "../config/env-data"
 
 export async function usePackageB() {
+  const version = envData.LIU_VERSION
+  console.log(`You're using package B, and the current version is ${version}`)
+  
   await LiuApp.init()
   await valTool.waitMilli(defaultData.duration_ms_2)
   await AuthManager.init()

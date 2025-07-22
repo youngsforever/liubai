@@ -8,16 +8,22 @@ import { getLoginLocally } from "~/utils/login/tools/local-login"
 
 export type NetworkResolver<T> = (res: LiuRqReturn<T>) => void
 
+let miniEnvType: string | undefined
+
 async function _getBody<U extends Record<string, any>>(
   body?: U,
 ) {
   // 1.1 get serial & token
   const loginData = await getLoginLocally()
 
-  // 1.2 get language
+  // 1.2 get language, theme, and miniEnvType
   const appBaseInfo = LiuApi.getAppBaseInfo()
   const language = appBaseInfo?.language ?? defaultData.language
   const theme = appBaseInfo?.theme ?? defaultData.theme
+  if(!miniEnvType) {
+    const accountInfo = LiuApi.getAccountInfoSync()
+    miniEnvType = accountInfo.miniProgram?.envVersion
+  }
 
   // 2. add some common data
   const b: Record<string, any> = {
@@ -30,6 +36,7 @@ async function _getBody<U extends Record<string, any>>(
     x_liu_device: LiuUtil.getDeviceString(),
     x_liu_token: loginData?.token,
     x_liu_serial: loginData?.serial,
+    x_liu_mini_env_type: miniEnvType,
     ...body,
   }
 
