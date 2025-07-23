@@ -19,7 +19,7 @@
 </a>
 
 <a href="./trae">
-  <img src="./assets-ide/banner-trae.jpg" alt="trae" width="330" style="margin-block-end: 10px; border-radius: 10px;">
+  <img src="./assets-ide/banner-trae-solo.jpg" alt="trae" width="330" style="margin-block-end: 10px; border-radius: 10px;">
 </a>
 
 <a href="./github-dev">
