@@ -228,7 +228,8 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [llmstxt()]
+    plugins: [llmstxt()],
+    assetsInclude: ["**/*.JPG", "**/*.PNG", "**/*.GIF"],
   },
 
   transformHead(context) {
