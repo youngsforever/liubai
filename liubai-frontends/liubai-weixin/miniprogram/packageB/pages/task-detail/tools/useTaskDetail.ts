@@ -12,6 +12,7 @@ import { LiuApi } from "~/packageB/utils/LiuApi";
 import { useI18n } from "~/packageB/locales/index";
 import { LiuRewardedVideo } from "./liu-rewarded-video";
 import { LiuUtil } from "~/packageB/utils/liu-util/index";
+import { defaultData } from "~/packageB/config/default-data";
 
 export async function fetchTaskDetail(
   id: string,
@@ -241,6 +242,46 @@ function showYouAreGreat() {
     success(res) {
       if(!res.confirm) return
       LiuRewardedVideo.showRewardedVideoAd()
+    }
+  })
+}
+
+export function toCreateOtherTask(
+  chatInfo: WxMiniAPI.ChatInfo,
+) {
+  const _pushRoute = () => {
+    LiuUtil.navigateWithPopup("/packageB/pages/task-create/task-create")
+  }
+
+  const pages = LiuApi.getPages()
+  if(pages.length > 1) {
+    _pushRoute()
+    return
+  }
+
+  const alert_text_key = "task-detail.create_for_title"
+  let first_key = "task-detail.create_for_current_chat"
+  if(chatInfo.opengid) {
+    first_key = "task-detail.create_for_current_group"
+  }
+  const item_key_list = [
+    first_key,
+    "task-detail.create_for_others",
+  ]
+  LiuUtil.showCustomActionSheet({
+    alert_text_key,
+    item_key_list,
+    success(res) {
+      if(res.tapIndex === 0) {
+        LiuApi.vibrateShort({ type: "medium" })
+        _pushRoute()
+        return
+      }
+      const url = defaultData.homePath + "?key2=CREATE_TASK"
+      LiuApi.reLaunch({ url })
+    },
+    fail(err) {
+      console.warn("showCustomActionSheet fail: ", err)
     }
   })
 }

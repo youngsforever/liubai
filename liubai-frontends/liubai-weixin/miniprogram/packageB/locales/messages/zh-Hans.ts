@@ -27,7 +27,6 @@ export default {
     "err_reason": "原因: {msg}; 状态码: {code}",
     "skyline_1": "当前微信客户端不支持 skyline",
     "skyline_2": "请切换设备或升级微信",
-    "group_1": "三个人以下的小群可能会遭遇 Bug，我们已经向微信团队反馈了！",
     "not_in_room_1": "你似乎不在聊天室中",
     "not_in_room_2": "请确认你没有删除对方好友或仍在群聊中",
     "select_group_members_fail": "选择群成员失败，该问题来自于微信团队，欢迎你向他们反馈！",
@@ -38,7 +37,6 @@ export default {
     "add_photo": "添加照片",
     "assign_to": "指派给",
     "done": "就这样",
-    "meet_issue": "遇到问题？",
     "created_1": "任务已创建🔫",
   },
   "task-detail": {
@@ -75,6 +73,10 @@ export default {
     "great_3": "没有什么是你克服不了的🎢",
     "great_4": "你正在不断超越自己🥞",
     "great_5": "你是做自己的英雄🍟",
+    "create_for_title": "建在哪里？",
+    "create_for_current_chat": "当前会话",
+    "create_for_current_group": "当前群聊",
+    "create_for_others": "其他会话或群聊",
   },
   "date": {
     "show_1": "{mm}月{dd}日 {hr}:{min}",

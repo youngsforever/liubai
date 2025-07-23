@@ -9,6 +9,7 @@ export default {
     "powered_by": "Done everything using Liubai",
     "find_coupon": "Find Coupons",
     "create_task": "Create Tasks",
+    "pc_not_supported": "It's not supported on PC",
   },
   "shared": {
     "copied": "Copied",

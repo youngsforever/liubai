@@ -11,6 +11,7 @@ import {
   fetchCloseTask,
   fetchCompleteTask,
   afterCompleteTask,
+  toCreateOtherTask,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -254,7 +255,9 @@ Component({
 
     onTapCreateTask() {
       LiuApi.vibrateShort({ type: "medium" })
-      LiuUtil.navigateWithPopup("/packageB/pages/task-create/task-create")
+      const c = this.data.chatInfo
+      if(!c) return
+      toCreateOtherTask(c)
     },
 
     async onTapCloseTask() {

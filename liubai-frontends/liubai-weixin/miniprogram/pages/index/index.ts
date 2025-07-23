@@ -108,7 +108,20 @@ Component({
     },
 
     onTapTask() {
+      // 1. first check
       if(!this.isEverythingOK()) return
+
+      // 2. second check
+      const res2 = LiuApi.getSkylineInfoSync()
+      if(!res2.isSupported) {
+        LiuUtil.showCustomModal({
+          title: "🙅",
+          content_key: "index.pc_not_supported",
+          showCancel: false,
+        })
+        return
+      }
+
       this.toCreateTask()
       // this.toMockDetail()
     },
