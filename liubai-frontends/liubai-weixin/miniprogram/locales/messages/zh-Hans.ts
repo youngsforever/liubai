@@ -7,6 +7,7 @@ export default {
     "powered_by": "用留白记事，消灭所有杂事",
     "find_coupon": "找优惠",
     "create_task": "建任务",
+    "pc_not_supported": "PC 端暂不支持",
   },
   "shared": {
     "copied": "已复制",

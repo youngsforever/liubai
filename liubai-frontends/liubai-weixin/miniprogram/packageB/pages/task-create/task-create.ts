@@ -5,7 +5,6 @@ import { TaskManager } from "../shared/TaskManager";
 import valTool from "../../utils/val-tool";
 import { defaultData } from "~/packageB/config/default-data";
 import { LiuApi } from "~/packageB/utils/LiuApi";
-import { ShowTip } from "~/packageB/utils/managers/ShowTip";
 import { prePost } from "../shared/useTaskCreate";
 import { pageBehavior } from "../../behaviors/page-behavior";
 import { checkNameExisted } from "../shared/some-funcs";
@@ -103,11 +102,6 @@ Component({
       const assignees = this.data.assignees
       assignees.splice(idx, 1)
       this.setData({ assignees })
-    },
-
-    onTapIssue() {
-      LiuApi.vibrateShort({ type: "light" })
-      ShowTip.showBug1()
     },
 
     onTapPost() {

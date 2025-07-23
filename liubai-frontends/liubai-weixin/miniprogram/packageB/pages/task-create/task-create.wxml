@@ -65,16 +65,6 @@
         
       </view>
 
-      <!-- Bug Tip -->
-      <view class="tc-issue-box">
-        <view class="tc-issue" hover-class="liu-hover-class"
-          catchtap="onTapIssue"
-        >
-          <image src="{{imagePath}}warning.png" class="tc-issue-icon" />
-          <text>{{t1.meet_issue}}</text>
-        </view>
-      </view>
-
       <!-- Done Button -->
       <custom-button catchtap="onTapPost" disabled="{{!canSubmit}}">
         <text>{{t1.done}}</text>

@@ -21,7 +21,7 @@
   border-radius: 30px;
   overflow: hidden;
   background-color: var(--card-bg);
-  margin-bottom: 10px;
+  margin-bottom: 30px;
   box-sizing: border-box;
   padding: 10px 0;
 }
@@ -129,27 +129,5 @@
 .tc-assignee-clear-icon {
   width: 24px;
   height: 24px;
-}
-
-.tc-issue-box {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 30px;
-}
-
-.tc-issue {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--mini-font);
-  color: var(--main-note);
-  transition: .15s;
-}
-
-.tc-issue-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 5px;
 }
 

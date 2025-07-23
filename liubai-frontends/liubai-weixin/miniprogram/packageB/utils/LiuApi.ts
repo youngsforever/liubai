@@ -499,6 +499,11 @@ export class LiuApi {
   static getAccountInfoSync() {
     return wx.getAccountInfoSync()
   }
+
+  static showActionSheet(opt: WechatMiniprogram.ShowActionSheetOption) {
+    const res = wx.showActionSheet(opt)
+    return res
+  }
   
 
 }

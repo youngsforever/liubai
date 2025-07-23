@@ -39,13 +39,4 @@ export class ShowTip {
     LiuUtil.showCustomModal(opt)
   }
 
-  static showBug1() {
-    LiuUtil.showCustomModal({
-      title: "🐛",
-      content_key: "err.group_1",
-      confirm_key: "shared.got_it",
-      showCancel: false,
-    })
-  }
-
 }

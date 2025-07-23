@@ -30,7 +30,6 @@ export default {
     "err_reason": "Reason: {msg}; Status code: {code}",
     "skyline_1": "Skyline is not supported",
     "skyline_2": "Please switch device or upgrade WeChat",
-    "group_1": "It may not work in groups with less than four people. We have already reported this issue to WeChat team!",
     "not_in_room_1": "You are not in the chat",
     "not_in_room_2": "Please confirm that you have not deleted this friend related to the task, or you are still in the group chat.",
     "select_group_members_fail": "Fail to select group members. The issue is from WeChat team. Welcome to report it to them!",
@@ -41,7 +40,6 @@ export default {
     "add_photo": "Add photo",
     "assign_to": "Assign to",
     "done": "That's it",
-    "meet_issue": "Run into issue?",
     "created_1": "Task Created 🔫",
   },
   "task-detail": {
@@ -77,7 +75,11 @@ export default {
     "great_2": "Your inner strength is greater than you imagined 🌌",
     "great_3": "There is nothing you cannot overcome 🎢",
     "great_4": "You are constantly surpassing yourself 🥞",
-    "great_5": "You are your own hero 🍟",
+    "great_5": "You are your own hero 🍟",    
+    "create_for_title": "Where to create?",
+    "create_for_current_chat": "Current chat",
+    "create_for_current_group": "Current group",
+    "create_for_others": "Other chats or groups",
   },
   "date": {
     "show_1": "{yyyy}-{mm}-{dd} {hr}:{min}",
