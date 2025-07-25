@@ -443,8 +443,7 @@ async function saveChatInfo(
       enterStamp: now2,
       updatedStamp: now2,
     }
-    const updateRes = await wbCol.doc(bondId).update(u2)
-    console.log("updateRes: ", updateRes)
+    await wbCol.doc(bondId).update(u2)
   }
 
   const _add = async () => {
