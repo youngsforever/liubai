@@ -36,7 +36,6 @@ import {
   aiToolGetScheduleSpecificDates,
   aiToolGetCardTypes,
   aiImageSizeTypes,
-  Ns_MapTool,
 } from "@/common-types"
 import cloud from "@lafjs/cloud"
 import { 
@@ -68,8 +67,6 @@ const enumGetScheduleHoursFromNow = valTool.objToStr(aiToolGetScheduleHoursFromN
 const enumGetScheduleSpecificDates = valTool.objToStr(aiToolGetScheduleSpecificDates)
 const enumGetCardTypes = valTool.objToStr(aiToolGetCardTypes)
 const enumImageSizeTypes = valTool.objToStr(aiImageSizeTypes)
-const enumAmapSortrules = valTool.objToStr(Ns_MapTool.amapSortrules)
-const enumDirectionTypes = valTool.objToStr(Ns_MapTool.directionTypes)
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
