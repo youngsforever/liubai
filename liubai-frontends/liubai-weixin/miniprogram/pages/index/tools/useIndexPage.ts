@@ -77,3 +77,16 @@ async function fetchGroupInfo(
 
   
 }
+
+
+export async function getMyTasks() {
+  const res1 = await LiuApp.autoLogin()
+  if(!res1) return
+
+  const u2 = {
+    operateType: "list-wx-tasks",
+    listType: "available",
+  }
+  const res2 = await LiuReq.request<PeopleTasksAPI.Res_ListWxTasks>(APIs.PPL_TASKS, u2)
+  console.log("getMyTasks res2: ", res2)
+}

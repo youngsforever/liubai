@@ -12,7 +12,7 @@ import { LiuApi } from "~/utils/LiuApi"
 import valTool from "~/utils/val-tool"
 import { Loginer } from "~/utils/login/Loginer"
 import { ShowTip } from "~/utils/managers/ShowTip"
-import { handleGroupInfo } from "./tools/useIndexPage"
+import { getMyTasks, handleGroupInfo } from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
 
 Component({
@@ -168,6 +168,10 @@ Component({
       LiuApi.navigateTo({ 
         url: "/packageA/pages/coupon-home/coupon-home",
       })
+    },
+
+    onShow() {
+      getMyTasks()
     },
 
     onReady() {
