@@ -167,8 +167,24 @@ Component({
         "task-fr-list-to-detail"
       )
       if(res2_1) {
-        const tmpDetail2_1 = showDetail(res2_1)
-        this.setData({ detail: tmpDetail2_1, pState: pageStates.OK })
+        let bind2_1: Record<string, any> = { pState: pageStates.OK }
+        if(res2_1.isMine) {
+          bind2_1.chatInfo = {
+            group_openid: res2_1.owner_openid,
+            open_single_roomid: res2_1.open_single_roomid,
+            opengid: res2_1.opengid,
+            chat_type: res2_1.chat_type,
+          } as WxMiniAPI.ChatInfo
+          TaskManager.setChatInfo(bind2_1.chatInfo)
+          TaskManager.init()
+          bind2_1.detail = showDetail(res2_1, bind2_1.chatInfo)
+          this.setData(bind2_1)
+          this.toUpdateShareMenu()
+          return true
+        }
+
+        bind2_1.detail = showDetail(res2_1)
+        this.setData(bind2_1)
       }
 
       // 2.2 init task manager

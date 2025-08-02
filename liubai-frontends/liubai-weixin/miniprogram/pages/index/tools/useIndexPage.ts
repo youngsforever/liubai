@@ -90,7 +90,7 @@ export async function getMyTasks() {
     listType: "available",
   }
   const res2 = await LiuReq.request<PeopleTasksAPI.Res_ListWxTasks>(APIs.PPL_TASKS, u2)
-  console.log("getMyTasks res2: ", res2)
+  // console.log("getMyTasks res2: ", res2)
   if(res2.code !== "0000" || !res2.data) return
   const list = showTaskItems(res2.data?.tasks ?? [])
   return list
