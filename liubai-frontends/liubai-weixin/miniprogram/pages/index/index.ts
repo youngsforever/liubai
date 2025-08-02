@@ -12,9 +12,14 @@ import { LiuApi } from "~/utils/LiuApi"
 import valTool from "~/utils/val-tool"
 import { Loginer } from "~/utils/login/Loginer"
 import { ShowTip } from "~/utils/managers/ShowTip"
-import { getMyTasks, handleGroupInfo } from "./tools/useIndexPage"
+import { 
+  getMyTasks, 
+  getStoragedMyTasks, 
+  handleGroupInfo, 
+  setStoragedMyTasks,
+} from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
-import type { PeopleTasksAPI } from "~/requests/req-types"
+import { TaskItem } from "~/types/types-task"
 
 Component({
 
@@ -25,7 +30,7 @@ Component({
   data: {
     pageName: "index",
     canSearch: false,
-    myTasks: [] as PeopleTasksAPI.WxTaskItem[],
+    myTasks: [] as TaskItem[],
     _key1: "",
     _key2: "",
     _searchValue: "",
@@ -157,6 +162,14 @@ Component({
       else if(query?.key2) {
         this.data._key2 = query.key2
       }
+
+      this.initMyTasks()
+    },
+
+    async initMyTasks() {
+      const myTasks = await getStoragedMyTasks()
+      if(!myTasks) return
+      this.setData({ myTasks })
     },
 
     onTapCoupon() {
@@ -174,6 +187,7 @@ Component({
       const myTasks = await getMyTasks()
       if(!myTasks) return
       this.setData({ myTasks })
+      setStoragedMyTasks(myTasks)
     },
 
     onReady() {

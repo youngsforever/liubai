@@ -70,9 +70,8 @@ page {
   font-size: var(--title-font);
   color: var(--main-normal);
   font-weight: 700;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
 }
-
 
 
 .index-footer-container {

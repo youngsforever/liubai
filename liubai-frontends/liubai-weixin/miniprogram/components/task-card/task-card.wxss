@@ -15,11 +15,13 @@
 .task-card-title {
   font-size: var(--btn-font);
   color: var(--main-normal);
-  margin-bottom: 4px;
   font-weight: 600;
+  line-height: 1.45;
+  margin-bottom: 6px;
 }
 
 .task-card-footer {
   font-size: var(--mini-font);
   color: var(--main-note);
+  line-height: 1.25;
 }
