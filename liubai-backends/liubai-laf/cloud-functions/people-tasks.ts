@@ -200,6 +200,7 @@ async function complete_wx_task(
     return { code: "E4004", errMsg: "no such task" }
   }
   const isActivity = data1.infoType === "ACTIVITY"
+  const iAmOwner = data1.owner_userid === userId
   
   // 2. find my bond about the chat
   const w2: Partial<Table_WxBond> = {
@@ -250,17 +251,31 @@ async function complete_wx_task(
   }
   else {
     // if we are operating TASK
-    const myAssignee = assigneeList.find(v => v.group_openid === my_group_openid)
+    let isAllDone = true
+    let myAssignee: PeopleTasksAPI.AssigneeItem | undefined
+    assigneeList.forEach(v => {
+      if(v.group_openid === my_group_openid) {
+        myAssignee = v
+      }
+      else if(!v.doneStamp) {
+        isAllDone = false
+      }
+    })
+
     if(!myAssignee) {
       return { code: "PT002", errMsg: "you are not the assignee of this task" }
     }
     if(myAssignee.doneStamp) {
       return { code: "0001" }
     }
-    idx3_1 = related_openids.indexOf(my_group_openid)
-    if(idx3_1 >= 0) {
-      related_openids.splice(idx3_1, 1)
+
+    if(!iAmOwner || isAllDone) {
+      idx3_1 = related_openids.indexOf(my_group_openid)
+      if(idx3_1 >= 0) {
+        related_openids.splice(idx3_1, 1)
+      }
     }
+
     idx3_2 = finished_openids.indexOf(my_group_openid)
     if(idx3_2 < 0) {
       finished_openids.push(my_group_openid)
