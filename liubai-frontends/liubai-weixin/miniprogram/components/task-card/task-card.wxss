@@ -1,0 +1,25 @@
+
+
+@import "../../styles/custom-styles.wxss";
+
+.task-card {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 24px 24px 20px;
+  border-radius: 12px;
+  background-color: var(--card-bg);
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.task-card-title {
+  font-size: var(--btn-font);
+  color: var(--main-normal);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.task-card-footer {
+  font-size: var(--mini-font);
+  color: var(--main-note);
+}

@@ -1,0 +1,15 @@
+<view class="liu-hover task-card" hover-class="liu-skyline-hover">
+
+  <view class="task-card-title">
+    <text>{{task.desc}}</text>
+  </view>
+
+  <view class="task-card-footer">
+    <open-data wx:if="{{task.opengid}}" type="groupName" open-gid="{{task.opengid}}" 
+      default-text="来自群聊" binderror="onShowGroupNameErr"
+    />
+    <text wx:else>{{t1.from_single_chat}}</text>
+    
+  </view>
+
+</view>

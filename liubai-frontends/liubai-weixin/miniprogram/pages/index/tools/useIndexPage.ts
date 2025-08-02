@@ -89,4 +89,6 @@ export async function getMyTasks() {
   }
   const res2 = await LiuReq.request<PeopleTasksAPI.Res_ListWxTasks>(APIs.PPL_TASKS, u2)
   console.log("getMyTasks res2: ", res2)
+
+  return res2.data?.tasks
 }

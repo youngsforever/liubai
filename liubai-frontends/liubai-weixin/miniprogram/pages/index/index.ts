@@ -14,6 +14,7 @@ import { Loginer } from "~/utils/login/Loginer"
 import { ShowTip } from "~/utils/managers/ShowTip"
 import { getMyTasks, handleGroupInfo } from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
+import type { PeopleTasksAPI } from "~/requests/req-types"
 
 Component({
 
@@ -24,6 +25,7 @@ Component({
   data: {
     pageName: "index",
     canSearch: false,
+    myTasks: [] as PeopleTasksAPI.WxTaskItem[],
     _key1: "",
     _key2: "",
     _searchValue: "",
@@ -36,12 +38,6 @@ Component({
     themeBehavior(),
     pageBehavior(),
   ],
-
-  lifetimes: {
-
-    attached() {},
-
-  },
 
   methods: {
 
@@ -171,7 +167,13 @@ Component({
     },
 
     onShow() {
-      getMyTasks()
+      this.handleMyTasks()
+    },
+
+    async handleMyTasks() {
+      const myTasks = await getMyTasks()
+      if(!myTasks) return
+      this.setData({ myTasks })
     },
 
     onReady() {
