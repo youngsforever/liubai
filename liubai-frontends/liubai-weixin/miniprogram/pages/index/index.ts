@@ -124,22 +124,6 @@ Component({
       }
 
       this.toCreateTask()
-      // this.toMockDetail()
-    },
-
-    toMockDetail() {
-      console.log("toMockDetail........")
-      LiuApi.openChatTool({
-        url: "/packageB/pages/task-detail/task-detail?id=6879cac65c5bae5764b24646",
-        chatType: 1,
-        roomid: "AF66ptRddE2IYBqqsJfnz5gG7EsVie5XVE5BGSHsBlR5dqsT_Q",
-        success(res) {
-          console.log("toMockDetail success", res)
-        },
-        fail(err) {
-          console.warn("toMockDetail fail", err)
-        }
-      })
     },
 
     toCreateTask() {
@@ -184,6 +168,8 @@ Component({
     },
 
     async handleMyTasks() {
+      const res1 = LiuApi.getSkylineInfoSync()
+      if(!res1.isSupported) return
       const myTasks = await getMyTasks()
       if(!myTasks) return
       this.setData({ myTasks })

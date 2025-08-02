@@ -57,5 +57,9 @@ export default {
   },
   "task-card": {
     "from_single_chat": "Single Chat",
+    "all_done": "All Done",
+    "each_other_done": " | Each Other Done",
+    "done_1": "Done by ",
+    "done_2": "",
   }
 }

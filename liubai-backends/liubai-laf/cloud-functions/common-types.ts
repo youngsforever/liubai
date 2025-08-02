@@ -4398,6 +4398,7 @@ export namespace PeopleTasksAPI {
     chat_type: number
     assigneeList: AssigneeItem[]
     participatorList?: ParticipatorItem[]
+    isMine?: boolean
     insertedStamp: number
     editedStamp?: number
     endStamp?: number

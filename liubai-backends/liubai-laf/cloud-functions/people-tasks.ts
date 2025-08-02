@@ -95,7 +95,7 @@ async function list_wx_tasks(
     w4.taskState = "DEFAULT"
   }
   const wtCol = db.collection("WxTask")
-  const q4 = wtCol.where(w4).orderBy("insertedStamp", "desc").limit(9)
+  const q4 = wtCol.where(w4).orderBy("insertedStamp", "desc").limit(16)
   if(body.skip) {
     q4.skip(body.skip)
   }
@@ -106,7 +106,7 @@ async function list_wx_tasks(
   }
 
   // 5. package tasks
-  const tasks = packageWxTasks(data4)
+  const tasks = packageWxTasks(data4, userId)
   result.tasks = tasks
   return { code: "0000", data: result }
 }
@@ -318,6 +318,7 @@ async function get_wx_task(
   }
   const id = body.id as string
   const chatInfo = body.chatInfo as WxMiniAPI.ChatInfo
+  const userId = vRes.userData._id
 
   // 2. get the task
   const wtCol = db.collection("WxTask")
@@ -338,7 +339,7 @@ async function get_wx_task(
   }
 
   // 3. package data
-  const list3 = packageWxTasks([data2])
+  const list3 = packageWxTasks([data2], userId)
   const item3 = list3[0]
   const data3: PeopleTasksAPI.Res_GetWxTask = {
     operateType: "get-wx-task",
@@ -426,6 +427,7 @@ async function create_wx_task(
 
 function packageWxTasks(
   tasks: Table_WxTask[],
+  myUserId: string,
 ) {
   const list: PeopleTasksAPI.WxTaskItem[] = []
   for(let i=0; i<tasks.length; i++) {
@@ -441,6 +443,7 @@ function packageWxTasks(
       chat_type: v.chat_type,
       assigneeList: v.assigneeList,
       participatorList: v.participatorList,
+      isMine: v.owner_userid === myUserId,
       insertedStamp: v.insertedStamp,
       endStamp: v.endStamp,
       closedStamp: v.closedStamp,

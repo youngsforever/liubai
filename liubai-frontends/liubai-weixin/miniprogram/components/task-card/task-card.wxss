@@ -23,5 +23,5 @@
 .task-card-footer {
   font-size: var(--mini-font);
   color: var(--main-note);
-  line-height: 1.25;
+  line-height: 1.45;
 }

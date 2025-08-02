@@ -100,14 +100,12 @@ export async function getMyTasks() {
 export async function getStoragedMyTasks() {
   const res = await LiuApi.getStorage({ key: "my-tasks" })
   const data = res?.data as TaskItem[] | null
-  console.log("getStoragedMyTasks data: ", data)
   if(!data) return
   return data
 }
 
 export async function setStoragedMyTasks(tasks: TaskItem[]) {
   const res = await LiuApi.setStorage({ key: "my-tasks", data: tasks })
-  console.log("setStoragedMyTasks res: ", res)
   return res
 }
 

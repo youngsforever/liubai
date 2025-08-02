@@ -4,12 +4,19 @@
     <text>{{task.desc}}</text>
   </view>
 
-  <view class="task-card-footer">
-    <open-data wx:if="{{task.opengid}}" type="groupName" open-gid="{{task.opengid}}" 
+  <view wx:if="{{task.opengid}}" class="task-card-footer">
+    <open-data type="groupName" open-gid="{{task.opengid}}" 
       default-text="来自群聊" binderror="onShowGroupNameErr"
     />
-    <text wx:else>{{t1.from_single_chat}}</text>
-    
+    <text wx:if="{{task.allDone}}">{{t1.all_done}}</text>
+    <block wx:elif="{{task.doneCount}}">
+      <text>{{t1.done_1}}{{task.doneCount}}{{t1.done_2}}</text>
+    </block>
+
   </view>
+  <text wx:elif="{{task.open_single_roomid}}" class="task-card-footer">
+    <text>{{t1.from_single_chat}}</text>
+    <text wx:if="{{task.eachOtherDone}}">{{t1.each_other_done}}</text>
+  </text>
 
 </view>

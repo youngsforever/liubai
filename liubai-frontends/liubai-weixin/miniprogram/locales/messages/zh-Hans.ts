@@ -56,5 +56,9 @@ export default {
   },
   "task-card": {
     "from_single_chat": "来自单聊",
+    "all_done": "已全部完成",
+    "each_other_done": "，对方已完成",
+    "done_1": "已有 ",
+    "done_2": " 人完成",
   }
 }

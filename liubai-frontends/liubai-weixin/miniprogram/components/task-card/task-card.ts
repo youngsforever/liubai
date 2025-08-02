@@ -23,7 +23,7 @@ Component({
   methods: {
     onTapCard() {
       // 1. vibrate
-      LiuApi.vibrateShort({ type: "medium" })
+      LiuApi.vibrateShort({ type: "light" })
       const obj = this.data.task as TaskItem
       if(!obj) return
       

@@ -111,6 +111,7 @@ export namespace PeopleTasksAPI {
     open_single_roomid?: string
     chat_type: WxMiniAPI.ChatType
     assigneeList: AssigneeItem[]
+    isMine?: boolean
     insertedStamp: number
     editedStamp?: number
     endStamp?: number

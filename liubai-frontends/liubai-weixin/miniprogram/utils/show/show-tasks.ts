@@ -8,26 +8,36 @@ export function showTaskItems(
 
   for(let i=0; i<tasks.length; i++) {
     const task = tasks[i]
-    let allDone: boolean | undefined
-    let doneCount: number | undefined
-    if(task.infoType === "TASK" && task.assigneeList.length > 0) {
-      allDone = true
-      doneCount = 0
-      task.assigneeList.forEach(v => {
-        if(v.doneStamp) {
-          doneCount = (doneCount as number) + 1
-        }
-        else {
-          allDone = false
-        }
-      })
-    }
-
     const obj: TaskItem = {
       ...task,
-      allDone,
-      doneCount,
+      allDone: undefined,
+      doneCount: undefined,
+      eachOtherDone: undefined,
     }
+    if(task.infoType !== "TASK" || task.assigneeList.length < 1) {
+      list.push(obj)
+      continue
+    }
+
+    const isSingleChat = Boolean(task.open_single_roomid)
+    obj.allDone = true
+    obj.doneCount = 0
+    task.assigneeList.forEach(v => {
+      if(v.doneStamp) {
+        obj.doneCount = (obj.doneCount as number) + 1
+      }
+      else {
+        obj.allDone = false
+      }
+
+      if(!isSingleChat) return
+      if(!task.isMine) return
+      if(!v.doneStamp) return
+      if(v.group_openid !== task.owner_openid) {
+        obj.eachOtherDone = true
+      }
+    })
+    
     list.push(obj)
   }
   return list

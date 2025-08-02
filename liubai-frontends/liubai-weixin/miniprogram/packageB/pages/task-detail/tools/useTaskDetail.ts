@@ -37,7 +37,10 @@ export function showDetail(
   const postedTimeStr = DateUtil.showBasicTime(data.insertedStamp)
 
   // calculate some state
-  const isMine = chatInfo?.group_openid === data.owner_openid
+  let isMine = data.isMine
+  if(typeof isMine === "undefined") {
+    isMine = chatInfo?.group_openid === data.owner_openid
+  }
   let hasAnyIncomplete = assigneeList.some(v => !v.doneStamp)
   let canIComplete = assigneeList.some(v => {
     if(v.group_openid === chatInfo?.group_openid) {
