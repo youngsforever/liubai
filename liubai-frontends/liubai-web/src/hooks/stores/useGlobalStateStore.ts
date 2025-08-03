@@ -93,6 +93,7 @@ export const useGlobalStateStore = defineStore("globalState", () => {
     addTagChangedNum,
 
     // selection 划线、选中的变化
+    lastSelectionChange,
     setLatestSelectionChange,
     isJustSelect,
   }

@@ -13,7 +13,6 @@ export interface ShouldShowProps {
 }
 
 export function shouldShow(props: ShouldShowProps): boolean {
-
   const { state, from, to, view } = props
   const { doc, selection } = state
   const { empty } = selection

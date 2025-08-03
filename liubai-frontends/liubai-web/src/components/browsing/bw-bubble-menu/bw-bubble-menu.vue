@@ -1,10 +1,9 @@
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import { BubbleMenu } from '@tiptap/vue-3';
+import { BubbleMenu } from '@tiptap/vue-3/menus';
 import type { TipTapEditor } from '~/types/types-editor';
 import { useI18n } from 'vue-i18n';
-import { shouldShow } from '~/utils/other/bubble-menu';
 import { useBwBubbleMenu } from "./tools/useBwBubbleMenu";
 
 const bubbleColor = "var(--bubble-menu-color)"
@@ -16,11 +15,13 @@ const props = defineProps({
 })
 const { t } = useI18n()
 const {
+  enable,
   selectedIndex,
-  tippyOptions,
+  floatingOptions,
   onTapCopy,
   onTapSearchIn,
   onTapSearchOut,
+  shouldShowBwBubbleMenu,
   cha,
 } = useBwBubbleMenu(props)
 
@@ -30,15 +31,15 @@ const onTapContainer = () => {}
 <template>
 
   <bubble-menu
-    v-if="cha?.isPC && editor"
+    v-if="enable && cha?.isPC && editor"
     :editor="editor"
-    :should-show="shouldShow"
+    :should-show="shouldShowBwBubbleMenu"
     :updateDelay="0"
-    :tippy-options="tippyOptions"
+    :options="floatingOptions"
   >
 
     <!-- 浏览时: 复制、内部搜索、外部搜索 -->
-    <div class="ec-bubble-menu" @click.stop="onTapContainer">
+    <div class="bw-bubble-menu" @click.stop="onTapContainer">
       <!-- 复制 -->
       <div class="liu-no-user-select ec-bb-two"
         :class="{ 'ec-bb-two_selected': selectedIndex === 0 }"
@@ -75,18 +76,18 @@ const onTapContainer = () => {}
 </template>
 <style scoped>
 
-
-.ec-bubble-menu {
+.bw-bubble-menu {
   padding: 0 10px;
   border-radius: 10px;
   display: flex;
   background-color: var(--bubble-menu-bg);
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin: 10px;
   box-shadow: var(--bubble-menu-shadow);
   width: fit-content;
   flex-wrap: wrap;
   cursor: auto;
+  z-index: 900;
+  position: relative;
 }
 
 .ec-bb-two {
@@ -130,6 +131,7 @@ const onTapContainer = () => {}
   width: 24px;
   height: 24px;
   margin-block-end: 4px;
+  cursor: pointer;
 }
 
 .ec-bubble-icon_outward {

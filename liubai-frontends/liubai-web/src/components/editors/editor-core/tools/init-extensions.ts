@@ -1,8 +1,7 @@
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
-import TaskItem from '@tiptap/extension-task-item'
-import TaskList from '@tiptap/extension-task-list'
+import { Placeholder } from '@tiptap/extensions'
+import { TaskItem, TaskList } from '@tiptap/extension-list'
 import Blockquote from "@tiptap/extension-blockquote"
 import HardBreak from "@tiptap/extension-hard-break"
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
@@ -151,6 +150,7 @@ export function initExtensions(
       codeBlock: false,
       code: false,
       horizontalRule: false,
+      link: false,
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
@@ -185,8 +185,8 @@ export function initExtensions(
       levels: [1],
     })
 
-    extensions.push(CustomLink)
-    extensions.push(CustomHeading)
+    extensions.push(CustomLink as any)
+    extensions.push(CustomHeading as any)
   }
   else {
     

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import { BubbleMenu } from '@tiptap/vue-3'
+import { BubbleMenu } from '@tiptap/vue-3/menus';
 import type { TipTapEditor } from '~/types/types-editor';
 import { useI18n } from 'vue-i18n'
 import { shouldShow } from '~/utils/other/bubble-menu';
@@ -15,10 +15,7 @@ defineProps({
 })
 
 const { t } = useI18n()
-const {
-  tippyOptions,
-  cha,
-} = useEditingBubbleMenu()
+const { cha } = useEditingBubbleMenu()
 
 </script>
 <template>
@@ -28,7 +25,9 @@ const {
     :editor="editor"
     :should-show="shouldShow"
     :updateDelay="0"
-    :tippy-options="tippyOptions"
+    :options="{
+      placement: 'bottom',
+    }"
   >
     <!-- 编辑时: 粗体、斜体、删除线 -->
     <div class="ec-bubble-menu">
