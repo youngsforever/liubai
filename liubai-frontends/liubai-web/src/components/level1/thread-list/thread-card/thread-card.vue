@@ -120,12 +120,6 @@ const hoverRadius = props.displayType === "list" ? "24px" : "8px"
         </div>
       </div>
 
-      <!-- 全文的 bubble-menu -->
-      <BwBubbleMenu
-        v-if="viewType !== 'TRASH' && threadData.content && !isBriefing"
-        :editor="editor"
-      ></BwBubbleMenu>
-
       <!-- 全文 -->
       <div v-if="threadData.content" 
         v-show="cssDetectOverflow || !isBriefing" 
@@ -196,6 +190,13 @@ const hoverRadius = props.displayType === "list" ? "24px" : "8px"
       
     </div>
 
+
+    <!-- 全文的 bubble-menu -->
+    <BwBubbleMenu
+      v-if="viewType !== 'TRASH' && threadData.content && !isBriefing"
+      :editor="editor"
+    ></BwBubbleMenu>
+
   </div>
 
 </div>
@@ -220,6 +221,7 @@ const hoverRadius = props.displayType === "list" ? "24px" : "8px"
   width: 100%;
   border-radius: v-bind("radius");
   position: relative;
+  overflow: hidden;
   background-color: var(--card-bg);
   box-shadow: var(--card-shadow-2);
   will-change: border-radius, box-shadow, opacity, margin-block-start;
