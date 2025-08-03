@@ -48,6 +48,10 @@ export function useBwBubbleMenu(
   }, 300)
 
   const setupSelectionChange = () => {
+    // 1. remove original listener first if existed
+    removeSelectionChange()
+
+    // 2. start to listen
     const gs = useGlobalStateStore()
     const { lastSelectionChange } = storeToRefs(gs)
     stopWatchSelectionChange = watch(lastSelectionChange, (newV) => {
@@ -77,6 +81,7 @@ export function useBwBubbleMenu(
       await valTool.waitMilli(500)
     }
     selectedIndex.value = -1
+    removeSelectionChange()
     _toCloseToolTip()
   }
 
