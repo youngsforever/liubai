@@ -81,6 +81,7 @@ export default {
     "create_for_current_chat": "Current chat",
     "create_for_current_group": "Current group",
     "create_for_others": "Other chats or groups",
+    "title_for_guests": "Only creator can modify title",
   },
   "date": {
     "show_1": "{yyyy}-{mm}-{dd} {hr}:{min}",

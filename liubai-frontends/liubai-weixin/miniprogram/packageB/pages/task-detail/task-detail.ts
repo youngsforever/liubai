@@ -426,7 +426,14 @@ Component({
           console.warn("downloadFile fail: ", err)
         }
       })
-    }
+    },
+
+    onTapTitle() {
+      const isMine = this.data.detail?.isMine
+      if(!isMine) {
+        
+      }
+    },
 
   },
 

@@ -78,6 +78,7 @@ export default {
     "create_for_current_chat": "当前会话",
     "create_for_current_group": "当前群聊",
     "create_for_others": "其他会话或群聊",
+    "title_for_guests": "只有创建者才能修改标题",
   },
   "date": {
     "show_1": "{mm}月{dd}日 {hr}:{min}",
