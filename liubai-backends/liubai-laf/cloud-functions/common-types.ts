@@ -1938,6 +1938,12 @@ export interface Table_WxTask extends BaseTable {
   activity_id?: string
   endStamp?: number
   closedStamp?: number
+
+  calendarStamp?: number
+  remindStamp?: number
+  whenStamp?: number
+  remindMe?: LiuRemindMe
+  aiWorker?: LiuAi.AiWorker
 }
 
 
@@ -2733,6 +2739,7 @@ export namespace SyncOperateAPI {
     remindStamp?: number
     whenStamp?: number
     remindMe?: LiuRemindMe
+    description?: string
   }
 
   export type ContentType = "note" | "todo" | "calendar"
@@ -4046,7 +4053,6 @@ export namespace LiuAi {
     character?: AiCharacter
     stream?: boolean
   }
-
 
   export interface TextToSpeechOpt {
     room?: Table_AiRoom
