@@ -1938,6 +1938,7 @@ export interface Table_WxTask extends BaseTable {
   activity_id?: string
   endStamp?: number
   closedStamp?: number
+  editedStamp?: number
 
   calendarStamp?: number
   remindStamp?: number
@@ -4410,6 +4411,12 @@ export namespace PeopleTasksAPI {
     editedStamp?: number
     endStamp?: number
     closedStamp?: number
+
+    calendarStamp?: number
+    remindStamp?: number
+    whenStamp?: number
+    remindMe?: LiuRemindMe
+    aiWorker?: LiuAi.AiWorker
   }
 
   export const Sch_Param_GetWxTask = vbot.object({

@@ -1,6 +1,7 @@
-import type { LocalTheme } from "../types/types-atom"
+import type { LiuRemindMe, LocalTheme } from "../types/types-atom"
 import type { 
   CloudStorageService, 
+  LiuAi, 
   LiuSpaceAndMember, 
   UserSubscription,
 } from "../types/types-cloud"
@@ -116,6 +117,12 @@ export namespace PeopleTasksAPI {
     editedStamp?: number
     endStamp?: number
     closedStamp?: number
+
+    calendarStamp?: number
+    remindStamp?: number
+    whenStamp?: number
+    remindMe?: LiuRemindMe
+    aiWorker?: LiuAi.AiWorker
   }
 
 }

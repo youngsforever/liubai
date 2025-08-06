@@ -94,6 +94,7 @@ async function update_task_title(
   const now2 = getNowStamp()
   const w2: Partial<Table_WxTask> = {
     desc: title,
+    editedStamp: now2,
     updatedStamp: now2,
   }
   await wtCol.doc(id).update(w2)
@@ -559,6 +560,7 @@ function packageWxTasks(
       insertedStamp: v.insertedStamp,
       endStamp: v.endStamp,
       closedStamp: v.closedStamp,
+      editedStamp: v.editedStamp,
     }
     list.push(obj)
   }

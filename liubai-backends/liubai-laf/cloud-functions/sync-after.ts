@@ -735,12 +735,35 @@ class ClusterHelper {
   static toReport(
     text: string,
     title: string,
+    aiWorker?: LiuAi.AiWorker,
   ) {
     if(!title.includes("Liubai")) {
       title = "Liubai " + title
     }
+    if(aiWorker) {
+      text += `\n\naiWorker: ${valTool.objToStr(aiWorker)}`
+    }
+
     const reporter = new LiuReporter()
     reporter.send(text, title)
+  }
+
+  static async updateQuota(
+    userId: string,
+  ) {
+    // 1. get user
+    const uCol = db.collection("User")
+    const res1 = await uCol.doc(userId).get<Table_User>()
+    const user = res1.data
+    if(!user) return false
+
+    // 2. update quota
+    const now2 = getNowStamp()
+    const quota = user.quota ?? { aiConversationCount: 0 }
+    quota.aiClusterCount = (quota.aiClusterCount ?? 0) + 1
+    quota.lastAiClusterStamp = now2
+    await uCol.doc(userId).update({ quota })
+    return true
   }
 
 }
@@ -784,7 +807,7 @@ class AiCluster2 {
     // 7. turn into object 
     const res7 = await AiShared.turnOutputIntoObject(content6)
     if(!res7) {
-      ClusterHelper.toReport(content6, "xml2js failed in ai cluster")
+      ClusterHelper.toReport(content6, "xml2js failed in ai cluster", aiWorker)
       return false
     }
     console.log("parsed object from LLM: ", res7)
@@ -805,7 +828,7 @@ class AiCluster2 {
       msg8 += (res8.err.errMsg ?? "")
       msg8 += "\n\n"
       msg8 += (`## content6\n\n${content6}`)
-      ClusterHelper.toReport(msg8, title8)
+      ClusterHelper.toReport(msg8, title8, aiWorker)
       return false
     }
 
@@ -814,20 +837,39 @@ class AiCluster2 {
     if(!waitingData.calendarStamp) {
       const title8_2 = "waiting data is weird"
       const msg8_2 = valTool.objToStr(waitingData)
-      ClusterHelper.toReport(msg8_2, title8_2)
+      ClusterHelper.toReport(msg8_2, title8_2, aiWorker)
       return false
     }
 
     console.log("see waiting data:: ", waitingData)
-    this.updateTask(waitingData, aiWorker)
+
+    // 9. update task
+    await this.updateTask(waitingData, aiWorker)
+    
+    // 10. update user quota
+    const userId = this._user._id
+    await ClusterHelper.updateQuota(userId)
   }
 
   private async updateTask(
     waitingData: SyncOperateAPI.WaitingData,
     aiWorker: LiuAi.AiWorker,
   ) {
-
-
+    const now1 = getNowStamp()
+    const w1: Partial<Table_WxTask> = {
+      desc: waitingData.description,
+      calendarStamp: waitingData.calendarStamp,
+      remindStamp: waitingData.remindStamp,
+      whenStamp: waitingData.whenStamp,
+      remindMe: waitingData.remindMe,
+      updatedStamp: now1,
+      aiWorker,
+    }
+    const wtCol = db.collection("WxTask")
+    const taskId = this._task._id
+    const res1 = await wtCol.doc(taskId).update(w1)
+    console.log("updateTask res1: ", res1)
+    return true
   }
 
 }
@@ -885,7 +927,7 @@ class AiCluster {
     // 7. turn into object
     const res7 = await AiShared.turnOutputIntoObject(content6)
     if(!res7) {
-      ClusterHelper.toReport(content6, "xml2js failed in ai cluster")
+      ClusterHelper.toReport(content6, "xml2js failed in ai cluster", aiWorker)
       return false
     }
     console.log("parsed object from LLM: ", res7)
@@ -906,7 +948,7 @@ class AiCluster {
       msg8 += (res8.err.errMsg ?? "")
       msg8 += "\n\n"
       msg8 += (`## content6\n\n${content6}`)
-      ClusterHelper.toReport(msg8, title8)
+      ClusterHelper.toReport(msg8, title8, aiWorker)
       return false
     }
 
@@ -915,7 +957,7 @@ class AiCluster {
     if(!waitingData.calendarStamp) {
       const title8_2 = "waiting data is weird"
       const msg8_2 = valTool.objToStr(waitingData)
-      ClusterHelper.toReport(msg8_2, title8_2)
+      ClusterHelper.toReport(msg8_2, title8_2, aiWorker)
       return false
     }
 
@@ -924,7 +966,8 @@ class AiCluster {
     if(!res9) return false
 
     // 10. to update quota for user
-    const res10 = await this.updateQuota()
+    const userId = this._user._id
+    const res10 = await ClusterHelper.updateQuota(userId)
     return res10
   }
 
@@ -1002,23 +1045,6 @@ class AiCluster {
       updatedStamp: now4,
     }
     await cCol.doc(threadId).update(newData)
-    return true
-  }
-
-  private async updateQuota() {
-    // 1. get user
-    const userId = this._user._id
-    const uCol = db.collection("User")
-    const res1 = await uCol.doc(userId).get<Table_User>()
-    const user = res1.data
-    if(!user) return false
-
-    // 2. update quota
-    const now2 = getNowStamp()
-    const quota = user.quota ?? { aiConversationCount: 0 }
-    quota.aiClusterCount = (quota.aiClusterCount ?? 0) + 1
-    quota.lastAiClusterStamp = now2
-    const res2 = await uCol.doc(userId).update({ quota })
     return true
   }
 
