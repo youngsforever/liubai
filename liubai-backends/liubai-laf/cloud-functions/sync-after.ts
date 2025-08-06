@@ -41,36 +41,46 @@ const db = cloud.database()
 const _ = db.command
 const AI_CLUSTER_FREE = 10
 const fastAiWorkers: LiuAi.AiWorker[] = [
-  {
-    "computingProvider": "aliyun-bailian",
-    "model": "qwen-max",
-    "character": "tongyi-qwen",
-  },
-  {
-    "computingProvider": "aliyun-bailian",
-    "model": "qwen-max-latest",
-    "character": "tongyi-qwen",
-  },
-  {
-    "computingProvider": "aliyun-bailian",
-    "model": "qwen-plus-2025-07-14",
-    "character": "tongyi-qwen",
-  },
-  {
-    "computingProvider": "aliyun-bailian",
-    "model": "qwen-plus-2025-07-28",
-    "character": "tongyi-qwen",
-  },
-  {
-    "computingProvider": "zhipu",
-    "model": "glm-z1-airx",
-    "character": "zhipu",
-  },
-  {
-    "computingProvider": "zhipu",
-    "model": "glm-4.5-x",
-    "character": "zhipu",
-  },
+  // {
+  //   "computingProvider": "aliyun-bailian",
+  //   "model": "qwen-max",
+  //   "character": "tongyi-qwen",
+  // },
+  // {
+  //   "computingProvider": "aliyun-bailian",
+  //   "model": "qwen-max-latest",
+  //   "character": "tongyi-qwen",
+  // },
+  // {
+  //   "computingProvider": "aliyun-bailian",
+  //   "model": "qwen-plus-2025-07-14",
+  //   "character": "tongyi-qwen",
+  // },
+  // {
+  //   "computingProvider": "aliyun-bailian",
+  //   "model": "qwen-plus-2025-07-28",
+  //   "character": "tongyi-qwen",
+  // },
+  // {
+  //   "computingProvider": "zhipu",
+  //   "model": "glm-z1-airx",
+  //   "character": "zhipu",
+  // },
+  // {
+  //   "computingProvider": "zhipu",
+  //   "model": "glm-4.5-x",
+  //   "character": "zhipu",
+  // },
+  // {
+  //   "computingProvider": "zhipu",
+  //   "model": "glm-4.5",
+  //   "character": "zhipu",
+  // },
+  // {
+  //   "computingProvider": "zhipu",
+  //   "model": "glm-4.5-airx",
+  //   "character": "zhipu",
+  // },
   {
     "computingProvider": "moonshot",
     "model": "kimi-k2-0711-preview",
@@ -679,7 +689,7 @@ class ClusterHelper {
       endpoint.baseURL += "/beta"
     }
 
-    // 3. add partial for kimi
+    // 3.1 add partial for kimi
     if(provider === "moonshot") {
       const prompt_32 = {
         "role": "assistant",
@@ -688,12 +698,20 @@ class ClusterHelper {
       }
       prompts.push(prompt_32 as OaiPrompt) 
     }
+    // 3.2 close thinking for zhipu
+    if(provider === "zhipu" && aiWorker.model === "glm-4.5") {
+      //@ts-expect-error thinking
+      param3.thinking = { type: "disabled" }
+    }
 
     // LogHelper.printLastItems(prompts)
 
     // 4. fetch
     const llm = new BaseLLM(endpoint.apiKey, endpoint.baseURL)
+    const t4_1 = getNowStamp()
     const res4 = await llm.chat(param3, { timeoutSec: 45 })
+    const t4_2 = getNowStamp()
+    console.log("duration of ai cluster: ", t4_2 - t4_1)
     if(!res4) {
       console.warn("no response in ai cluster!", aiWorker)
       LogHelper.printLastItems(prompts)
@@ -702,6 +720,7 @@ class ClusterHelper {
 
     // 5. get content and reasoning_content
     const res5 = AiShared.getContentFromLLM(res4)
+    console.log("res5: ", res5)
     const content5 = res5.content
     if(!content5) {
       console.warn("we cannot get content from llm: ", res5)
