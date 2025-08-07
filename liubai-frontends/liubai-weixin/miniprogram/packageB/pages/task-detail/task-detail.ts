@@ -14,6 +14,7 @@ import {
   toCreateOtherTask,
   toUpdateTitle,
   checkBindingStatus,
+  whenTapAI,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -457,6 +458,11 @@ Component({
       this.setData(bind)
     },
 
+    onTapAI() {
+      const { detail } = this.data
+      if(!detail) return
+      whenTapAI(detail)
+    },
 
     async handleBindingStatus(
       tryToOpenBindingPopup = false,

@@ -400,4 +400,24 @@ export async function checkBindingStatus() {
 export function resetBindingStatus() {
   hasCheckedBindingStatus = false
 }
+
+export function whenTapAI(
+  detail: TaskDetail,
+) {
+  LiuApi.vibrateShort({ type: "light" })
+  const aiWorker = detail.aiWorker
+  if(!aiWorker) return
+
+  const { t } = useI18n()
+  const provider = t(`computing_provider.${aiWorker.computingProvider}`)
+  if(!provider) return
+  const model = aiWorker.model
+
+  LiuUtil.showCustomModal({
+    title_key: "ai-related.your_task",
+    content_key: "ai-related.your_task_tip",
+    content_opt: { model, provider },
+    showCancel: false,
+  })
+}
   

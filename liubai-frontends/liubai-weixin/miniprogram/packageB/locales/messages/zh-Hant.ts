@@ -91,12 +91,26 @@ export default {
   },
   "ai-related": {
     "help_to_organize": "由 {name} 協助整理",
+    "your_task": "你的任務，由 AI 加持🪄",
+    "your_task_tip": "模型型號: {model}\n算力供應商: {provider}",
+  },
+  "computing_provider": {
+    "aliyun-bailian": "阿里雲",
+    "deepseek": "深度求索",
+    "tencent-hunyuan": "騰訊混元",
+    "minimax": "MiniMax",
+    "moonshot": "月之暗面",
+    "stepfun": "階躍星辰",
+    "zhipu": "智譜華章",
+    "siliconflow": "矽基流動",
+    "gitee-ai": "模力方舟",
+    "tencent-lkeap": "騰訊雲"
   },
   "ai-character": {
     "deepseek": "DeepSeek",
     "kimi": "Kimi",
     "tongyi-qwen": "通義千問",
-    "hailuo": "Minimax",
+    "hailuo": "MiniMax",
     "yuewen": "階躍星辰",
   },
   "date": {

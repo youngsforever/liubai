@@ -75,7 +75,7 @@
         </view>
 
         <!-- AI -->
-         <view wx:if="{{detail.aiHelpStr}}" class="td-box-bar">
+         <view wx:if="{{detail.aiHelpStr}}" class="td-box-bar" catchtap="onTapAI">
           <view class="tdbb-icon-box">
             <image src="{{imagePath}}wand_stars.png" class="tdbb-icon" />
           </view>

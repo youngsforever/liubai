@@ -94,12 +94,26 @@ export default {
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",
+    "your_task": "Your task supported by AI 🪄",
+    "your_task_tip": "Model: {model}\nProvider: {provider}",
+  },
+  "computing_provider": {
+    "aliyun-bailian": "Aliyun",
+    "deepseek": "DeepSeek",
+    "tencent-hunyuan": "Tencent Hunyuan",
+    "minimax": "MiniMax",
+    "moonshot": "Moonshot",
+    "stepfun": "Stepfun",
+    "zhipu": "Zhipu",
+    "siliconflow": "SiliconCloud",
+    "gitee-ai": "Gitee AI",
+    "tencent-lkeap": "Tencent LKEAP"
   },
   "ai-character": {
     "deepseek": "DeepSeek",
     "kimi": "Kimi",
     "tongyi-qwen": "Qwen",
-    "hailuo": "Minimax",
+    "hailuo": "MiniMax",
     "yuewen": "Stepfun",
   },
   "date": {
