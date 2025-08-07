@@ -84,7 +84,6 @@
   border-radius: 30px;
   overflow: hidden;
   background-color: var(--card-bg);
-  margin-bottom: 10px;
   box-sizing: border-box;
   padding: 15px 0 20px;
 }
@@ -97,6 +96,40 @@
   box-sizing: border-box;
   font-size: var(--mini-font);
   color: var(--main-note);
+}
+
+.td-box-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  position: relative;
+  padding: 10px 20px;
+  box-sizing: border-box;
+  align-items: flex-start;
+}
+
+.tdbb-icon-box {
+  width: 30px;
+  height: 30px;
+  margin-right: 15px;
+  overflow: hidden;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tdbb-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.td-box-bar-text {
+  line-height: 30px;
+  font-size: var(--btn-font);
+  color: var(--main-normal);
+  flex: 1;
+  font-weight: 700;
 }
 
 .tc-assignees {
@@ -162,5 +195,5 @@
   margin-top: 60px;
   width: 100%;
   position: relative;
-  padding-bottom: 60px;
+  padding-bottom: 90px;
 }

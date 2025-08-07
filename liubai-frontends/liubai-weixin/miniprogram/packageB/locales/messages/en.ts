@@ -91,7 +91,7 @@ export default {
     "when": "When",
   },
   "ai-related": {
-    "help_to_organize": "{name} helped to organize",
+    "help_to_organize": "Organized by {name}",
   },
   "ai-character": {
     "deepseek": "DeepSeek",

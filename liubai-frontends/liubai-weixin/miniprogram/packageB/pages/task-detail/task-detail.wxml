@@ -48,6 +48,34 @@
         <text>{{t1.closed_1}}</text>
       </view>
 
+      <!-- When -->
+      <view wx:if="{{detail.whenStr}}" class="tc-box">
+        <view class="tc-first-bar">
+          <text>{{t1.when}}</text>
+        </view>
+
+        <!-- Date & Time -->
+        <view class="td-box-bar">
+          <view class="tdbb-icon-box">
+            <image src="{{imagePath}}schedule.png" class="tdbb-icon" />
+          </view>
+          <view class="td-box-bar-text">
+            <text>{{detail.whenStr}}</text>
+          </view>
+        </view>
+
+        <!-- Remind -->
+        <view wx:if="{{detail.remindStr}}" class="td-box-bar">
+          <view class="tdbb-icon-box">
+            <image src="{{imagePath}}notification.png" class="tdbb-icon" />
+          </view>
+          <view class="td-box-bar-text">
+            <text>{{detail.remindStr}}</text>
+          </view>
+        </view>
+        
+      </view>
+
       <!-- Assign to -->
       <view wx:if="{{detail.assignees.length > 0}}" class="tc-box">
         <view class="tc-first-bar">
