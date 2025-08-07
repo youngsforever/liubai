@@ -86,6 +86,8 @@ export default {
     "updated_tip": "請轉發，否則他們會不知道",
     "updated_prefix": "任務發生變化: {desc}",
     "when": "什麼時候",
+    "bind_tip_1": "長按識別 QR Code",
+    "bind_tip_2": "關注後，屆時將自動提醒",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 協助整理",

@@ -89,6 +89,8 @@ export default {
     "updated_tip": "Share please, otherwise they won't know about this update",
     "updated_prefix": "Task Updated: {desc}",
     "when": "When",
+    "bind_tip_1": "Long Press to Scan",
+    "bind_tip_2": "After following, you will be reminded automatically",
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",

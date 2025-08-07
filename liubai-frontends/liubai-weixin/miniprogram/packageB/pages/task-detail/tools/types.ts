@@ -1,4 +1,5 @@
 import type { PeopleTasksAPI } from "~/packageB/requests/req-types"
+import { LiuAi } from "~/packageB/types/types-cloud"
 
 export interface TaskDetail {
   desc: string
@@ -24,4 +25,7 @@ export interface TaskDetail {
   whenStr?: string
   remindStr?: string
   aiHelpStr?: string
+  aiWorker?: LiuAi.AiWorker
 }
+
+export type BindingStatus = "followed" | "unfollowed"

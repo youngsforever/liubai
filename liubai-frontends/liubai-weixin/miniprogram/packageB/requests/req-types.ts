@@ -126,3 +126,13 @@ export namespace PeopleTasksAPI {
   }
 
 }
+
+
+export interface Res_OC_GetWeChat {
+  operateType: "get-wechat"
+  ww_qynb_external_userid?: string
+  ww_qynb_toggle?: boolean
+  wx_gzh_openid?: string
+  wx_gzh_toggle?: boolean
+  wx_gzh_subscribed?: boolean
+}

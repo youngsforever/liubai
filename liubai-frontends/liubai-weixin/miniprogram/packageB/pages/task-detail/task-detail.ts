@@ -13,6 +13,7 @@ import {
   afterCompleteTask,
   toCreateOtherTask,
   toUpdateTitle,
+  checkBindingStatus,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -30,6 +31,7 @@ import { pageBehavior } from "~/packageB/behaviors/page-behavior";
 import { checkNameExisted } from "../shared/some-funcs";
 import { defaultData } from "~/packageB/config/default-data";
 import type { PeopleTasksAPI } from "~/packageB/requests/req-types";
+import type { BindingStatus } from "./tools/types";
 
 Component({
 
@@ -54,6 +56,8 @@ Component({
     errTip: "",
     chatInfo: null as WxMiniAPI.ChatInfo | null,
     alwaysGoHome: false,
+    bindingStatus: undefined as BindingStatus | undefined,
+    openBindingPopup: false,
   },
 
   methods: {
@@ -88,7 +92,7 @@ Component({
       if(res1) {
         const justPosting = LiuTime.isWithinMillis(res1.stamp, LiuTime.MINUTE)
         if(justPosting) {
-          waitForCreateTask()
+          waitForCreateTask(this)
           return
         }
       }
@@ -133,10 +137,15 @@ Component({
         return
       }
 
-      // 4. show
+      // 4.1 show
       const detail = showDetail(data3, chatInfo)
       this.setData({ detail, pState: pageStates.OK })
       this.toUpdateShareMenu()
+
+      // 4.2 check out binding status
+      if(detail.remindStr) {
+        this.handleBindingStatus(true)
+      }
 
       // 5. if just created
       const res5 = await LiuTunnel.takeStuff<JustCreateTask>("just-create-task")
@@ -144,6 +153,9 @@ Component({
       if(!LiuTime.isWithinMillis(res5.stamp, LiuTime.MINUTE)) {
         console.warn("over one minute!")
         return
+      }
+      if(!detail.remindStr && justOnLoad) {
+        this.waitForAiThenLoadAgain()
       }
 
       // 6. show modal
@@ -161,6 +173,10 @@ Component({
       toForward(id, detail.desc, true)
     },
 
+    async waitForAiThenLoadAgain() {
+      await valTool.waitMilli(4000)
+      this.getTaskDetail(false)
+    },
 
     async initTaskDetail() {
       // 2.1 get detail from tunnel  
@@ -440,6 +456,23 @@ Component({
       bind["detail.desc"] = newTitle
       this.setData(bind)
     },
+
+
+    async handleBindingStatus(
+      tryToOpenBindingPopup = false,
+    ) {
+      const res1 = await checkBindingStatus()
+      if(!res1) return
+      let bindingStatus: BindingStatus = "unfollowed"
+      if(res1.wx_gzh_openid && res1.wx_gzh_subscribed && res1.wx_gzh_toggle) {
+        bindingStatus = "followed"
+      }
+      let bind: Record<string, any> = { bindingStatus }
+      if(tryToOpenBindingPopup && bindingStatus === "unfollowed") {
+        bind.openBindingPopup = true
+      }
+      this.setData(bind)
+    }
 
   },
 

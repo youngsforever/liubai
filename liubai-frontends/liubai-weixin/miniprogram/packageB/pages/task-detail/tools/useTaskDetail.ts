@@ -4,6 +4,7 @@ import type { WxMiniAPI } from "~/packageB/types/types-wx";
 import type { 
   HappySystemAPI, 
   PeopleTasksAPI,
+  Res_OC_GetWeChat,
 } from "~/packageB/requests/req-types";
 import type { TaskDetail } from "./types";
 import { DateUtil } from "~/packageB/utils/date-util";
@@ -13,6 +14,7 @@ import { useI18n } from "~/packageB/locales/index";
 import { LiuRewardedVideo } from "./liu-rewarded-video";
 import { LiuUtil } from "~/packageB/utils/liu-util/index";
 import { defaultData } from "~/packageB/config/default-data";
+import { Loginer } from "~/packageB/utils/login/Loginer";
 
 export async function fetchTaskDetail(
   id: string,
@@ -90,6 +92,7 @@ export function showDetail(
     whenStr,
     remindStr,
     aiHelpStr,
+    aiWorker: data.aiWorker,
   }
   return detail
 }
@@ -372,3 +375,29 @@ export async function toUpdateTitle(
 
   return newTitle
 }
+
+let hasCheckedBindingStatus = false
+export async function checkBindingStatus() {
+  if(hasCheckedBindingStatus) return
+  hasCheckedBindingStatus = true
+
+  const loginData = await Loginer.getLoginData()
+  if(!loginData) return
+  const memberId = loginData.memberId
+  if(!memberId) return
+
+  const url1 = APIs.OPEN_CONNECT
+  const w1 = {
+    operateType: "get-wechat",
+    memberId,
+  }
+  const res1 = await LiuReq.request<Res_OC_GetWeChat>(url1, w1)
+  if(res1.code !== "0000" || !res1.data) return
+  return res1.data
+}
+
+
+export function resetBindingStatus() {
+  hasCheckedBindingStatus = false
+}
+  

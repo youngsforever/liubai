@@ -561,6 +561,12 @@ function packageWxTasks(
       endStamp: v.endStamp,
       closedStamp: v.closedStamp,
       editedStamp: v.editedStamp,
+
+      calendarStamp: v.calendarStamp,
+      remindStamp: v.remindStamp,
+      whenStamp: v.whenStamp,
+      remindMe: v.remindMe,
+      aiWorker: v.aiWorker,
     }
     list.push(obj)
   }

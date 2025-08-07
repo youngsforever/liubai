@@ -73,6 +73,16 @@
             <text>{{detail.remindStr}}</text>
           </view>
         </view>
+
+        <!-- AI -->
+         <view wx:if="{{detail.aiHelpStr}}" class="td-box-bar">
+          <view class="tdbb-icon-box">
+            <image src="{{imagePath}}wand_stars.png" class="tdbb-icon" />
+          </view>
+          <view class="td-box-bar-text">
+            <text>{{detail.aiHelpStr}}</text>
+          </view>
+        </view>
         
       </view>
 
