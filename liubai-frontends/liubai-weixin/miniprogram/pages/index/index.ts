@@ -17,6 +17,7 @@ import {
   getStoragedMyTasks, 
   handleGroupInfo, 
   setStoragedMyTasks,
+  tryToOpenTaskDetail,
 } from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
 import type { TaskItem } from "~/types/types-task"
@@ -190,6 +191,12 @@ Component({
       const key2 = this.data._key2
       if(key2 === "CREATE_TASK") {
         this.toCreateTask()
+        return
+      }
+
+      const taskId = this.data._taskId
+      if(taskId) {
+        tryToOpenTaskDetail(taskId)
         return
       }
       

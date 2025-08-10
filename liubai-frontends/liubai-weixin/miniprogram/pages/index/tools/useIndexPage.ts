@@ -1,7 +1,8 @@
 import APIs from "~/requests/APIs";
 import { LiuReq } from "~/requests/LiuReq";
 import type { PeopleTasksAPI } from "~/requests/req-types";
-import { TaskItem } from "~/types/types-task";
+import type { TaskItem } from "~/types/types-task";
+import type { WxMiniAPI } from "~/types/types-wx";
 import { LiuApi } from "~/utils/LiuApi";
 import { LiuTunnel } from "~/utils/LiuTunnel";
 import { showTaskItems } from "~/utils/show/show-tasks";
@@ -111,7 +112,37 @@ export async function setStoragedMyTasks(tasks: TaskItem[]) {
 }
 
 
-export async function tryToOpenTask(taskId: string) {
-  
+export async function tryToOpenTaskDetail(taskId: string) {
+  // 1. to fetch
+  const w1 = {
+    operateType: "get-wx-task",
+    id: taskId,
+  }
+  const url1 = APIs.PPL_TASKS
+  const res1 = await LiuReq.request<PeopleTasksAPI.Res_GetWxTask>(url1, w1)
+  console.log("tryToOpenTask res1: ", res1)
+  if(res1.code !== "0000" || !res1.data) return
+  const data1 = res1.data
+
+  // 2. handle result after fetching
+  LiuTunnel.setStuff("task-fr-list-to-detail", data1)
+  const { chat_type, opengid, open_single_roomid } = data1
+  let roomid = ""
+  if(open_single_roomid) roomid = open_single_roomid
+  else if(opengid) roomid = opengid
+
+  // 3. to open the detail
+  const url3 = "/packageB/pages/task-detail/task-detail?id=" + taskId
+  LiuApi.openChatTool({
+    url: url3,
+    chatType: chat_type as WxMiniAPI.ChatType,
+    roomid,
+    success(res) {
+      console.log("openChatTool success", res)
+    },
+    fail(err) {
+      console.warn("openChatTool fail: ", err)
+    }
+  })
 }
 
