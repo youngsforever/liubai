@@ -11,7 +11,7 @@ import type {
   SupportedLocale,
   Table_WxTask,
   Table_WxBond,
-  PartialSth,
+  Wx_Param_Msg_Templ_Send,
 } from "@/common-types";
 import { 
   decryptEncData,
@@ -56,8 +56,8 @@ interface TaskRemindAtom {
   timezone?: string
 }
 
-
 type RemindAtom_2 = RequireSth<RemindAtom, "wx_gzh_openid">
+type TaskRemindAtom_2 = RequireSth<TaskRemindAtom, "wx_gzh_openid">
 
 interface AuthorAtom {
   userId: string
@@ -90,6 +90,7 @@ type Field_Member = {
 export async function main(ctx: FunctionContext) {
 
   await handle_remind()
+  await handle_task_remind()
   await handle_system_two()
   await handle_update_unionid()
 
@@ -198,20 +199,19 @@ async function handle_task_remind() {
   }
 
   // 4. find authors
-  const authors = await find_task_authors(atoms)
-  if(authors.length < 1) {
+  const atoms2 = await find_task_authors(atoms)
+  if(atoms2.length < 1) {
     return true
   }
 
-  // 5. send
+  // 5. get access token
   const access_token = await checkAndGetWxGzhAccessToken()
   if(!access_token) {
-    console.warn("access_token is not found")
     return false
   }
   
-
-
+  // 6. batch send
+  await batch_send_for_tasks(access_token, atoms2)
 }
 
 
@@ -226,6 +226,7 @@ async function find_task_authors(
   const NUM_ONCE = 50
   const MAX_TIMES = 100
 
+  // to find authors
   while(userIds.length > 0 && runTimes < MAX_TIMES) {
     const tmpUserIds = userIds.splice(0, NUM_ONCE)
     const w = {
@@ -259,8 +260,18 @@ async function find_task_authors(
     
     runTimes++
   }
+
+  // match authors for atoms
+  const newAtoms: TaskRemindAtom_2[] = []
+  for(let i=0; i<atoms.length; i++) {
+    const atom = atoms[i]
+    const author = authors.find(v => v.userId === atom.userId)
+    if(author) {
+      newAtoms.push({ ...atom, ...author })
+    }
+  }
   
-  return authors
+  return newAtoms
 }
 
 
@@ -361,7 +372,55 @@ async function batch_send(
       await valTool.waitMilli(200)
     }
   }
-  
+}
+
+async function batch_send_for_tasks(
+  access_token: string,
+  atoms: TaskRemindAtom_2[],
+) {
+  const numMap = new Map<string, number>()
+
+  for(let i=0; i<atoms.length; i++) {
+    const v = atoms[i]
+    const userId = v.userId
+    const num = numMap.get(userId) ?? 0
+    if(num > 3) continue
+    numMap.set(userId, num + 1)
+    await send_for_task(access_token, v)
+  }
+}
+
+
+async function send_for_task(
+  access_token: string,
+  atom: TaskRemindAtom_2,
+) {
+  const obj = { ...wx_reminder_tmpl } as Wx_Param_Msg_Templ_Send
+  const _env = process.env
+  const domain = _env.LIU_DOMAIN
+  const tmplId = _env.LIU_WX_GZ_TMPL_ID_1 ?? ""
+  const miniAppId = _env.LIU_WX_MINI_APPID ?? ""
+  obj.template_id = tmplId
+  const { taskId, locale, wx_gzh_openid, calendarStamp, timezone } = atom
+  obj.touser = wx_gzh_openid
+  obj.url = `${domain}`
+  obj.miniprogram = {
+    appid: miniAppId,
+    pagepath: `pages/index/index?task=${taskId}`,
+  }
+
+  let title = atom.title
+  if(title.length > 20) {
+    title = title.substring(0, 17) + "..."
+  }
+  title = title.replace(/\n/g, " ")
+  obj.data.thing18.value = title
+  const str_time = LiuDateUtil.displayTime(calendarStamp, locale, timezone)
+  obj.data.time4.value = str_time
+
+  const res = await WxGzhSender.sendTemplateMessage(access_token, obj)
+  console.log("send_for_task res: ", res)
+  return true
 }
 
 async function send_wx_message(

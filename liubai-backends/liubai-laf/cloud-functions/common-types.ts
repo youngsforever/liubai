@@ -3026,6 +3026,10 @@ export interface Wx_Param_Msg_Templ_Send {
   touser: string
   template_id: string
   url?: string
+  miniprogram?: {
+    appid: string
+    pagepath: string
+  }
   client_msg_id?: string
   data: Record<string, Record<"value", string>>
 }
