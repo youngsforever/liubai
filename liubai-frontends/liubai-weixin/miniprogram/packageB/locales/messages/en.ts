@@ -126,5 +126,9 @@ export default {
     "day_4": "Th",
     "day_5": "Fr",
     "day_6": "Sa",
+  },
+  "qrcode": {
+    "title": "Long Press to Scan",
+    "tip": "After following, you will be reminded automatically ⏰",
   }
 }

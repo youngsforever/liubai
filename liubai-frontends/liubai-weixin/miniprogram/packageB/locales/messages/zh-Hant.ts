@@ -128,4 +128,8 @@ export default {
     "early_hr": "提前 {hr} 小時提醒",
     "early_day": "提前 {day} 天提醒",
   },
+  "qrcode": {
+    "title": "長按識別 QR Code",
+    "tip": "關注後，屆時將自動提醒你⏰",
+  }
 }

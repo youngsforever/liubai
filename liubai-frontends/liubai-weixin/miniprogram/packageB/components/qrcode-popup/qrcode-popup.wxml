@@ -1,4 +1,4 @@
-<view class="qp-container {{show ? 'qp-container_shown' : ''}}" 
+<view class="liu-{{theme}} qp-container {{show ? 'qp-container_shown' : ''}}" 
   wx:if="{{enable}}"
 >
 
@@ -6,8 +6,14 @@
 
   <view class="qp-box {{show ? 'qp-box_shown' : ''}}">
 
-    <image src="{{qrCode}}" class="qp-qrcode" mode="aspectFit" />
+    <!-- QR Code -->
+    <view class="qr-image-box" hover-class="qr-image-box_hover">
+      <image src="{{picUrl}}" class="qp-qrcode" mode="aspectFit" 
+        show-menu-by-longpress 
+      />
+    </view>
 
+    <!-- Title -->
     <view class="qp-title">
       <text>{{t1.title}}</text>
     </view>

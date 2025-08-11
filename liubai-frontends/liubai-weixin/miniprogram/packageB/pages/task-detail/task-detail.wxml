@@ -194,4 +194,6 @@
   always-arrow-back="{{alwaysArrowBack}}"
 ></custom-navibar>
 
-<qrcode-popup open="{{openBindingPopup}}" qr-code="{{qr_code}}"></qrcode-popup>
+<qrcode-popup open="{{openBindingPopup}}" pic-url="{{qrCodePicUrl}}"
+  catch:close="toCloseQrCodePopup"
+></qrcode-popup>

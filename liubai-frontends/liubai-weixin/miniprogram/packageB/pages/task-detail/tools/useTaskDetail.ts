@@ -403,7 +403,7 @@ export function resetBindingStatus() {
 }
 
 
-export async function getQrCodeForBindingWx() {
+export async function getQrCodePicUrlForBindingWx() {
   const loginData = await Loginer.getLoginData()
   const memberId = loginData?.memberId
   if(!memberId) return
@@ -414,11 +414,13 @@ export async function getQrCodeForBindingWx() {
     memberId,
   }
   const res1 = await LiuReq.request<Res_OC_BindWeChat>(url1, w1)
-  console.log("fetchQrCodeForBindingWx res1: ", res1)
   const data1 = res1.data
   if(res1.code !== "0000" || !data1) return
-  
-  return data1.qr_code
+  const wx_qr_ticket = data1.wx_qr_ticket
+  if(!wx_qr_ticket) return
+  const ticket = encodeURIComponent(wx_qr_ticket)
+  const picUrl = `https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=${ticket}`
+  return picUrl
 }
 
 

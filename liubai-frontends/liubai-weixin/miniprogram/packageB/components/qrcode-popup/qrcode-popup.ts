@@ -28,7 +28,7 @@ Component({
         }
       }
     },
-    qrCode: {
+    picUrl: {
       type: String,
       value: "",
     }
@@ -41,6 +41,10 @@ Component({
   },
 
   methods: {
+
+    onTapBackground() {
+      this.triggerEvent("close")
+    },
 
     toOpen() {
       if(this.data.enable && this.data.show) return

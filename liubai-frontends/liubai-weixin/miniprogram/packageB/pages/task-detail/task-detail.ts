@@ -15,7 +15,7 @@ import {
   toUpdateTitle,
   checkBindingStatus,
   whenTapAI,
-  getQrCodeForBindingWx,
+  getQrCodePicUrlForBindingWx,
 } from "./tools/useTaskDetail";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type { JustCreateTask, PleaseCreateTask } from "~/packageB/types/types-tunnel";
@@ -60,7 +60,7 @@ Component({
     alwaysGoHome: false,
     bindingStatus: undefined as BindingStatus | undefined,
     openBindingPopup: false,
-    qr_code: "",
+    qrCodePicUrl: "",
   },
 
   methods: {
@@ -483,12 +483,15 @@ Component({
     },
 
     async handleQrCode() {
-      const qr_code = await getQrCodeForBindingWx()
-      if(!qr_code) return
-      this.setData({ openBindingPopup: true, qr_code })
+      const qrCodePicUrl = await getQrCodePicUrlForBindingWx()
+      if(!qrCodePicUrl) return
+      this.setData({ openBindingPopup: true, qrCodePicUrl })
     },
 
-  },
+    toCloseQrCodePopup() {
+      this.setData({ openBindingPopup: false })
+    },
 
+  },  
 
 })

@@ -1048,8 +1048,11 @@ export interface CredentialMetaData {
   payment_timezone?: string
   plan?: string
   memberId?: string
+
   pic_url?: string
   qr_code?: string
+  wx_qr_ticket?: string
+
   ww_qynb_config_id?: string
   wx_gzh_openid?: string
 
@@ -2872,6 +2875,7 @@ export interface Res_OC_BindWeChat {
   operateType: "bind-wechat"
   qr_code: string
   credential: string
+  wx_qr_ticket?: string
 }
 
 export interface Res_OC_CheckWeChat {
