@@ -34,12 +34,17 @@
   border-radius: 50%;
   overflow: hidden;
   margin-right: 15px;
+  flex: none;
 }
 
 .td-owner-name {
   font-size: var(--title-font);
   color: var(--main-text);
   font-weight: 700;
+  max-width: 80%;
+  text-overflow: ellipsis;
+  display: inline-block;
+  overflow: hidden;
 }
 
 

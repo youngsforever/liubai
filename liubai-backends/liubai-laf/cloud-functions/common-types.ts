@@ -4425,6 +4425,9 @@ export namespace PeopleTasksAPI {
     whenStamp?: number
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
+
+    // it only exists when chatInfo.open_single_roomid has been set
+    each_other_openid?: string
   }
 
   export const Sch_Param_GetWxTask = vbot.object({

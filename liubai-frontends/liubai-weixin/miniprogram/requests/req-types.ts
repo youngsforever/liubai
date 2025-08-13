@@ -197,6 +197,8 @@ export namespace PeopleTasksAPI {
     whenStamp?: number
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
+
+    each_other_openid?: string
   }
 
   export type WxTaskItem = Omit<Res_GetWxTask, "operateType">

@@ -384,7 +384,7 @@ async function get_wx_task(
     return { code: "E4000", errMsg }
   }
   const id = body.id as string
-  const chatInfo = body.chatInfo as WxMiniAPI.ChatInfo | undefined
+  let chatInfo = body.chatInfo as WxMiniAPI.ChatInfo | undefined
   const userId = vRes.userData._id
 
   // 2. get the task
@@ -423,6 +423,12 @@ async function get_wx_task(
     if(!data3) {
       return { code: "E4003", errMsg: "you are not the member of this chat" }
     }
+    chatInfo = {
+      opengid: data3.opengid,
+      open_single_roomid: data3.open_single_roomid,
+      group_openid: data3.group_openid,
+      chat_type: data3.chat_type,
+    }
   }
 
   // 4. package data
@@ -432,8 +438,44 @@ async function get_wx_task(
     operateType: "get-wx-task",
     ...item4,
   }
+
+  // 5. get each_other_openid
+  if(chatInfo?.open_single_roomid) {
+    await handleEachOtherOpenid(data4, chatInfo)
+  }
+
   return { code: "0000", data: data4 }
 }
+
+
+async function handleEachOtherOpenid(
+  res: PeopleTasksAPI.Res_GetWxTask,
+  chatInfo: WxMiniAPI.ChatInfo,
+) {
+  const roomid = chatInfo.open_single_roomid
+  if(!roomid) return
+
+  const myOpenid = chatInfo.group_openid
+  const assigneeList = res.assigneeList ?? []
+  const eachOther = assigneeList.find(v => v.group_openid !== myOpenid)
+  if(eachOther) {
+    res.each_other_openid = eachOther.group_openid
+    return
+  }
+
+  const wbCol = db.collection("WxBond")
+  const w2 = {
+    open_single_roomid: roomid,
+    infoType: "chat-tool",
+    group_openid: _.neq(myOpenid),
+  }
+  const res2 = await wbCol.where(w2).getOne<Table_WxBond>()
+  const data2 = res2.data
+  if(!data2) return
+  res.each_other_openid = data2.group_openid
+}
+
+
 
 async function create_wx_task(
   body: Record<string, any>,

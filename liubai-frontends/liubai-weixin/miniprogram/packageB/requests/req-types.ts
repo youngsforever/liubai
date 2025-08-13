@@ -123,6 +123,8 @@ export namespace PeopleTasksAPI {
     whenStamp?: number
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
+
+    each_other_openid?: string
   }
 
 }
