@@ -88,6 +88,8 @@ export default {
     "when": "什么时候",
     "more": "更多",
     "add_note": "添加备注",
+    "edit_note": "编辑备注",
+    "read_clipboard_tip": "是否读取剪贴板内容？\n这可以快速粘贴会议信息",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 协助整理",
@@ -132,5 +134,10 @@ export default {
     "title": "长按识别二维码",
     "tip": "绑定微信，到时会自动提醒你⏰",
     "bound_msg": "太好了！已绑定💐",
-  }
+  },
+  "task-add-note": {
+    "title": "备注一下",
+    "placeholder": "请输入备注（比如会议信息）",
+    "confirm": "确定",
+  },
 }

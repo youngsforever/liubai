@@ -52,7 +52,12 @@ export function getMoreBtnList(
   if(detail.isMine) {
     if(!btnList.includes("AddNote")) {
       moreBtnList.push("AddNote")
-      itemKeyList.push("task-detail.add_note")
+      if(detail.note) {
+        itemKeyList.push("task-detail.edit_note")
+      }
+      else {
+        itemKeyList.push("task-detail.add_note")
+      }
     }
     if(!btnList.includes("Share")) {
       moreBtnList.push("Share")

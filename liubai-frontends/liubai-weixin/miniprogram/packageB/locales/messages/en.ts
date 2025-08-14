@@ -90,7 +90,9 @@ export default {
     "updated_prefix": "Task Updated: {desc}",
     "when": "When",
     "more": "More",
-    "add_note": "Add Note",
+    "add_note": "Add note",
+    "edit_note": "Edit note",
+    "read_clipboard_tip": "Read clipboard content?\nThis can quickly paste meeting info",
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",
@@ -131,5 +133,10 @@ export default {
     "title": "Long Press to Scan",
     "tip": "After following, you will be reminded automatically ⏰",
     "bound_msg": "Awesome! You've bound it 💐",
-  }
+  },
+  "task-add-note": {
+    "title": "Note",
+    "placeholder": "Enter note (e.g. meeting info)",
+    "confirm": "Confirm",
+  },
 }

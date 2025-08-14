@@ -88,6 +88,8 @@ export default {
     "when": "什麼時候",
     "more": "更多",
     "add_note": "新增備註",
+    "edit_note": "編輯備註",
+    "read_clipboard_tip": "是否讀取剪貼板中的文本？\n這可以快速黏貼會議資訊",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 協助整理",
@@ -132,5 +134,10 @@ export default {
     "title": "長按識別 QR Code",
     "tip": "綁定微信，屆時將自動提醒你⏰",
     "bound_msg": "太好了！已綁定💐",
-  }
+  },
+  "task-add-note": {
+    "title": "備註一下",
+    "placeholder": "請輸入備註（比如會議資訊）",
+    "confirm": "確定",
+  },
 }

@@ -1,0 +1,31 @@
+
+
+<scroll-view 
+  scroll-y
+  class="liu-{{theme}} liu-scroll-view"
+  type="custom"
+  associative-container="pop-gesture"
+>
+  <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
+  <view class="liu-main-container">
+    <view class="liu-main-box">
+      <textarea class="tan-textarea" maxlength="2000"
+        focus="{{focus}}"
+        auto-height
+        cursor-spacing="20"
+        placeholder="{{ t1.placeholder }}"
+        placeholder-style="color: {{ colors.main_note }};"
+        cursor-color="{{ colors.primary_color }}"
+        bindinput="onInput"
+        bindconfirm="onInput"
+        value="{{note}}"
+      ></textarea>
+    </view>
+  </view>
+
+</scroll-view>
+
+<custom-navibar 
+  height1="{{height1}}" height2="{{height2}}" 
+  visible="{{visible}}" title="{{t1.title}}"
+></custom-navibar>

@@ -93,6 +93,7 @@ export function showDetail(
     aiHelpStr,
     aiWorker: data.aiWorker,
     each_other_openid: data.each_other_openid,
+    note: data.note,
   }
   return detail
 }

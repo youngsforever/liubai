@@ -27,6 +27,7 @@ export interface TaskDetail {
   aiHelpStr?: string
   aiWorker?: LiuAi.AiWorker
   each_other_openid?: string
+  note?: string
 }
 
 export type BindingStatus = "followed" | "unfollowed"
