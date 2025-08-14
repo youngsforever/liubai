@@ -6,6 +6,7 @@ import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
 import { defaultData } from "~/packageB/config/default-data";
 import type { AddTaskNote } from "~/packageB/types/types-tunnel";
+import { toConfirm } from "./tools/useTaskAddNote";
 
 Component({
 
@@ -79,7 +80,9 @@ Component({
 
     onTapConfirm() {
       if(!this.data.canSubmit) return
-
+      LiuApi.vibrateShort({ type: "medium" })
+      const { id, note } = this.data
+      toConfirm(id, note)
     },
 
 

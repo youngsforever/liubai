@@ -14,3 +14,8 @@ export interface AddTaskNote {
   note?: string
   read_clipboard?: boolean
 }
+
+export interface HasNewTaskNote {
+  id: string
+  note: string
+}

@@ -16,10 +16,12 @@ import {
   getBindingStatus,
   whenTapAI,
   getQrCodePicUrlForBindingWx,
+  toAddNote,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
-import type { 
+import type {
+  HasNewTaskNote,
   JustCreateTask, 
   PleaseCreateTask,
 } from "~/packageB/types/types-tunnel";
@@ -104,6 +106,16 @@ Component({
           waitForCreateTask(this)
           return
         }
+      }
+
+      const _id = this.data._id
+      const detail = this.data.detail
+      const res2 = await LiuTunnel.takeStuff<HasNewTaskNote>("has-new-task-note")
+      if(res2 && _id === res2.id && detail) {
+        const bind2: Record<string, any> = {}
+        bind2["detail.note"] = res2.note
+        this.setData(bind2)
+        return
       }
 
       await this.getTaskDetail(false)
@@ -530,8 +542,7 @@ Component({
       const detail = this.data.detail
       if(!detail) return
       LiuApi.vibrateShort({ type: "medium" })
-      console.warn("ready to add note!")
-      
+      toAddNote(this.data._id, detail, true)
     },
 
     onTapMore() {
