@@ -9,7 +9,7 @@
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
   <view class="liu-main-container">
     <view class="liu-main-box">
-      <textarea class="tan-textarea" maxlength="2000"
+      <textarea class="tan-textarea" maxlength="{{noteMaxLength}}"
         focus="{{focus}}"
         auto-height
         cursor-spacing="20"
@@ -20,6 +20,12 @@
         bindconfirm="onInput"
         value="{{note}}"
       ></textarea>
+
+      <custom-button catchtap="onTapConfirm" disabled="{{!canSubmit}}">
+        <text>{{t1.confirm}}</text>
+      </custom-button>
+
+      <view class="tan-virtual"></view>
     </view>
   </view>
 

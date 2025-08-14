@@ -16,6 +16,8 @@ export const defaultData = {
   activity_tmpl_id: "2A84254B945674A2F88CE4970782C402795EB607",
 
   issue_1: "https://developers.weixin.qq.com/community/develop/doc/000c6c6fe4cb584cc093b65b06bc00",
+
+  note_max_length: 2000,
 }
 
 export const colorData = {

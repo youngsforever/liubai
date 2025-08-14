@@ -135,7 +135,7 @@ export default {
     "bound_msg": "Awesome! You've bound it 💐",
   },
   "task-add-note": {
-    "title": "Note",
+    "title": "📝 Note",
     "placeholder": "Enter note (e.g. meeting info)",
     "confirm": "Confirm",
   },

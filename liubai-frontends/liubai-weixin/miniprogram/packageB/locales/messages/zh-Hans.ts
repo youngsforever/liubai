@@ -136,7 +136,7 @@ export default {
     "bound_msg": "太好了！已绑定💐",
   },
   "task-add-note": {
-    "title": "备注一下",
+    "title": "📝 备注一下",
     "placeholder": "请输入备注（比如会议信息）",
     "confirm": "确定",
   },

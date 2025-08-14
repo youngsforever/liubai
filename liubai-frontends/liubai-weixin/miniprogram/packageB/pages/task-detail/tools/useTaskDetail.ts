@@ -14,6 +14,9 @@ import { useI18n } from "~/packageB/locales/index";
 import { LiuUtil } from "~/packageB/utils/liu-util/index";
 import { defaultData } from "~/packageB/config/default-data";
 import { Loginer } from "~/packageB/utils/login/Loginer";
+import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
+import type { AddTaskNote } from "~/packageB/types/types-tunnel";
+import { LiuTime } from "~/packageB/utils/LiuTime";
 
 export async function fetchTaskDetail(
   id: string,
@@ -415,4 +418,41 @@ export function whenTapAI(
     showCancel: false,
   })
 }
+
+export function toAddNote(
+  id: string,
+  detail: TaskDetail,
+  promptToReadClipboard = false,
+) {
+  if(!promptToReadClipboard) {
+    jumpToAddNote(id, detail, false)
+    return
+  }
   
+  LiuUtil.showCustomModal({
+    title: "📋",
+    content_key: "task-detail.read_clipboard_tip",
+    confirm_key: "shared.ok",
+    success(res) {
+      if(res.confirm) {
+        LiuApi.vibrateShort({ type: "light" })
+      }
+      jumpToAddNote(id, detail, res.confirm)
+    }
+  })
+}
+
+function jumpToAddNote(
+  id: string,
+  detail: TaskDetail,
+  read_clipboard: boolean,
+) {
+  const data: AddTaskNote = {
+    stamp: LiuTime.getTime(),
+    id,
+    note: detail.note,
+    read_clipboard,
+  }
+  LiuTunnel.setStuff("add-task-note", data)
+  LiuUtil.navigateWithPopup("/packageB/pages/task-add-note/task-add-note")
+}

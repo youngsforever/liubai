@@ -2,10 +2,10 @@ import { i18nBehavior } from "~/packageB/behaviors/i18n-behavior";
 import { navibarBehavior } from "~/packageB/behaviors/navibar-behavior";
 import { pageBehavior } from "~/packageB/behaviors/page-behavior";
 import { themeBehavior } from "~/packageB/behaviors/theme-behavior";
-import { AddTaskNote } from "~/packageB/types/types-tunnel";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
-import { LiuApi } from "~/utils/LiuApi";
-
+import { LiuApi } from "~/packageB/utils/LiuApi";
+import { defaultData } from "~/packageB/config/default-data";
+import type { AddTaskNote } from "~/packageB/types/types-tunnel";
 
 Component({
 
@@ -26,6 +26,7 @@ Component({
     note: "",
     canSubmit: false,
     focus: false,
+    noteMaxLength: defaultData.note_max_length,
     _initedNote: "",
   },
 
@@ -41,23 +42,27 @@ Component({
 
       let canSubmit = false
       let note = res1.note ?? ""
+      let focus = true
+      const _initedNote = note
       if(res1.read_clipboard) {
         try {
           const res2 = await LiuApi.getClipboardData()
-          if(res2?.data) {
-            note = res2.data
+          const txt2 = res2?.data
+          if(txt2 && txt2 !== note) {
+            note = txt2
             canSubmit = true
+            focus = false
           }
         }
         catch(err) {
           console.warn("fail to get clipboard data")
         }
       }
-      if(note.length > 2000) {
-        note = note.substring(0, 2000)
+      const maxLength = defaultData.note_max_length
+      if(note.length > maxLength) {
+        note = note.substring(0, maxLength)
       }
-      const _initedNote = note
-      const focus = Boolean(note)
+      
       this.setData({ note, id: res1.id, focus, canSubmit, _initedNote })
     },
 
@@ -70,6 +75,11 @@ Component({
       if(canSubmit !== this.data.canSubmit) {
         this.setData({ canSubmit })
       }
+    },
+
+    onTapConfirm() {
+      if(!this.data.canSubmit) return
+
     },
 
 
