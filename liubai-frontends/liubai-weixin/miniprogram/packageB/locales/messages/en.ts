@@ -19,6 +19,10 @@ export default {
     "copied_link": "Link Copied",
     "open_it_with_browser": "Open it with browser",
     "updating": "Updating..",
+    "copy": "📋 Copy",
+    "edit": "✏️ Edit",
+    "call": "📞 Call",
+    "sms": "💬 Text",
   },
   "err": {
     "no_data": "Nothing Here",

@@ -17,6 +17,7 @@ import {
   whenTapAI,
   getQrCodePicUrlForBindingWx,
   toAddNote,
+  whenTapNote,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
@@ -605,6 +606,13 @@ Component({
     toCloseQrCodePopup() {
       LiuApi.vibrateShort({ type: "light" })
       this.setData({ openBindingPopup: false })
+    },
+
+    onTapNote() {
+      const { detail } = this.data
+      if(!detail) return
+      LiuApi.vibrateShort({ type: "light" })
+      whenTapNote(this.data._id, detail)
     },
 
   },  

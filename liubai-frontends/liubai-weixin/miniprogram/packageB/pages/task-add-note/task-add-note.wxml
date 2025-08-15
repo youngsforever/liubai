@@ -17,6 +17,8 @@
         bindinput="onInput"
         bindconfirm="onInput"
         value="{{note}}"
+        confirm-hold
+        adjust-keyboard-to="bottom"
       ></textarea>
 
       <custom-button catchtap="onTapConfirm" disabled="{{!canSubmit}}">

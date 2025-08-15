@@ -16,6 +16,10 @@ export default {
     "copied_link": "已複製連結",
     "open_it_with_browser": "請開啟瀏覽器檢視",
     "updating": "更新中..",
+    "copy": "📋 複製",
+    "edit": "✏️ 編輯",
+    "call": "📞 撥號",
+    "sms": "💬 發簡訊",
   },
   "err": {
     "no_data": "找不到耶",

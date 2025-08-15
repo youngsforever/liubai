@@ -459,3 +459,27 @@ function jumpToAddNote(
     routeType: "wx://upwards",
   })
 }
+
+export function whenTapNote(
+  id: string,
+  detail: TaskDetail,
+) {
+  LiuUtil.showCustomActionSheet({
+    alert_text_key: "task-detail.note_title",
+    item_key_list: [
+      "shared.copy",
+      "shared.edit",
+    ],
+    success(res) {
+      LiuApi.vibrateShort({ type: "light" })
+      const idx = res.tapIndex
+      if(idx === 0) {
+        LiuUtil.toCopy(detail.note ?? "")
+      }
+      else if(idx === 1) {
+        toAddNote(id, detail)
+      }
+    }
+  })
+
+}

@@ -35,23 +35,19 @@ Component({
       const text = dataset.text
       const type = dataset.type
       if(!text || !type) return
+      LiuApi.vibrateShort({ type: "light" })
+
+      if(type === "phone") {
+        this.whenTapPhone(text)
+        return
+      }
 
       // 1. show hover
       const idx = dataset.idx
       const res1 = this.handleHover(idx, true)
 
-      // 2. vibrate and copy text
-      LiuApi.vibrateShort({ type: "light" })
-      try {
-        await LiuApi.setClipboardData({ data: text })
-
-        // 3. toast
-        LiuUtil.showCustomToast({ title_key: "shared.copied" })
-      }
-      catch(err) {
-        console.warn("fail to set clipboard")
-        console.log(err)
-      }
+      // 2. copy text
+      await LiuUtil.toCopy(text)
 
       // 4. close hover
       if(res1) {
@@ -59,7 +55,6 @@ Component({
         this.handleHover(idx, false)
       }
     },
-
 
     /** 由于 span 标签的 hover-class 无法作用 
      *  skyline 模式下 opacity 不生效，所以需要手动
@@ -77,6 +72,30 @@ Component({
       b1[`textList[${idx}].isHover`] = show
       this.setData(b1)
       return true
+    },
+
+    async whenTapPhone(text: string) {
+      LiuUtil.showCustomActionSheet({
+        alertText: text,
+        item_key_list: [
+          "shared.copy",
+          "shared.call",
+          "shared.sms",
+        ],
+        success(res) {
+          LiuApi.vibrateShort({ type: "light" })
+          const idx = res.tapIndex
+          if(idx === 0) {
+            LiuUtil.toCopy(text)
+          }
+          else if(idx === 1) {
+            LiuApi.makePhoneCall({ phoneNumber: text })
+          }
+          else if(idx === 2) {
+            LiuApi.sendSms({ phoneNumber: text })
+          }
+        }
+      })
     },
 
 

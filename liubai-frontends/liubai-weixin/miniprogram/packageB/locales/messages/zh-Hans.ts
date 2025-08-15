@@ -16,6 +16,10 @@ export default {
     "copied_link": "已复制链接",
     "open_it_with_browser": "请前往浏览器打开",
     "updating": "更新中..",
+    "copy": "📋 复制",
+    "edit": "✏️ 编辑",
+    "call": "📞 打电话",
+    "sms": "💬 发短信",
   },
   "err": {
     "no_data": "找不到耶",
