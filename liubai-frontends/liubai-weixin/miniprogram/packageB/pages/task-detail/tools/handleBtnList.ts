@@ -63,6 +63,11 @@ export function getMoreBtnList(
       moreBtnList.push("Share")
       itemKeyList.push("task-detail.share")
     }
+
+    if(!btnList.includes("CloseTask") && !detail.closedStamp) {
+      moreBtnList.push("CloseTask")
+      itemKeyList.push("task-detail.close_task")
+    }
     if(!btnList.includes("CreateTask")) {
       moreBtnList.push("CreateTask")
       itemKeyList.push("task-detail.create_other")
@@ -118,6 +123,11 @@ function whenTaskIsMine(
 
   btnList.push("CloseTask")
   if(hasShare) {
+    if(btnList.length >= 3) {
+      btnList.push("More")
+      return btnList
+    }
+    btnList.push("AddNote")
     btnList.push("CreateTask")
   }
   else {

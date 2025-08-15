@@ -3,10 +3,10 @@
 
 .tan-textarea {
   width: 100%;
-  min-height: 200px;
+  min-height: 150px;
   font-size: var(--desc-font);
   color: var(--main-normal);
-  margin: 20px 0;
+  margin: 10px 0 20px;
   padding: 16px 0;
   line-height: 1.75;
   caret-color: var(--primary-color);
