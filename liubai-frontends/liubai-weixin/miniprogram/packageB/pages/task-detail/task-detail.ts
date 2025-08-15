@@ -375,6 +375,27 @@ Component({
     onTapUrge() {
       this.onTapReminder()
     },
+    
+    onTapRemindMe() {
+      const detail = this.data.detail
+      if(!detail?.remindStr) return
+      LiuApi.vibrateShort({ type: "light" })
+      
+      const bs = this.data.bindingStatus
+      if(this.data.qrCodePicUrl && bs === "unfollowed") {
+        this.setData({ openBindingPopup: true })
+        return
+      }
+
+      if(bs === "followed") {
+        LiuUtil.showCustomModal({
+          title_key: "task-detail.remind_1",
+          content_key: "task-detail.remind_2",
+          showCancel: false,
+          confirm_key: "shared.ok",
+        })
+      }
+    },
 
     onTapShare() {
       LiuApi.vibrateShort({ type: "medium" })

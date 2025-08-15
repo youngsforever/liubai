@@ -95,6 +95,8 @@ export default {
     "edit_note": "编辑备注",
     "read_clipboard_tip": "是否读取剪贴板内容？\n这可以快速粘贴会议信息",
     "note_title": "备注栏",
+    "remind_1": "你已关注👍",
+    "remind_2": "到点时，系统将由「留白记事」服务号通知你。",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 协助整理",
@@ -119,6 +121,8 @@ export default {
     "tongyi-qwen": "通义千问",
     "hailuo": "MiniMax",
     "yuewen": "阶跃星辰",
+    "hunyuan": "混元",
+    "zhipu": "智谱"
   },
   "date": {
     "show_1": "{mm}月{dd}日 ({day}) {hr}:{min}",

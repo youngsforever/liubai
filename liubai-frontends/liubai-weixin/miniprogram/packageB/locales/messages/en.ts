@@ -98,6 +98,8 @@ export default {
     "edit_note": "Edit note",
     "read_clipboard_tip": "Read clipboard content?\nThis can quickly paste meeting info",
     "note_title": "INFO",
+    "remind_1": "You've followed us 👍",
+    "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat."
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",
@@ -122,6 +124,8 @@ export default {
     "tongyi-qwen": "Qwen",
     "hailuo": "MiniMax",
     "yuewen": "Stepfun",
+    "hunyuan": "Hunyuan",
+    "zhipu": "Zhipu"
   },
   "date": {
     "show_1": "{mm}-{dd} ({day}) {hr}:{min}",

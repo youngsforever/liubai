@@ -41,46 +41,41 @@ const db = cloud.database()
 const _ = db.command
 const AI_CLUSTER_FREE = 10
 const fastAiWorkers: LiuAi.AiWorker[] = [
-  // {
-  //   "computingProvider": "aliyun-bailian",
-  //   "model": "qwen-max",
-  //   "character": "tongyi-qwen",
-  // },
-  // {
-  //   "computingProvider": "aliyun-bailian",
-  //   "model": "qwen-max-latest",
-  //   "character": "tongyi-qwen",
-  // },
-  // {
-  //   "computingProvider": "aliyun-bailian",
-  //   "model": "qwen-plus-2025-07-14",
-  //   "character": "tongyi-qwen",
-  // },
-  // {
-  //   "computingProvider": "aliyun-bailian",
-  //   "model": "qwen-plus-2025-07-28",
-  //   "character": "tongyi-qwen",
-  // },
-  // {
-  //   "computingProvider": "zhipu",
-  //   "model": "glm-z1-airx",
-  //   "character": "zhipu",
-  // },
-  // {
-  //   "computingProvider": "zhipu",
-  //   "model": "glm-4.5-x",
-  //   "character": "zhipu",
-  // },
-  // {
-  //   "computingProvider": "zhipu",
-  //   "model": "glm-4.5",
-  //   "character": "zhipu",
-  // },
-  // {
-  //   "computingProvider": "zhipu",
-  //   "model": "glm-4.5-airx",
-  //   "character": "zhipu",
-  // },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-max",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-max-latest",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-plus-2025-07-14",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "aliyun-bailian",
+    "model": "qwen-plus-2025-07-28",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "zhipu",
+    "model": "glm-4.5-x",
+    "character": "zhipu",
+  },
+  {
+    "computingProvider": "zhipu",
+    "model": "glm-4.5",
+    "character": "zhipu",
+  },
+  {
+    "computingProvider": "zhipu",
+    "model": "glm-4.5-airx",
+    "character": "zhipu",
+  },
   {
     "computingProvider": "moonshot",
     "model": "kimi-k2-0711-preview",
@@ -699,7 +694,7 @@ class ClusterHelper {
       prompts.push(prompt_32 as OaiPrompt) 
     }
     // 3.2 close thinking for zhipu
-    if(provider === "zhipu" && aiWorker.model === "glm-4.5") {
+    if(provider === "zhipu" && aiWorker.model.startsWith("glm-4.5")) {
       //@ts-expect-error thinking
       param3.thinking = { type: "disabled" }
     }
