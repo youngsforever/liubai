@@ -343,7 +343,6 @@ Component({
       const idx = e.currentTarget.dataset.idx
       const { detail } = this.data
       if(typeof idx !== "number" || !detail) return
-      console.log("onTapOneAssignee idx: ", idx)
       const doneStamp = detail.assigneeList[idx].doneStamp
       if(!doneStamp) {
         LiuUtil.showCustomToast({ 
@@ -583,6 +582,7 @@ Component({
     async handleBindingStatus(
       tryToOpenBindingPopup = false,
     ) {
+      await valTool.waitMilli(500)
       const res1 = await getBindingStatus()
       if(!res1) return
       let bindingStatus: BindingStatus = "unfollowed"
@@ -597,9 +597,10 @@ Component({
     },
 
     async handleQrCode() {
+      await valTool.waitMilli(500)
       const qrCodePicUrl = await getQrCodePicUrlForBindingWx()
       if(!qrCodePicUrl) return
-      await valTool.waitMilli(1500)
+      await valTool.waitMilli(500)
       this.setData({ openBindingPopup: true, qrCodePicUrl })
     },
 
@@ -610,7 +611,7 @@ Component({
 
     onTapNote() {
       const { detail } = this.data
-      if(!detail) return
+      if(!detail || !detail.isMine) return
       LiuApi.vibrateShort({ type: "light" })
       whenTapNote(this.data._id, detail)
     },

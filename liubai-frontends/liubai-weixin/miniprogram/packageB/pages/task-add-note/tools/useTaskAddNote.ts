@@ -10,6 +10,7 @@ export async function toConfirm(
   id: string,
   note: string,
 ) {
+  note = note.trim()
 
   // 1. package data for tunnel
   const data1: HasNewTaskNote = { id, note }

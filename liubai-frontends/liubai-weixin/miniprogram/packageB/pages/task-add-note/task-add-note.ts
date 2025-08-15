@@ -50,7 +50,7 @@ Component({
           const res2 = await LiuApi.getClipboardData()
           const txt2 = res2?.data
           if(txt2 && txt2 !== note) {
-            note = txt2
+            note = txt2.trim()
             canSubmit = true
             focus = false
           }
@@ -69,10 +69,9 @@ Component({
 
     onInput(e: any) {
       const inputTxt: string = e.detail.value ?? ""
-      const trimTxt = inputTxt.trim()
-      this.data.note = trimTxt
+      this.data.note = inputTxt
       
-      const canSubmit = Boolean(trimTxt !== this.data._initedNote)
+      const canSubmit = Boolean(inputTxt !== this.data._initedNote)
       if(canSubmit !== this.data.canSubmit) {
         this.setData({ canSubmit })
       }
