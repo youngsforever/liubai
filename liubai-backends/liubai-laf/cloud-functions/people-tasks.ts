@@ -520,28 +520,27 @@ async function get_wx_task(
     ...item4,
   }
 
-  // 5. get each_other_openid
-  if(chatInfo?.open_single_roomid) {
-    await handleEachOtherOpenid(data4, chatInfo)
+  // 5. try to get each_other_openid
+  if(chatInfo?.open_single_roomid && !data4.each_other_openid) {
+    const each_other_openid = await getEachOtherOpenid(data4.assigneeList, chatInfo)
+    data4.each_other_openid = each_other_openid
   }
 
   return { code: "0000", data: data4 }
 }
 
 
-async function handleEachOtherOpenid(
-  res: PeopleTasksAPI.Res_GetWxTask,
+async function getEachOtherOpenid(
+  assigneeList: PeopleTasksAPI.AssigneeItem[],
   chatInfo: WxMiniAPI.ChatInfo,
 ) {
   const roomid = chatInfo.open_single_roomid
   if(!roomid) return
 
   const myOpenid = chatInfo.group_openid
-  const assigneeList = res.assigneeList ?? []
   const eachOther = assigneeList.find(v => v.group_openid !== myOpenid)
   if(eachOther) {
-    res.each_other_openid = eachOther.group_openid
-    return
+    return eachOther.group_openid
   }
 
   const wbCol = db.collection("WxBond")
@@ -553,7 +552,7 @@ async function handleEachOtherOpenid(
   const res2 = await wbCol.where(w2).getOne<Table_WxBond>()
   const data2 = res2.data
   if(!data2) return
-  res.each_other_openid = data2.group_openid
+  return data2.group_openid
 }
 
 
@@ -596,7 +595,7 @@ async function create_wx_task(
     endStamp = endStamp * 1000
   }
 
-  // 5. calculate related_openids & assigneeList
+  // 5.1 calculate related_openids & assigneeList
   const owner_openid = chatInfo.group_openid as string
   let related_openids = [...assignees, owner_openid]
   related_openids = valTool.uniqueArray(related_openids)
@@ -606,6 +605,12 @@ async function create_wx_task(
     }
     return obj5
   })
+
+  // 5.2 try to get each_other_openid
+  let each_other_openid: string | undefined
+  if(chatInfo.open_single_roomid) {
+    each_other_openid = await getEachOtherOpenid(assigneeList, chatInfo)
+  }
 
   // 6. create the task
   const b6 = getBasicStampWhileAdding()
@@ -625,6 +630,7 @@ async function create_wx_task(
     finished_openids: [],
     activity_id,
     endStamp,
+    each_other_openid,
   }
   const wtCol = db.collection("WxTask")
   const res6 = await wtCol.add(data6)
@@ -711,6 +717,7 @@ function packageWxTasks(
       remindMe: v.remindMe,
       aiWorker: v.aiWorker,
       note: v.note,
+      each_other_openid: v.each_other_openid,
     }
     list.push(obj)
   }
