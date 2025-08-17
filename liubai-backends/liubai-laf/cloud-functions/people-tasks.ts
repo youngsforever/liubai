@@ -57,9 +57,43 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "update-task-note") {
     res = await update_task_note(body, vRes)
   }
+  else if(oT === "delete-wx-task") {
+    res = await delete_wx_task(body, vRes)
+  }
   
 
   return res
+}
+
+async function delete_wx_task(
+  body: Record<string, any>,
+  vRes: VerifyTokenRes_B,
+) {
+  const id = body.id
+  if(!valTool.isStringWithVal(id)) {
+    return { code: "E4000", errMsg: "no id" }
+  }
+  const userId = vRes.userData._id
+
+  // 1. get task
+  const wtCol = db.collection("WxTask")
+  const res1 = await wtCol.doc(id).get<Table_WxTask>()
+  const data1 = res1.data
+  if(!data1 || data1.oState !== "OK") {
+    return { code: "E4004", errMsg: "no such task" }
+  }
+  if(data1.owner_userid !== userId) {
+    return { code: "E4003", errMsg: "you are not the owner of this task" }
+  }
+
+  // 2. delete the task
+  const w2: Partial<Table_WxTask> = {
+    oState: "DEL_BY_USER",
+    updatedStamp: getNowStamp(),
+  }
+  await wtCol.doc(id).update(w2)
+
+  return { code: "0000" }
 }
 
 async function update_task_note(

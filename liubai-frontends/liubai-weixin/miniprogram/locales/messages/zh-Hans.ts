@@ -12,7 +12,7 @@ export default {
   },
   "shared": {
     "copied": "已复制",
-    "tip": "提示",
+    "tip": "提示🥮",
     "long_press": "请长按图片，识别二维码",
     "confirm": "确定",
     "cancel": "取消",
@@ -24,6 +24,7 @@ export default {
     "ok": "好",
     "open_mini_1": "前往小程序",
     "open_mini_2": "请点击右下角“前往小程序”",
+    "yes": "是",
   },
   "err": {
     "no_data": "找不到耶",
@@ -34,6 +35,7 @@ export default {
     "come_later": "请稍后再来",
     "video_err": "视频加载失败",
     "err_reason": "原因: {msg}; 状态码: {code}",
+    "open_chat_tool_1": "暂不支持企业微信联络人、文件传输助手以及自己的微信。\n是否要删除当前任务？",
   },
   "watch-video": {
     "rule": "每看完一个视频，可获得 {conversationToAd} 轮对话次数",

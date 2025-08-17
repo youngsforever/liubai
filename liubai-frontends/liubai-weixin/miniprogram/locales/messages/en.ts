@@ -14,7 +14,7 @@ export default {
   },
   "shared": {
     "copied": "Copied",
-    "tip": "Tip",
+    "tip": "Tip 🥮",
     "long_press": "Long press to recognize QR code",
     "confirm": "Confirm",
     "cancel": "Cancel",
@@ -26,6 +26,7 @@ export default {
     "ok": "OK",
     "open_mini_1": "Open MiniProgram",
     "open_mini_2": "Please click \"前往小程序\" on the bottom right corner",
+    "yes": "Yes",
   },
   "err": {
     "no_data": "Nothing Here",
@@ -36,6 +37,7 @@ export default {
     "come_later": "Come later please~",
     "video_err": "Video load failed",
     "err_reason": "Reason: {msg}; Status code: {code}",
+    "open_chat_tool_1": "It's not available for WeCom, File Transfer, or your personal WeChat.\nDo you want to delete this task?",
   },
   "watch-video": {
     "rule": "You can earn {conversationToAd} conversation times by watching a video.",

@@ -12,7 +12,7 @@ export default {
   },
   "shared": {
     "copied": "已複製",
-    "tip": "提示",
+    "tip": "提示🥮",
     "long_press": "請長按圖片，識別 QR Code",
     "confirm": "確定",
     "cancel": "取消",
@@ -24,6 +24,7 @@ export default {
     "ok": "好",
     "open_mini_1": "前往小程式",
     "open_mini_2": "請輕觸右下角「前往小程式」",
+    "yes": "是",
   },
   "err": {
     "no_data": "找不到耶",
@@ -34,6 +35,7 @@ export default {
     "come_later": "請稍候再來",
     "video_err": "影片加載失敗",
     "err_reason": "原因: {msg}; 狀態代碼: {code}",
+    "open_chat_tool_1": "暫時不支援企業微信、文件傳輸助手以及自己的微信。\n是否要刪除當前任務？",
   },
   "watch-video": {
     "rule": "每看完一個影片，可取得 {conversationToAd} 輪對話次數",

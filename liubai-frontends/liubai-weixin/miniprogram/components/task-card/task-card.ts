@@ -5,6 +5,10 @@ import type { TaskItem } from "~/types/types-task";
 import type { PeopleTasksAPI } from "~/requests/req-types";
 import { LiuTunnel } from "~/utils/LiuTunnel";
 import type { WxMiniAPI } from "~/types/types-wx";
+import { LiuUtil } from "~/utils/liu-util/index";
+import { LiuReq } from "~/requests/LiuReq";
+import APIs from "~/requests/APIs";
+import type { DeletedTaskEventDetail } from "./tools/types";
 
 Component({
 
@@ -18,6 +22,10 @@ Component({
       type: Object,
       value: {},
     },
+    index: {
+      type: Number,
+      value: -1,
+    }
   },
 
   methods: {
@@ -40,6 +48,7 @@ Component({
       if(open_single_roomid) roomid = open_single_roomid
       else if(opengid) roomid = opengid
       
+      const _this = this
       const url = "/packageB/pages/task-detail/task-detail?id=" + id
       LiuApi.openChatTool({
         url,
@@ -50,10 +59,41 @@ Component({
         },
         fail(err) {
           console.warn("openChatTool fail", err)
+          if(err?.errMsg?.includes("invalid roomid")) {
+            _this.failToOpenChatTool()
+          }
           LiuTunnel.clear()
         }
       })
+    },
+
+    async failToOpenChatTool() {
+      const res1 = await LiuUtil.showCustomModal({
+        title_key: "shared.tip",
+        content_key: "err.open_chat_tool_1",
+        confirm_key: "shared.yes",
+      })
+      if(!res1.confirm) return
+      this.toDelete()
+    },
+
+    async toDelete() {
+      const task = this.data.task as TaskItem
+      if(!task) return
+
+      const id = task.id
+      const w1 = {
+        operateType: "delete-wx-task",
+        id,
+      }
+      const url1 = APIs.PPL_TASKS
+      const res1 = await LiuReq.request(url1, w1)
+      if(!res1 || res1.code !== "0000") return
+      this.triggerEvent<DeletedTaskEventDetail>(
+        "deleted", { id, index: this.data.index }
+      )
     }
+
   },
 
 

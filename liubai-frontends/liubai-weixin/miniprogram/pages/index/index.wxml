@@ -36,7 +36,10 @@
 
       <block wx:for="{{myTasks}}" wx:key="id">
 
-        <task-card task="{{item}}"></task-card>
+        <task-card task="{{item}}"
+          index="{{index}}"
+          bind:deleted="afterDeletingTask"
+        ></task-card>
 
       </block>
 
