@@ -1,14 +1,14 @@
 import type { PeopleTasksAPI } from "~/requests/req-types";
-import type { TaskItem } from "~/types/types-task";
+import type { TaskCard } from "~/types/types-task";
 
 export function showTaskItems(
   tasks: PeopleTasksAPI.WxTaskItem[],
 ) {
-  const list: TaskItem[] = []
+  const list: TaskCard[] = []
 
   for(let i=0; i<tasks.length; i++) {
     const task = tasks[i]
-    const obj: TaskItem = {
+    const obj: TaskCard = {
       ...task,
       allDone: undefined,
       doneCount: undefined,

@@ -513,7 +513,7 @@ async function get_wx_task(
   }
 
   // 4. package data
-  const data4 = packageGetWxTask(data2, userId)
+  const data4 = packageResOfGetWxTask(data2, userId)
 
   return { code: "0000", data: data4 }
 }
@@ -675,7 +675,7 @@ async function checkTaskForSecurity(
 }
 
 
-function packageGetWxTask(
+function packageResOfGetWxTask(
   v: Table_WxTask,
   myUserId: string,
 ) {

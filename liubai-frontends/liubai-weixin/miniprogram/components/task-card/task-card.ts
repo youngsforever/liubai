@@ -1,7 +1,7 @@
 import { sharedBehavior } from "~/behaviors/shared-behavior";
 import { i18nBehavior } from "~/behaviors/i18n-behavior"
 import { LiuApi } from "~/utils/LiuApi";
-import type { TaskItem } from "~/types/types-task";
+import type { TaskCard } from "~/types/types-task";
 import { LiuTunnel } from "~/utils/LiuTunnel";
 import type { WxMiniAPI } from "~/types/types-wx";
 import { LiuUtil } from "~/utils/liu-util/index";
@@ -32,8 +32,8 @@ Component({
     onTapCard() {
       // 1. vibrate
       LiuApi.vibrateShort({ type: "light" })
-      const obj = this.data.task as TaskItem
-      if(!obj) return
+      const obj = this.data.task as TaskCard
+      if(!obj?.id) return
       
       // 2. set tunnel
       const obj2 = turnTaskItemToResGetWxTask(obj)
@@ -75,7 +75,7 @@ Component({
     },
 
     async toDelete() {
-      const task = this.data.task as TaskItem
+      const task = this.data.task as TaskCard
       if(!task) return
 
       const id = task.id

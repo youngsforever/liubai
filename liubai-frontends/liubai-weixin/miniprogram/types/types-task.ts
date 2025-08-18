@@ -1,8 +1,10 @@
 import type { PeopleTasksAPI } from "~/requests/req-types";
 
-export interface TaskItem extends PeopleTasksAPI.WxTaskItem {
+export interface TaskCard extends PeopleTasksAPI.WxTaskItem {
   allDone?: boolean
   doneCount?: number
   eachOtherDone?: boolean
-  openidFromSingleChat?: string  // 在列表上，显示来自哪个单聊的那个人的 group_openid
+
+  // 在列表上，显示单聊里，除了我的另外一位的 group_openid
+  openidFromSingleChat?: string
 }

@@ -230,7 +230,10 @@ export namespace PeopleTasksAPI {
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
 
+    // 仅在单聊时，可能有值，其值表示除了 owner_openid 以外
+    // 的另一位 group_openid，而非相对于当前用户的另一位！
     each_other_openid?: string
+    
     note?: string
   }
 
