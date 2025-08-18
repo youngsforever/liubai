@@ -1949,6 +1949,7 @@ export interface Table_WxTask extends BaseTable {
   remindMe?: LiuRemindMe
   aiWorker?: LiuAi.AiWorker
   note?: string
+  each_other_openid?: string
 }
 
 

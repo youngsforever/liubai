@@ -73,7 +73,7 @@ export default {
     "share": "Share",
     "close_1": "Are you sure to close the task?",
     "complete_1": "True or false 🤨",
-    "complete_2": "Is is true that you've completed the task?",
+    "complete_2": "Is it true that you've completed the task?",
     "it_is_true": "True",
     "it_is_not_true": "False",
     "done_it": "You've done it!",
@@ -99,7 +99,8 @@ export default {
     "read_clipboard_tip": "Read clipboard content?\nThis can quickly paste meeting info",
     "note_title": "INFO",
     "remind_1": "You've followed us 👍",
-    "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat."
+    "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat.",
+    "remind_3": "Tap to turn on 👈",
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",
@@ -137,6 +138,10 @@ export default {
     "day_4": "Th",
     "day_5": "Fr",
     "day_6": "Sa",
+    "on_time": "On time",
+    "early_min": "{min} mins early",
+    "early_hr": "{hr} hour(s) early",
+    "early_day": "{day} day(s) early",
   },
   "qrcode": {
     "title": "Long Press to Scan",

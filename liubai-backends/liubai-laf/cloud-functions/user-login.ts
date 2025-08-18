@@ -448,7 +448,10 @@ async function handle_scan_login(
 
   // 7.1 login with wx_gzh_openid
   if(infoType === "wx-gzh-scan" && wx_gzh_openid) {
-    const opt7_1 = { client_key }
+    const opt7_1 = { 
+      client_key,
+      wx_gzh_openid,
+    }
 
     const t7_1 = getNowStamp()
     const res7_1 = await tryToSignInWithWxGzh(ctx, body, wx_gzh_openid, opt7_1)
@@ -1529,7 +1532,12 @@ async function handle_wx_gzh_oauth(
   const thirdData: UserThirdData = { wx_gzh }
 
   // 7. try to sign in with wx_gzh_openid or wx_unionid
-  const opt7 = { client_key, thirdData, wx_unionid: data5.unionid }
+  const opt7 = { 
+    client_key, 
+    thirdData, 
+    wx_gzh_openid,
+    wx_unionid: data5.unionid,
+  }
   const res7 = await tryToSignInWithWxGzh(ctx, body, wx_gzh_openid, opt7)
   if(res7) return res7
 

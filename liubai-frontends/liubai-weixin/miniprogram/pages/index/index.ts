@@ -21,6 +21,7 @@ import {
 } from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
 import type { TaskItem } from "~/types/types-task"
+import type { DeletedTaskEventDetail } from "~/components/task-card/tools/types"
 
 Component({
 
@@ -176,6 +177,17 @@ Component({
       if(!res1.isSupported) return
       const myTasks = await getMyTasks()
       if(!myTasks) return
+      this.setData({ myTasks })
+      setStoragedMyTasks(myTasks)
+    },
+
+    afterDeletingTask(
+      e: WechatMiniprogram.CustomEvent<DeletedTaskEventDetail>,
+    ) {
+      const idx = e.detail.index
+      if(idx < 0) return
+      const myTasks = this.data.myTasks
+      myTasks.splice(idx, 1)
       this.setData({ myTasks })
       setStoragedMyTasks(myTasks)
     },

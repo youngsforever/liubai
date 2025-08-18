@@ -97,6 +97,7 @@ export default {
     "note_title": "備註欄",
     "remind_1": "你已關注👍",
     "remind_2": "屆時，系統將由「留白記事」服務帳號通知你。",
+    "remind_3": "輕觸開啟提醒👈",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 協助整理",

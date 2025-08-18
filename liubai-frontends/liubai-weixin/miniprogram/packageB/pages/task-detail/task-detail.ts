@@ -123,10 +123,10 @@ Component({
     },
 
     async checkBindingStatusWhileShowing() {
-      const { qrCodePicUrl, openBindingPopup } = this.data
-      if(!qrCodePicUrl || !openBindingPopup) return
+      const { bindingStatus } = this.data
+      if(bindingStatus !== "unfollowed") return
 
-      const res1 = await getBindingStatus(false)
+      const res1 = await getBindingStatus()
       if(!res1) return
       const bind: Record<string, any> = {
         bindingStatus: "unfollowed"
@@ -203,8 +203,8 @@ Component({
       this.toUpdateShareMenu()
 
       // 4.3 check out binding status
-      if(bind4.detail.remindStr) {
-        this.handleBindingStatus(true)
+      if(bind4.detail.remindStr && justOnLoad) {
+        this.handleBindingStatus()
       }
 
       // 5. return if not just created
@@ -599,9 +599,7 @@ Component({
       whenTapAI(detail)
     },
 
-    async handleBindingStatus(
-      tryToOpenBindingPopup = false,
-    ) {
+    async handleBindingStatus() {
       await valTool.waitMilli(500)
       const res1 = await getBindingStatus()
       if(!res1) return
@@ -611,7 +609,7 @@ Component({
       }
       this.setData({ bindingStatus })
       
-      if(tryToOpenBindingPopup && bindingStatus === "unfollowed") {
+      if(bindingStatus === "unfollowed") {
         this.handleQrCode()
       }
     },
