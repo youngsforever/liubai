@@ -14,12 +14,23 @@ export function showTaskItems(
       doneCount: undefined,
       eachOtherDone: undefined,
     }
+
+    // handle openidFromSingleChat
+    const isSingleChat = Boolean(task.open_single_roomid)
+    if(isSingleChat) {
+      if(task.isMine) {
+        obj.openidFromSingleChat = task.each_other_openid
+      }
+      else {
+        obj.openidFromSingleChat = task.owner_openid
+      }
+    }
+
     if(task.infoType !== "TASK" || task.assigneeList.length < 1) {
       list.push(obj)
       continue
     }
 
-    const isSingleChat = Boolean(task.open_single_roomid)
     obj.allDone = true
     obj.doneCount = 0
     task.assigneeList.forEach(v => {

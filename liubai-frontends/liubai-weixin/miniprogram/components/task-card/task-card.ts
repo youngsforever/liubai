@@ -2,13 +2,13 @@ import { sharedBehavior } from "~/behaviors/shared-behavior";
 import { i18nBehavior } from "~/behaviors/i18n-behavior"
 import { LiuApi } from "~/utils/LiuApi";
 import type { TaskItem } from "~/types/types-task";
-import type { PeopleTasksAPI } from "~/requests/req-types";
 import { LiuTunnel } from "~/utils/LiuTunnel";
 import type { WxMiniAPI } from "~/types/types-wx";
 import { LiuUtil } from "~/utils/liu-util/index";
 import { LiuReq } from "~/requests/LiuReq";
 import APIs from "~/requests/APIs";
 import type { DeletedTaskEventDetail } from "./tools/types";
+import { turnTaskItemToResGetWxTask } from "./tools/useTaskCard";
 
 Component({
 
@@ -36,10 +36,7 @@ Component({
       if(!obj) return
       
       // 2. set tunnel
-      const obj2: PeopleTasksAPI.Res_GetWxTask = {
-        operateType: "get-wx-task",
-        ...obj,
-      }
+      const obj2 = turnTaskItemToResGetWxTask(obj)
       LiuTunnel.setStuff("task-fr-list-to-detail", obj2)
 
       // 3. open chat tool

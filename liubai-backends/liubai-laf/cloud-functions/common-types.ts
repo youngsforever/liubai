@@ -4429,8 +4429,6 @@ export namespace PeopleTasksAPI {
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
 
-    // it only exists when chatInfo.open_single_roomid has been set
-    each_other_openid?: string
     note?: string
   }
 
@@ -4440,7 +4438,32 @@ export namespace PeopleTasksAPI {
     id: Sch_Id,
   })
 
-  export type WxTaskItem = Omit<Res_GetWxTask, "operateType">
+  export interface WxTaskItem {
+    infoType: "TASK" | "ACTIVITY"
+    id: string
+    activity_id?: string
+    desc: string
+    owner_openid: string
+    opengid?: string
+    open_single_roomid?: string
+    chat_type: WxMiniAPI.ChatType
+    assigneeList: AssigneeItem[]
+    participatorList?: ParticipatorItem[]
+    isMine?: boolean
+    insertedStamp: number
+    editedStamp?: number
+    endStamp?: number
+    closedStamp?: number
+
+    calendarStamp?: number
+    remindStamp?: number
+    whenStamp?: number
+    remindMe?: LiuRemindMe
+    aiWorker?: LiuAi.AiWorker
+    
+    each_other_openid?: string
+    note?: string
+  }
 
   export interface Res_ListWxTasks {
     operateType: "list-wx-tasks"

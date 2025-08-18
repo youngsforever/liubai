@@ -513,18 +513,7 @@ async function get_wx_task(
   }
 
   // 4. package data
-  const list4 = packageWxTasks([data2], userId)
-  const item4 = list4[0]
-  const data4: PeopleTasksAPI.Res_GetWxTask = {
-    operateType: "get-wx-task",
-    ...item4,
-  }
-
-  // 5. try to get each_other_openid
-  if(chatInfo?.open_single_roomid && !data4.each_other_openid) {
-    const each_other_openid = await getEachOtherOpenid(data4.assigneeList, chatInfo)
-    data4.each_other_openid = each_other_openid
-  }
+  const data4 = packageGetWxTask(data2, userId)
 
   return { code: "0000", data: data4 }
 }
@@ -685,6 +674,39 @@ async function checkTaskForSecurity(
   await wtCol.doc(id).update(w3)
 }
 
+
+function packageGetWxTask(
+  v: Table_WxTask,
+  myUserId: string,
+) {
+  const obj: PeopleTasksAPI.Res_GetWxTask = {
+    operateType: "get-wx-task",
+    id: v._id,
+    infoType: v.infoType ?? "TASK",
+    activity_id: v.activity_id,
+    desc: v.desc,
+    owner_openid: v.owner_openid,
+    opengid: v.opengid,
+    open_single_roomid: v.open_single_roomid,
+    chat_type: v.chat_type,
+    assigneeList: v.assigneeList,
+    participatorList: v.participatorList,
+    isMine: v.owner_userid === myUserId,
+    insertedStamp: v.insertedStamp,
+    editedStamp: v.editedStamp,
+    endStamp: v.endStamp,
+    closedStamp: v.closedStamp,
+
+    calendarStamp: v.calendarStamp,
+    remindStamp: v.remindStamp,
+    whenStamp: v.whenStamp,
+    remindMe: v.remindMe,
+    aiWorker: v.aiWorker,
+    
+    note: v.note,
+  }
+  return obj
+}
 
 
 function packageWxTasks(
