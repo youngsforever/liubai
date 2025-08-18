@@ -137,6 +137,10 @@ export default {
     "day_4": "Th",
     "day_5": "Fr",
     "day_6": "Sa",
+    "on_time": "On time",
+    "early_min": "{min} mins early",
+    "early_hr": "{hr} hour(s) early",
+    "early_day": "{day} day(s) early",
   },
   "qrcode": {
     "title": "Long Press to Scan",
