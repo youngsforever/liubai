@@ -99,7 +99,8 @@ export default {
     "read_clipboard_tip": "Read clipboard content?\nThis can quickly paste meeting info",
     "note_title": "INFO",
     "remind_1": "You've followed us 👍",
-    "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat."
+    "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat.",
+    "remind_3": "Tap to turn on 👈",
   },
   "ai-related": {
     "help_to_organize": "Organized by {name}",

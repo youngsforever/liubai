@@ -97,6 +97,7 @@ export default {
     "note_title": "备注栏",
     "remind_1": "你已关注👍",
     "remind_2": "到点时，系统将由「留白记事」服务号通知你。",
+    "remind_3": "戳我开启提醒👈",
   },
   "ai-related": {
     "help_to_organize": "由 {name} 协助整理",

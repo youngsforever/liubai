@@ -354,16 +354,9 @@ export async function toUpdateTitle(
   return newTitle
 }
 
-let hasCheckedBindingStatus = false
-export async function getBindingStatus(
-  judgeToggle = true,
-) {
-  if(judgeToggle) {
-    if(hasCheckedBindingStatus) return
-    hasCheckedBindingStatus = true
-  }
-
+export async function getBindingStatus() {
   const loginData = await Loginer.getLoginData()
+  console.log("getBindingStatus loginData: ", loginData)
   if(!loginData) return
   const memberId = loginData.memberId
   if(!memberId) return
@@ -374,6 +367,7 @@ export async function getBindingStatus(
     memberId,
   }
   const res1 = await LiuReq.request<Res_OC_GetWeChat>(url1, w1)
+  console.log("getBindingStatus res1: ", res1)
   if(res1.code !== "0000" || !res1.data) return
   return res1.data
 }
@@ -390,6 +384,7 @@ export async function getQrCodePicUrlForBindingWx() {
   }
   const res1 = await LiuReq.request<Res_OC_BindWeChat>(url1, w1)
   const data1 = res1.data
+  console.log("getQrCodePicUrlForBindingWx res1: ", data1)
   if(res1.code !== "0000" || !data1) return
   const wx_qr_ticket = data1.wx_qr_ticket
   if(!wx_qr_ticket) return
