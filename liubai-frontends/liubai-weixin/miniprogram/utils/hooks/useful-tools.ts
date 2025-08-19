@@ -27,13 +27,13 @@ export interface FdBase {
  * 所有修改都直接发生在 newList 上
 */
 function filterDuplicated(
-  orginals: FdBase[],
+  originals: FdBase[],
   newList: FdBase[],
 ) {
-  if(orginals.length < 1 || newList.length < 1) return newList
+  if(originals.length < 1 || newList.length < 1) return newList
   for(let i=0; i<newList.length; i++) {
     const v1 = newList[i]
-    const v2 = orginals.find(v => v.id === v1.id)
+    const v2 = originals.find(v => v.id === v1.id)
     if(v2) {
       newList.splice(i, 1)
       i--
