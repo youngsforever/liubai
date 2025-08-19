@@ -4,7 +4,7 @@ import { i18nBehavior } from "~/behaviors/i18n-behavior"
 import { navibarBehavior } from "~/behaviors/navibar-behavior"
 import { sharedBehavior } from "~/behaviors/shared-behavior"
 import { themeBehavior } from "~/behaviors/theme-behavior"
-import { defaultData } from "~/config/default-data"
+import { defaultData, indexNumData } from "~/config/default-data"
 import { envData } from "~/config/env-data"
 import { useI18n } from "~/locales/index"
 import { LiuUtil } from "~/utils/liu-util/index"
@@ -15,13 +15,17 @@ import { ShowTip } from "~/utils/managers/ShowTip"
 import { 
   getMyTasks, 
   getStoragedMyTasks, 
+  handleFilter, 
   handleGroupInfo, 
+  handleScrollToLower, 
+  handleScrollToUpper, 
   setStoragedMyTasks,
   tryToOpenTaskDetail,
 } from "./tools/useIndexPage"
 import { pageBehavior } from "~/behaviors/page-behavior"
 import type { TaskCard } from "~/types/types-task"
 import type { DeletedTaskEventDetail } from "~/components/task-card/tools/types"
+import type { PeopleTasksAPI } from "~/requests/req-types"
 
 Component({
 
@@ -31,8 +35,8 @@ Component({
 
   data: {
     pageName: "index",
-    canSearch: false,
     myTasks: [] as TaskCard[],
+    listType: "available" as PeopleTasksAPI.TaskListType,
     _key1: "",
     _key2: "",
     _taskId: "",
@@ -169,16 +173,23 @@ Component({
     },
 
     onShow() {
-      this.handleMyTasks()
+      this.getMyTasksWhileShowing()
     },
 
-    async handleMyTasks() {
+    async getMyTasksWhileShowing() {
       const res1 = LiuApi.getSkylineInfoSync()
       if(!res1.isSupported) return
-      const myTasks = await getMyTasks()
+      const length1 = this.data.myTasks.length
+      if(length1 > indexNumData.to_upper) {
+        return
+      }
+      const myTasks = await getMyTasks(this.data.listType)
       if(!myTasks) return
       this.setData({ myTasks })
-      setStoragedMyTasks(myTasks)
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(myTasks)
+      }
     },
 
     afterDeletingTask(
@@ -189,7 +200,10 @@ Component({
       const myTasks = this.data.myTasks
       myTasks.splice(idx, 1)
       this.setData({ myTasks })
-      setStoragedMyTasks(myTasks)
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(myTasks)
+      }
     },
 
     onReady() {
@@ -235,7 +249,31 @@ Component({
         title,
         imageUrl: "/images/shared/index-cover.jpg"
       }
-    }
+    },
+
+    async onScrollToUpper() {
+      const { listType, myTasks } = this.data
+      const newTasks = await handleScrollToUpper(myTasks, listType)
+      if(!newTasks) return
+      this.setData({ myTasks: newTasks })
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(newTasks)
+      }
+    },
+
+    async onScrollToLower() {
+      const { listType, myTasks } = this.data
+      const newBind = await handleScrollToLower(myTasks, listType)
+      if(!newBind) return
+      this.setData(newBind)
+    },
+
+    async onTapFilter() {
+      const res = await handleFilter(this.data.listType)
+      if(!res) return
+      this.setData(res)
+    },
 
   },
 })

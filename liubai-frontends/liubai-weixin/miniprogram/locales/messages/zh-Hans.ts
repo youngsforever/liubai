@@ -9,6 +9,10 @@ export default {
     "create_task": "建任务",
     "pc_not_supported": "PC 端暂不支持",
     "my_tasks": "我的任务",
+    "filter_for": "筛选出",
+    "filter_1": "已完成或已结束",
+    "title_1": "让它们随风而逝",
+    "no_inactive_tasks": "没有找到，能留白就留白！",
   },
   "shared": {
     "copied": "已复制",

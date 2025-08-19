@@ -11,13 +11,13 @@ export interface FdBase {
  * 所有修改都直接发生在 newList 上
 */
 function filterDuplicated(
-  orginals: FdBase[],
+  originals: FdBase[],
   newList: FdBase[],
 ) {
-  if(orginals.length < 1 || newList.length < 1) return newList
+  if(originals.length < 1 || newList.length < 1) return newList
   for(let i=0; i<newList.length; i++) {
     const v1 = newList[i]
-    const v2 = orginals.find(v => v._id === v1._id)
+    const v2 = originals.find(v => v._id === v1._id)
     if(v2) {
       console.log("发现一个重复项............")
       newList.splice(i, 1)
