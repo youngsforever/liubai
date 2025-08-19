@@ -3,6 +3,8 @@
 <scroll-view 
   class="liu-{{theme}} liu-{{locale}} liu-scroll-view"
   scroll-y 
+  bindscrolltolower="onScrollToLower"
+  lower-threshold="100"
 >
 
   <view class="index-container">

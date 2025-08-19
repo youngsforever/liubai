@@ -16,6 +16,7 @@ import {
   getMyTasks, 
   getStoragedMyTasks, 
   handleGroupInfo, 
+  handleScrollToLower, 
   setStoragedMyTasks,
   tryToOpenTaskDetail,
 } from "./tools/useIndexPage"
@@ -31,7 +32,6 @@ Component({
 
   data: {
     pageName: "index",
-    canSearch: false,
     myTasks: [] as TaskCard[],
     _key1: "",
     _key2: "",
@@ -235,6 +235,12 @@ Component({
         title,
         imageUrl: "/images/shared/index-cover.jpg"
       }
+    },
+
+    async onScrollToLower() {
+      const newBind = await handleScrollToLower(this.data.myTasks)
+      if(!newBind) return
+      this.setData(newBind)
     }
 
   },

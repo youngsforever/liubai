@@ -228,9 +228,9 @@ async function list_wx_tasks(
     w4.taskState = "DEFAULT"
   }
   const wtCol = db.collection("WxTask")
-  const q4 = wtCol.where(w4).orderBy("insertedStamp", "desc").limit(16)
+  let q4 = wtCol.where(w4).orderBy("insertedStamp", "desc").limit(16)
   if(body.skip) {
-    q4.skip(body.skip)
+    q4 = q4.skip(body.skip)
   }
   const res4 = await q4.get<Table_WxTask>()
   const data4 = res4.data ?? []

@@ -3,6 +3,7 @@ import { LiuReq } from "~/requests/LiuReq";
 import type { PeopleTasksAPI } from "~/requests/req-types";
 import type { TaskCard } from "~/types/types-task";
 import type { WxMiniAPI } from "~/types/types-wx";
+import usefulTools from "~/utils/hooks/useful-tools";
 import { LiuApi } from "~/utils/LiuApi";
 import { LiuTunnel } from "~/utils/LiuTunnel";
 import { showTaskItems } from "~/utils/show/show-tasks";
@@ -150,3 +151,35 @@ export async function tryToOpenTaskDetail(taskId: string) {
   })
 }
 
+export async function handleScrollToLower(
+  myTasks: TaskCard[],
+) {
+  // 1. get params and throttle
+  const length1 = myTasks.length
+  if(length1 < 9) return
+  if(!usefulTools.canIPassThrottle("index-scroll-to-lower")) return
+
+  // 2. load more
+  const u2 = {
+    operateType: "list-wx-tasks",
+    listType: "available",
+    skip: length1,
+  }
+  const url2 = APIs.PPL_TASKS
+  const res2 = await LiuReq.request<PeopleTasksAPI.Res_ListWxTasks>(url2, u2)
+  if(res2.code !== "0000" || !res2.data) return
+  const list2 = showTaskItems(res2.data?.tasks ?? [])
+  const newList = usefulTools.filterDuplicated(myTasks, list2)
+  if(newList.length < 1) {
+    return
+  }
+
+  // 3. set bind data
+  const newBind: Record<string, any> = {}
+  const length3 = myTasks.length
+  newList.forEach((v, i) => {
+    newBind[`myTasks[${length3 + i}]`] = v
+  })
+
+  return newBind
+}
