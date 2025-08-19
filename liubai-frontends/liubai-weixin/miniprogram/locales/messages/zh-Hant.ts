@@ -12,7 +12,7 @@ export default {
     "filter_for": "篩選出",
     "filter_1": "已完成或已結束",
     "title_1": "讓它們隨風而逝",
-    "no_inactive_tasks": "沒有篩選出任何任務",
+    "no_inactive_tasks": "沒有找到，能留白就留白！",
   },
   "shared": {
     "copied": "已複製",
