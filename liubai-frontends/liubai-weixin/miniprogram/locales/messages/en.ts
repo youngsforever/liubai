@@ -11,6 +11,9 @@ export default {
     "create_task": "Create Tasks",
     "pc_not_supported": "It's not supported on PC",
     "my_tasks": "My Tasks",
+    "filter_for": "Filter for",
+    "filter_1": "Completed or Finished",
+    "title_1": "Inactive Tasks",
   },
   "shared": {
     "copied": "Copied",

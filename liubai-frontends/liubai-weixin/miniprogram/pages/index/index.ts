@@ -24,6 +24,7 @@ import {
 import { pageBehavior } from "~/behaviors/page-behavior"
 import type { TaskCard } from "~/types/types-task"
 import type { DeletedTaskEventDetail } from "~/components/task-card/tools/types"
+import type { PeopleTasksAPI } from "~/requests/req-types"
 
 Component({
 
@@ -34,6 +35,7 @@ Component({
   data: {
     pageName: "index",
     myTasks: [] as TaskCard[],
+    listType: "available" as PeopleTasksAPI.TaskListType,
     _key1: "",
     _key2: "",
     _taskId: "",
@@ -183,7 +185,10 @@ Component({
       const myTasks = await getMyTasks()
       if(!myTasks) return
       this.setData({ myTasks })
-      setStoragedMyTasks(myTasks)
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(myTasks)
+      }
     },
 
     afterDeletingTask(
@@ -194,7 +199,10 @@ Component({
       const myTasks = this.data.myTasks
       myTasks.splice(idx, 1)
       this.setData({ myTasks })
-      setStoragedMyTasks(myTasks)
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(myTasks)
+      }
     },
 
     onReady() {
@@ -246,7 +254,10 @@ Component({
       const myTasks = await handleScrollToUpper(this.data.myTasks)
       if(!myTasks) return
       this.setData({ myTasks })
-      setStoragedMyTasks(myTasks)
+
+      if(this.data.listType === "available") {
+        setStoragedMyTasks(myTasks)
+      }
     },
 
     async onScrollToLower() {

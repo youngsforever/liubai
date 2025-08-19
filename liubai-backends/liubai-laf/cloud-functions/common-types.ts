@@ -1159,7 +1159,7 @@ export const liuUploadTasks = [
                               // 用 draft_id 来查询本地的哪个操作
 ] as const
 
-export type LiuUploadTask = typeof liuUploadTasks[number]
+export type LiuUploadTask = (typeof liuUploadTasks)[number]
 export const Sch_LiuUploadTask = vbot.picklist(liuUploadTasks)
 
 /** 上传数据的基类型 */
@@ -4471,9 +4471,12 @@ export namespace PeopleTasksAPI {
     tasks: WxTaskItem[]
   }
 
+  export const taskListTypes = ["available", "inactive"] as const
+  export type TaskListType = (typeof taskListTypes)[number]
+
   export const Sch_Param_ListWxTasks = vbot.object({
     operateType: vbot.literal("list-wx-tasks"),
-    listType: vbot.picklist(["available"]),
+    listType: vbot.picklist(taskListTypes),
     skip: Sch_Opt_Num,
   })
 

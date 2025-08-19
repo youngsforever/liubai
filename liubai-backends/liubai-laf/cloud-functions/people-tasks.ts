@@ -60,7 +60,6 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "delete-wx-task") {
     res = await delete_wx_task(body, vRes)
   }
-  
 
   return res
 }
@@ -197,9 +196,10 @@ async function list_wx_tasks(
     const errMsg = checker.getErrMsgFromIssues(res1.issues)
     return { code: "E4000", errMsg }
   }
+  const listType = body.listType as PeopleTasksAPI.TaskListType
+  const userId = vRes.userData._id
 
   // 2. get bonds
-  const userId = vRes.userData._id
   const w2: Partial<Table_WxBond> = {
     userId,
     infoType: "chat-tool",
@@ -220,12 +220,13 @@ async function list_wx_tasks(
   }
 
   // 4. get tasks
-  const w4: Record<string, any> = {
-    related_openids: _.in(openids),
-    oState: "OK",
-  }
-  if(body.listType === "available") {
+  const w4: Record<string, any> = { oState: "OK" }
+  if(listType === "available") {
+    w4.related_openids = _.in(openids)
     w4.taskState = "DEFAULT"
+  }
+  else if(listType === "inactive") {
+    w4.finished_openids = _.in(openids)
   }
   const wtCol = db.collection("WxTask")
   let q4 = wtCol.where(w4).orderBy("insertedStamp", "desc").limit(16)

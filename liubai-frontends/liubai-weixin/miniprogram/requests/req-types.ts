@@ -241,4 +241,6 @@ export namespace PeopleTasksAPI {
     operateType: "list-wx-tasks"
     tasks: WxTaskItem[]
   }
+
+  export type TaskListType = "available" | "inactive"
 }
