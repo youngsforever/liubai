@@ -93,7 +93,8 @@ Component({
       
       let canSubmit = Boolean(inputTxt !== this.data._initedText)
       if(canSubmit && this.data.updateType === "title") {
-        if(inputTxt.trim() === "") {
+        const trimTxt = inputTxt.trim()
+        if(!trimTxt || trimTxt === this.data._initedText) {
           canSubmit = false
         }
       }

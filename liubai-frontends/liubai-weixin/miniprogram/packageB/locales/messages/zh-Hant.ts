@@ -85,7 +85,7 @@ export default {
     "create_for_others": "其他會話或群組",
     "title_for_guests": "只有創建人才能修改標題",
     "updated": "已更新",
-    "updated_tip": "請轉發，否則他們會不知道",
+    "updated_tip": "請轉發↗️，否則他們會不知道",
     "updated_prefix": "任務發生變化: {desc}",
     "when": "什麼時候",
     "more": "更多",

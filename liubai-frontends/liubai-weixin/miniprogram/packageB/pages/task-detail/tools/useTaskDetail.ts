@@ -297,7 +297,7 @@ export function toCreateOtherTask(
 
 export async function checkForUpdatingTitle(
   id: string,
-  newTitle: string,
+  oldTitle: string,
 ) {
   // 1. wait and fetch
   await valTool.waitMilli(1500)
@@ -314,10 +314,11 @@ export async function checkForUpdatingTitle(
   if(code1 !== "0000" || !data1) return
 
   // 3. check out desc (title)
-  if(data1.desc !== newTitle) {
-    console.warn("it's weird that the title is not the same")
-    console.log("desc after fetching: ", data1.desc)
+  const newTitle = data1.desc
+  if(newTitle === oldTitle) {
+    console.warn("it's weird that the title is not updated")
     console.log("newTitle: ", newTitle)
+    console.log("oldTitle: ", oldTitle)
     return
   }
 

@@ -116,8 +116,9 @@ Component({
       if(res2 && _id === res2.id && detail) {
         const bind2: Record<string, any> = {}
         if(res2.updateType === "title") {
+          const oldTitle = detail.desc
+          checkForUpdatingTitle(_id, oldTitle)
           bind2["detail.desc"] = res2.text
-          checkForUpdatingTitle(_id, res2.text)
         }
         else if(res2.updateType === "note") {
           bind2["detail.note"] = res2.text

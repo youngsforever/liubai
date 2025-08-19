@@ -88,7 +88,7 @@ export default {
     "create_for_others": "Other chats or groups",
     "title_for_guests": "Only creator can modify title",
     "updated": "Updated",
-    "updated_tip": "Share please, otherwise they won't know about this update",
+    "updated_tip": "Share please ↗️, otherwise they won't know about this update",
     "updated_prefix": "Task Updated: {desc}",
     "when": "When",
     "more": "More",
