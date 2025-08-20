@@ -140,6 +140,8 @@ export default {
     "early_min": "{min} mins early",
     "early_hr": "{hr} hour(s) early",
     "early_day": "{day} day(s) early",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
   },
   "qrcode": {
     "title": "Long Press to Scan",

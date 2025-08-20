@@ -137,6 +137,8 @@ export default {
     "early_min": "提前 {min} 分钟提醒",
     "early_hr": "提前 {hr} 小时提醒",
     "early_day": "提前 {day} 天提醒",
+    "today": "今天",
+    "tomorrow": "明天",
   },
   "qrcode": {
     "title": "长按识别二维码",
