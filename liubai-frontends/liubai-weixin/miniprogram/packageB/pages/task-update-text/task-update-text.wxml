@@ -1,7 +1,6 @@
 
 
-<scroll-view 
-  scroll-y
+<view 
   class="liu-{{theme}} liu-scroll-view"
 >
   <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
@@ -11,7 +10,6 @@
         class="tan-textarea {{updateType === 'title' ? 'tan-textarea_title' : ''}}" 
         maxlength="{{updateType === 'title' ? titleMaxLength : noteMaxLength}}"
         focus="{{focus}}"
-        auto-height
         cursor-spacing="20"
         placeholder="{{updateType === 'title' ? t1.placeholder_1 : t1.placeholder_2}}"
         placeholder-style="color: {{ colors.main_note }};"
@@ -20,7 +18,6 @@
         bindconfirm="onInput"
         value="{{text}}"
         confirm-hold
-        adjust-keyboard-to="bottom"
       ></textarea>
 
       <custom-button catchtap="onTapConfirm" disabled="{{!canSubmit}}">
@@ -31,7 +28,7 @@
     </view>
   </view>
 
-</scroll-view>
+</view>
 
 <custom-navibar 
   height1="{{height1}}" height2="{{height2}}" 

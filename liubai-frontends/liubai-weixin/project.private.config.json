@@ -1,5 +1,5 @@
 {
-  "libVersion": "3.8.5",
+  "libVersion": "3.9.1",
   "condition": {
     "miniprogram": {
       "list": [
