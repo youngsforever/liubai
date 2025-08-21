@@ -137,6 +137,8 @@ export default {
     "early_min": "提前 {min} 分钟提醒",
     "early_hr": "提前 {hr} 小时提醒",
     "early_day": "提前 {day} 天提醒",
+    "today": "今天",
+    "tomorrow": "明天",
   },
   "qrcode": {
     "title": "长按识别二维码",
@@ -150,4 +152,19 @@ export default {
     "placeholder_2": "请输入备注（比如会议信息）",
     "confirm": "确定",
   },
+  "task-date-time": {
+    "title": "⏰ 什么时候呢",
+    "date": "日期",
+    "time": "时间",
+    "reminder": "提醒",
+    "confirm": "确定",
+  },
+  "remind-early": {
+    "min_0": "准时",
+    "min_10": "提前 10 分钟",
+    "min_30": "提前 30 分钟",
+    "min_60": "提前 1 小时",
+    "min_120": "提前 2 小时",
+    "min_1440": "提前 1 天",
+  }
 }

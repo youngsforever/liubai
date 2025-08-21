@@ -3,7 +3,7 @@
 
 .tan-textarea {
   width: 100%;
-  min-height: 150px;
+  min-height: 300px;
   font-size: var(--desc-font);
   color: var(--main-normal);
   margin: 10px 0 20px;
@@ -13,7 +13,7 @@
 }
 
 .tan-textarea_title {
-  min-height: 50px;
+  min-height: 150px;
   font-size: var(--head-font);
   color: var(--main-text);
   line-height: 1.5;

@@ -1,18 +1,6 @@
 {
-  "libVersion": "3.8.5",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "任务详情",
-          "pathName": "packageB/pages/task-detail/task-detail",
-          "query": "id=689aee6f90ce519394168a21",
-          "scene": null,
-          "launchMode": "default"
-        }
-      ]
-    }
-  },
+  "libVersion": "3.9.1",
+  "condition": {},
   "setting": {
     "urlCheck": false,
     "coverView": false,

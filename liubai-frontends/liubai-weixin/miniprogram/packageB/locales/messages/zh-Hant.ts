@@ -47,7 +47,7 @@ export default {
   },
   "task-detail": {
     "from_group": "來自群組",
-    "only_you": "僅你與對方可见",
+    "only_you": "僅你與對方可見",
     "created_1": "你剛創建了任務🤸",
     "created_2": "請轉發給 TA，否則之後會找不到",
     "created_3": "請轉發到群組，否則之後會找不到",
@@ -75,8 +75,8 @@ export default {
     "it_is_not_true": "假的",
     "done_it": "已完成！",
     "great_1": "從來沒有人跟你說你真的很好🥂",
-    "great_2": "你的内心遠比你想像中的強大🌌",
-    "great_3": "没有什么是你克服不了的🎢",
+    "great_2": "你的內心遠比你想像中的強大🌌",
+    "great_3": "沒有什麼是你克服不了的🎢",
     "great_4": "你正在不斷超越自己🥞",
     "great_5": "你是做自己的英雄🍟",
     "create_for_title": "建在哪裡？",
@@ -137,6 +137,8 @@ export default {
     "early_min": "提前 {min} 分鐘提醒",
     "early_hr": "提前 {hr} 小時提醒",
     "early_day": "提前 {day} 天提醒",
+    "today": "今天",
+    "tomorrow": "明天",
   },
   "qrcode": {
     "title": "長按識別 QR Code",
@@ -150,4 +152,19 @@ export default {
     "placeholder_2": "請輸入備註（比如會議資訊）",
     "confirm": "確定",
   },
+  "task-date-time": {
+    "title": "⏰ 什麼時候呢",
+    "date": "日期",
+    "time": "時間",
+    "reminder": "提醒",
+    "confirm": "確定",
+  },
+  "remind-early": {
+    "min_0": "準時",
+    "min_10": "提前 10 分鐘",
+    "min_30": "提前 30 分鐘",
+    "min_60": "提前 1 小時",
+    "min_120": "提前 2 小時",
+    "min_1440": "提前 1 天",
+  }
 }

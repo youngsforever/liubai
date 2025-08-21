@@ -140,6 +140,8 @@ export default {
     "early_min": "{min} mins early",
     "early_hr": "{hr} hour(s) early",
     "early_day": "{day} day(s) early",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
   },
   "qrcode": {
     "title": "Long Press to Scan",
@@ -153,4 +155,19 @@ export default {
     "placeholder_2": "Enter note (e.g. meeting info)",
     "confirm": "Confirm",
   },
+  "task-date-time": {
+    "title": "⏰ When?",
+    "date": "Date",
+    "time": "Time",
+    "reminder": "Reminder",
+    "confirm": "Confirm",
+  },
+  "remind-early": {
+    "min_0": "On time",
+    "min_10": "10 mins early",
+    "min_30": "30 mins early",
+    "min_60": "1 hour early",
+    "min_120": "2 hours early",
+    "min_1440": "1 day early",
+  }
 }

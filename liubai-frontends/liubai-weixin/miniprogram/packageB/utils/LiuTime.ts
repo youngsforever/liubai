@@ -6,6 +6,7 @@ export class LiuTime {
   static SECOND = 1000
   static MINUTE = 60 * this.SECOND
   static HOUR = 60 * this.MINUTE
+  static DAY = 24 * this.HOUR
 
   static getLocalTime() {
     return new Date().getTime()

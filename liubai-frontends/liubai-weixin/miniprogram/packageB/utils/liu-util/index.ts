@@ -45,7 +45,8 @@ export class LiuUtil {
   static goHome() {
     const res1 = this.naviBackToHome()
     if(res1) return
-    LiuApi.reLaunch({ url: defaultData.homePath })
+    const path = defaultData.homePath
+    LiuApi.restartMiniProgram({ path })
   }
 
   private static naviBackToHome() {
