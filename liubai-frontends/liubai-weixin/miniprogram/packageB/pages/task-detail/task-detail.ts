@@ -23,6 +23,7 @@ import {
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type {
+  ConfirmTaskDateTime,
   HasNewTaskText,
   JustCreateTask, 
   OpenTaskDateTime, 
@@ -126,6 +127,11 @@ Component({
         }
         this.setData(bind2)
         return
+      }
+
+      const res3 = await LiuTunnel.takeStuff<ConfirmTaskDateTime>("confirm-task-date-time")
+      if(res3 && _id === res3.id) {
+        await valTool.waitMilli(1000)
       }
 
       await this.getTaskDetail(false)
@@ -387,6 +393,7 @@ Component({
     onTapDateTime() {
       const { _id, detail} = this.data
       if(!detail || !_id) return
+      if(!detail.isMine) return
       LiuApi.vibrateShort({ type: "light" })
 
       const tunnelData: OpenTaskDateTime = {
@@ -394,7 +401,6 @@ Component({
         whenStamp: detail.whenStamp,
         remindMe: detail.remindMe,
       }
-      console.log("tunnelData: ", tunnelData)
       LiuTunnel.setStuff("open-task-date-time", tunnelData)
       LiuApi.navigateTo({ 
         url: "/packageB/pages/task-date-time/task-date-time",
