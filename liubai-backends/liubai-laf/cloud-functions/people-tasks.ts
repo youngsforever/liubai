@@ -92,11 +92,13 @@ async function update_task_time(
   }
 
   // 3. update the task
+  const now3 = getNowStamp()
   const w3: Partial<Table_WxTask> = {
     remindStamp,
     whenStamp,
     remindMe,
-    updatedStamp: getNowStamp(),
+    updatedStamp: now3,
+    editedStamp: now3,
   }
   if(whenStamp) {
     w3.calendarStamp = whenStamp

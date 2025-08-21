@@ -1,18 +1,6 @@
 {
   "libVersion": "3.9.1",
-  "condition": {
-    "miniprogram": {
-      "list": [
-        {
-          "name": "when",
-          "pathName": "packageB/pages/task-date-time/task-date-time",
-          "query": "",
-          "scene": null,
-          "launchMode": "default"
-        }
-      ]
-    }
-  },
+  "condition": {},
   "setting": {
     "urlCheck": false,
     "coverView": false,

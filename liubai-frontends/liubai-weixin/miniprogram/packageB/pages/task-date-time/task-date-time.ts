@@ -37,9 +37,9 @@ Component({
     minuteList: [] as string[],
     remindList: [] as RemindItem[],
 
-    dateValue: [0],  // set default value to tomorrow
+    dateValue: [0],
     timeValue: [0, 0],
-    remindValue: [0],  // set default value to "10 mins early"
+    remindValue: [0],
 
     _id: "",
   },
