@@ -287,7 +287,7 @@ export function toCreateOtherTask(
         return
       }
       const url = defaultData.homePath + "?key2=CREATE_TASK"
-      LiuApi.reLaunch({ url })
+      LiuApi.restartMiniProgram({ path: url })
     },
     fail(err) {
       console.warn("showCustomActionSheet fail: ", err)

@@ -31,6 +31,10 @@ export class LiuApi {
     wx.reLaunch(opt)
   }
 
+  static restartMiniProgram(opt: WechatMiniprogram.RestartMiniProgramOption) {
+    wx.restartMiniProgram(opt)
+  }
+
   static getWindowInfo() {
     // 在快照模式 browseOnly 的情况下，可能返回 undefined
     const res = wx.getWindowInfo()
