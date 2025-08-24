@@ -79,6 +79,9 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "wxpay_jsapi") {
     res2 = await handle_wxpay_jsapi(body)
   }
+  else if(oT === "wxpay_mini") {
+    handle_wxpay_mini(body)
+  }
   else if(oT === "alipay_wap") {
     res2 = await handle_alipay_wap(body)
   }
@@ -187,6 +190,26 @@ async function handle_alipay_wap(
   return { code: "0000", data: { operateType: "alipay_wap", wap_url } }
 }
 
+async function handle_wxpay_mini(
+  body: Record<string, any>,
+) {
+  const order_id = body.order_id as string
+  const wx_mini_openid = body.wx_mini_openid as string
+  const userTimezone = body.x_liu_timezone
+
+  // 1. get order
+  const res1 = await getSharedData_1(order_id)
+  if(!res1.pass) return res1.err
+  const d1 = res1.data
+
+  // 2. get some args out of order
+  const now2 = getNowStamp()
+  const plan_id = d1.plan_id as string
+
+  
+  
+}
+
 async function handle_wxpay_jsapi(
   body: Record<string, any>,
 ): Promise<LiuRqReturn<Res_PO_WxpayJsapi>> {
@@ -267,7 +290,9 @@ async function handle_wxpay_jsapi(
   }
 
   // 5. get return data
-  const data5 = getWxpayJsapiParams(prepay_id)
+  const _env = process.env
+  const appid = _env.LIU_WX_GZ_APPID as string
+  const data5 = getWxpayJsapiParams(prepay_id, appid)
 
   return {
     code: "0000",
@@ -712,10 +737,9 @@ async function wxpayOrderByJsapi(
 
 function getWxpayJsapiParams(
   prepay_id: string,
+  appid: string,
 ): Wxpay_Jsapi_Params {
   // 1. get params
-  const _env = process.env
-  const appid = _env.LIU_WX_GZ_APPID as string
   const stamp = Math.floor(getNowStamp() / 1000)
   const nonceStr = createEncNonce()
   const p = `prepay_id=${prepay_id}`
