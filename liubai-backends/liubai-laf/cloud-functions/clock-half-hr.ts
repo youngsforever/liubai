@@ -113,7 +113,7 @@ async function checkWxTasksToClose() {
     const v = tasks[i]
     const { assigneeList, _id, owner_openid } = v
     if(!assigneeList || assigneeList.length < 1) continue
-    const someoneNotDone = assigneeList.find(v => !Boolean(v.doneStamp))
+    const someoneNotDone = assigneeList.find(item => !Boolean(item.doneStamp))
     if(someoneNotDone) continue
 
     // 3. handle finished_openids
