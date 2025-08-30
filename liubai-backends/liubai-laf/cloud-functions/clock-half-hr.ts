@@ -86,6 +86,8 @@ export async function checkWxTasksForComingSoon() {
 }
 
 async function checkWxTasksToClose() {
+  
+  // 1. get tasks
   const HR_23_AGO = getNowStamp() - HR_23
   const ONE_DAY_AGO = HR_23_AGO - HOUR
   const w1 = {
@@ -106,24 +108,33 @@ async function checkWxTasksToClose() {
   let closedNum = 0
   const originalNum = tasks.length
   for(let i=0; i<tasks.length; i++) {
+
+    // 2. check if everyone is done
     const v = tasks[i]
-    const { assigneeList, _id } = v
+    const { assigneeList, _id, owner_openid } = v
     if(!assigneeList || assigneeList.length < 1) continue
-    const someoneNotDone = assigneeList.find(v => !Boolean(v.doneStamp))
+    const someoneNotDone = assigneeList.find(item => !Boolean(item.doneStamp))
     if(someoneNotDone) continue
 
-    // update db
+    // 3. handle finished_openids
+    const finished_openids = v.finished_openids ?? []
+    if(!finished_openids.includes(owner_openid)) {
+      finished_openids.push(owner_openid)
+    }
+
+    // 4. update db
     const now2 = getNowStamp()
     const u2: Partial<Table_WxTask> = {
       taskState: "CLOSED",
       related_openids: [],
+      finished_openids,
       closedStamp: now2,
       updatedStamp: now2,
     }
     await wtCol.doc(_id).update(u2)
     closedNum++
 
-    // notify wechat
+    // 5. notify wechat
     const activity_id = v.activity_id
     if(!activity_id) continue
     const resFromWx = await notifyWxToCloseChatTool(activity_id, false)
