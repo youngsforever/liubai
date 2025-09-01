@@ -42,6 +42,15 @@ title: 安装
 
 以上品牌，按首字母排序。
 
+::: tip 提示
+
+APP 内，并没有 AI 问答功能。
+
+如果要与留白内的 9 个 AI 们聊天，请直接 [在微信里使用](../three-assistants)。
+
+:::
+
+
 ## 💻 电脑
 
 <a href="./mac">
@@ -58,5 +67,9 @@ title: 安装
 
 留白记事支持在所有兼容 VS Code 的编辑器中运行，请点击 [IDE](../ide/index) 查看详情。
 
+::: tip 提示
 
+我们的 IDE 插件，支持 [AI 分类](../ide/how-to-use-vscode-ext#quick-note)！
+
+:::
 
