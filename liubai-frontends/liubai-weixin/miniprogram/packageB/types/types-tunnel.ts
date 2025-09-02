@@ -14,7 +14,6 @@ export interface UpdateTaskText {
   id: string
   updateType: UpdateTaskTextType
   text?: string
-  read_clipboard?: boolean
 }
 
 export interface HasNewTaskText {

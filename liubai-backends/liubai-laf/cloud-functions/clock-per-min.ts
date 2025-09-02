@@ -650,21 +650,33 @@ function packAuthors1(
 async function turnTaskIntoAtoms(
   task: Table_WxTask,
 ) {
-  const calendarStamp = task.calendarStamp
+  const {
+    calendarStamp,
+    assigneeList = [],
+    owner_userid,
+  } = task
   if(!calendarStamp) return
 
-  const group_openids = task.assigneeList.map(v1 => v1.group_openid)
-  const w1 = {
-    infoType: "chat-tool",
-    group_openid: _.in(group_openids),
+  // manage to get userIds
+  let userIds: string[] = []
+  const group_openids: string[] = []
+  assigneeList.forEach(v1 => {
+    if(!v1.doneStamp) {
+      group_openids.push(v1.group_openid)
+    }
+  })
+  if(group_openids.length) {
+    const w1 = {
+      infoType: "chat-tool",
+      group_openid: _.in(group_openids),
+    }
+    const wbCol = db.collection("WxBond")
+    const res1 = await wbCol.where(w1).get<Table_WxBond>()
+    const bonds = res1.data
+    userIds = bonds.map(v => v.userId)
   }
-  const wbCol = db.collection("WxBond")
-  const res1 = await wbCol.where(w1).get<Table_WxBond>()
-  const bonds = res1.data
-
-  let userIds = bonds.map(v => v.userId)
-  if(!userIds.includes(task.owner_userid)) {
-    userIds.push(task.owner_userid)
+  if(!userIds.includes(owner_userid)) {
+    userIds.push(owner_userid)
   }
 
   const atoms = userIds.map(v => {

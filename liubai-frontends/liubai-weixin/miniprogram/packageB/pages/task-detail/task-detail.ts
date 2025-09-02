@@ -202,7 +202,6 @@ Component({
       // 4.1 check whether the task is just created
       const bind4: Record<string, any> = {
         detail: showDetail(data3, chatInfo),
-        _justCreated: false,
         pState: pageStates.OK,
       }
       const res4_1 = await LiuTunnel.takeStuff<JustCreateTask>("just-create-task")
@@ -211,7 +210,11 @@ Component({
           bind4._justCreated = true
         }
       }
-      bind4.btnList = handleBtnList(bind4.detail, bind4._justCreated)
+      bind4.btnList = handleBtnList(
+        bind4.detail, 
+        // tip: if bind4._justCreated is not set, use this.data._justCreated
+        bind4._justCreated ?? this.data._justCreated,
+      )
 
       // 4.2 show
       this.setData(bind4)
@@ -243,7 +246,7 @@ Component({
     },
 
     async waitForAiThenLoadAgain() {
-      await valTool.waitMilli(4000)
+      await valTool.waitMilli(5000)
       this.getTaskDetail(false)
     },
 
@@ -290,7 +293,7 @@ Component({
         return false
       }
 
-      // 2.3 calculate detail again
+      // 2.3 calculate detail again if task-fr-list-to-detail has been received
       if(res2_1) {
         const chatInfo = TaskManager.getChatInfo()
         if(!chatInfo) return false
@@ -464,8 +467,7 @@ Component({
       bind.btnList = handleBtnList(detail)
       this.setData(bind)
       
-      const res2 = await fetchCloseTask(_id)
-      console.log("fetchCloseTask res2: ", res2)
+      await fetchCloseTask(_id)
     },
 
     async onTapCompleteTask() {
@@ -590,7 +592,7 @@ Component({
       const detail = this.data.detail
       if(!detail) return
       LiuApi.vibrateShort({ type: "medium" })
-      toAddNote(this.data._id, detail, true)
+      toAddNote(this.data._id, detail)
     },
 
     onTapMore() {

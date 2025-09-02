@@ -13,8 +13,8 @@ export default {
     "my_tasks": "My Tasks",
     "filter_for": "Filter for",
     "filter_1": "Completed or Finished",
-    "title_1": "Inactive Tasks",
-    "no_inactive_tasks": "No inactive tasks",
+    "title_1": "📥 Archived",
+    "no_inactive_tasks": "No archived tasks",
   },
   "shared": {
     "copied": "Copied",
@@ -31,6 +31,8 @@ export default {
     "open_mini_1": "Open MiniProgram",
     "open_mini_2": "Please click \"前往小程序\" on the bottom right corner",
     "yes": "Yes",
+    "delete": "Delete",
+    "deleted": "Deleted",
   },
   "err": {
     "no_data": "Nothing Here",
@@ -53,10 +55,10 @@ export default {
   },
   "coupon-related": {
     "tip_1": "Too many coupons",
-    "tip_2": "Let's manange them!",
+    "tip_2": "Let's manage them!",
     "tip_3": "This will read your clipboard content, helping you upload quickly!",
     "manage": "Manage",
-    "slogan": "All you coupons are received by Liubai!",
+    "slogan": "All your coupons are received by Liubai!",
     "try_1": "Try to Input",
     "try_2": '"Luckin Coffee"\n"Chagee Tea"\n......',
     "got_it": "Got it",

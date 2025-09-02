@@ -25,8 +25,11 @@ export const colorData = {
   dark: {
     primary_color: "#88d1ff",
     main_note: "#686868",
+  },
+  shared: {
+    delete_btn: "#dc1e30",
   }
-}
+} as const
 
 export const indexNumData = {
   to_lower: 9,

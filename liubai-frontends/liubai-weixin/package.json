@@ -1,6 +1,6 @@
 {
   "name": "liubai-weixin",
-  "version": "0.20.5",
+  "version": "0.20.6",
   "description": "Liubai for Weixin",
   "scripts": {
     "pre-build": "tsx build/pre-build.ts"
@@ -16,7 +16,7 @@
     "@types/node": "^22.14.1",
     "dotenv": "^17.2.1",
     "miniprogram-api-typings": "^4.1.0",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
 }
