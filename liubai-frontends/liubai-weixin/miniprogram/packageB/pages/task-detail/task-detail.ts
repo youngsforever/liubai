@@ -592,7 +592,7 @@ Component({
       const detail = this.data.detail
       if(!detail) return
       LiuApi.vibrateShort({ type: "medium" })
-      toAddNote(this.data._id, detail, true)
+      toAddNote(this.data._id, detail)
     },
 
     onTapMore() {

@@ -430,37 +430,12 @@ export function whenTapAI(
 export function toAddNote(
   id: string,
   detail: TaskDetail,
-  promptToReadClipboard = false,
-) {
-  if(!promptToReadClipboard) {
-    jumpToAddNote(id, detail, false)
-    return
-  }
-  
-  LiuUtil.showCustomModal({
-    title: "📋",
-    content_key: "task-detail.read_clipboard_tip",
-    confirm_key: "shared.ok",
-    success(res) {
-      if(res.confirm) {
-        LiuApi.vibrateShort({ type: "light" })
-      }
-      jumpToAddNote(id, detail, res.confirm)
-    }
-  })
-}
-
-function jumpToAddNote(
-  id: string,
-  detail: TaskDetail,
-  read_clipboard: boolean,
 ) {
   const data: UpdateTaskText = {
     stamp: LiuTime.getTime(),
     id,
     updateType: "note",
     text: detail.note,
-    read_clipboard,
   }
   LiuTunnel.setStuff("update-task-text", data)
   LiuApi.navigateTo({ 

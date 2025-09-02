@@ -20,6 +20,21 @@
         confirm-hold
       ></textarea>
 
+      <block wx:if="{{updateType === 'note'}}">
+        <custom-button catchtap="onTapClear" 
+          wx:if="{{canSubmit && text}}" btn-type="normal"
+        >
+          <image src="{{imagePath}}clean.png" class="tan-btn-icon" />
+          <text>{{t1.clean_text}}</text>
+        </custom-button>
+        <custom-button catchtap="onTapPaste" 
+          wx:else btn-type="normal"
+        >
+          <image src="{{imagePath}}content-paste.png" class="tan-btn-icon" />
+          <text>{{t1.paste_fr_clipboard}}</text>
+        </custom-button>
+      </block>
+
       <custom-button catchtap="onTapConfirm" disabled="{{!canSubmit}}">
         <text>{{t1.confirm}}</text>
       </custom-button>

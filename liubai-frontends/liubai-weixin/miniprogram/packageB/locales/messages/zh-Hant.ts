@@ -91,7 +91,6 @@ export default {
     "more": "更多",
     "add_note": "新增備註",
     "edit_note": "編輯備註",
-    "read_clipboard_tip": "是否讀取剪貼板中的文本？\n這可以快速黏貼會議資訊",
     "note_title": "備註欄",
     "remind_1": "你已關注👍",
     "remind_2": "屆時，系統將由「留白記事」服務帳號通知你。",
@@ -151,6 +150,8 @@ export default {
     "placeholder_1": "請輸入新的標題",
     "placeholder_2": "請輸入備註（比如會議資訊）",
     "confirm": "確定",
+    "paste_fr_clipboard": "從剪貼板黏貼",
+    "clean_text": "清空文本",
   },
   "task-date-time": {
     "title": "⏰ 什麼時候呢",

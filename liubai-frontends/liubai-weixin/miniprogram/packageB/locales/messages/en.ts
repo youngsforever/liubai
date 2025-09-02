@@ -94,7 +94,6 @@ export default {
     "more": "More",
     "add_note": "Add note",
     "edit_note": "Edit note",
-    "read_clipboard_tip": "Read clipboard content?\nThis can quickly paste meeting info",
     "note_title": "INFO",
     "remind_1": "You've followed us 👍",
     "remind_2": "You'll be reminded through 留白记事 Service Account on WeChat.",
@@ -154,6 +153,8 @@ export default {
     "placeholder_1": "Enter a new title",
     "placeholder_2": "Enter note (e.g. meeting info)",
     "confirm": "Confirm",
+    "paste_fr_clipboard": "Paste from clipboard",
+    "clean_text": "Clean Text",
   },
   "task-date-time": {
     "title": "⏰ When?",
