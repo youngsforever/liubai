@@ -96,7 +96,7 @@
         <view class="tc-first-bar">
           <text>{{t1.note_title}}</text>
         </view>
-        <view class="td-box-bar" catchtap="onTapNote">
+        <view class="td-box-bar" catchtap="onTapNote" catchlongpress="onTapNote">
           <footer-box content="{{detail.note}}" />
         </view>
       </view>
