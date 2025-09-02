@@ -657,21 +657,24 @@ async function turnTaskIntoAtoms(
   } = task
   if(!calendarStamp) return
 
+  // manage to get userIds
+  let userIds: string[] = []
   const group_openids: string[] = []
   assigneeList.forEach(v1 => {
     if(!v1.doneStamp) {
       group_openids.push(v1.group_openid)
     }
   })
-  const w1 = {
-    infoType: "chat-tool",
-    group_openid: _.in(group_openids),
+  if(group_openids.length) {
+    const w1 = {
+      infoType: "chat-tool",
+      group_openid: _.in(group_openids),
+    }
+    const wbCol = db.collection("WxBond")
+    const res1 = await wbCol.where(w1).get<Table_WxBond>()
+    const bonds = res1.data
+    userIds = bonds.map(v => v.userId)
   }
-  const wbCol = db.collection("WxBond")
-  const res1 = await wbCol.where(w1).get<Table_WxBond>()
-  const bonds = res1.data
-
-  const userIds = bonds.map(v => v.userId)
   if(!userIds.includes(owner_userid)) {
     userIds.push(owner_userid)
   }
