@@ -2,13 +2,13 @@
 
 我们提供保姆级（小白也能用！）的简易配置方法，让你轻松把留白上的记事备份到 WPS 上。
 
-配置只要 5 分钟!! 超过 5 分钟者，请直接[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)，我们在线为你服务。
+配置只要 5 分钟!! 超过 5 分钟者，请直接 [联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)，我们在线为你服务。
 
 ## 开始
 
 ### 1. 新建多维表格
 
-请先登录[金山文档](https://www.kdocs.cn/latest)。
+请先登录 [金山文档](https://www.kdocs.cn/latest)。
 
 登录后，打开这篇多维表格: [https://www.kdocs.cn/l/chDKViRt3A2g](https://www.kdocs.cn/l/chDKViRt3A2g)
 
@@ -89,7 +89,7 @@
 
 ## 进阶
 
-金山文档的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)或[邮件](mailto:hi@liubai.cc)告诉我们，我再把它整理到文档上来。
+金山文档的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎 [联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f) 或 [邮件](mailto:hi@liubai.cc) 告诉我们，我再把它整理到文档上来。
 
 当然，你也可以直接在 [GitHub](https://github.com/yenche123/liubai/blob/cool/liubai-docs/docs/guide/connect/wps.md) 上编辑本页面，提交 PR 🙌
 
@@ -97,9 +97,9 @@
 
 ### 1. 只能备份吗？可不可以双向同步？
 
-“在第三方云文档上的编辑，需要同步到留白”
-
-“在留白上更新某个字段又要同步过去”...... 
+> “在第三方云文档上的编辑，需要同步到留白”
+> 
+> “在留白上更新某个字段又要同步过去”...... 
 
 这将引发一系列需求，没完没了，同时可能存在安全隐患（比如循环触发），故“同步”功能目前没有计划。
 
