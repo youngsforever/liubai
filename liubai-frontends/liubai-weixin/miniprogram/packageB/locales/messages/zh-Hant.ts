@@ -181,5 +181,6 @@ export default {
     "btn_title": "20 元",
     "hint": "溫馨提示: \n1. 請放心，這不會連續自動扣款；\n2. 購買後，將解鎖留白記事 Premium 所有權益一個月。",
     "learn_more": "了解詳情",
+    "x_yuan": "{x} 元",
   },
 }

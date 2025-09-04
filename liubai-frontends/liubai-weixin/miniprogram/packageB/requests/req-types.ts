@@ -175,6 +175,9 @@ export interface Res_SubPlan_Info {
 
 export interface Res_OrderData {
   order_id: string
+  orderAmount: number
+  plan_id?: string
+  product_id?: string
 }
 
 export interface Res_PO_CreateOrder {

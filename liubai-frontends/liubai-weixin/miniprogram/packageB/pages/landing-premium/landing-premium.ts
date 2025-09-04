@@ -4,10 +4,13 @@ import { themeBehavior } from "../../behaviors/theme-behavior";
 import { pageBehavior } from "../../behaviors/page-behavior";
 import type { LpKey } from "./tools/types";
 import { LiuApi } from "~/packageB/utils/LiuApi";
-import { getOrderId, getWxpayParam } from "./tools/useLandingPremium";
+import { getOrderData, getWxpayParam } from "./tools/useLandingPremium";
 import { LiuTime } from "~/packageB/utils/LiuTime";
 import { Loginer } from "~/packageB/utils/login/Loginer";
 import { ShowTip } from "~/packageB/utils/managers/ShowTip";
+import type { Res_OrderData } from "~/packageB/requests/req-types";
+import { useI18n } from "~/packageB/locales/index";
+import valTool from "~/packageB/utils/val-tool";
 
 Component({
 
@@ -26,8 +29,10 @@ Component({
     pageName: "landing-premium",
     key: "add-calendar" as LpKey | undefined,
     hasPaid: false,
+    buyBtnText: "",
     _paymentData: {
       stamp1: 0,
+      planId: "",
       orderId: "",
     },
   },
@@ -35,17 +40,38 @@ Component({
   methods: {
 
     onLoad() {
-      this.handleOrderId()
+      this.handleOrderData()
     },
 
 
-    async handleOrderId() {
-      const orderId = await getOrderId()
-      if(!orderId) return
+    async handleOrderData() {
+      const orderData = await getOrderData()
+      if(!orderData) return
       const paymentData = this.data._paymentData
       paymentData.stamp1 = LiuTime.getTime()
-      paymentData.orderId = orderId
-      return orderId
+      paymentData.planId = orderData.plan_id ?? ""
+      paymentData.orderId = orderData.order_id
+      this.handleOrderAmt(orderData)
+      return orderData.order_id
+    },
+
+    handleOrderAmt(
+      orderData: Res_OrderData,
+    ) {
+      const amt = orderData.orderAmount
+
+      // 1. turn into yuan
+      let x = (amt / 100).toFixed(2)
+      const available = valTool.isStringAsNumber(x)
+      if(!available) return
+
+      // 2. remove .00
+      if(x.endsWith(".00")) x = x.slice(0, -3)
+
+      // 3. translate
+      const { t } = useI18n()
+      const buyBtnText = t("landing-premium.x_yuan", { x })
+      this.setData({ buyBtnText })
     },
 
     async onTapBuy() {
@@ -67,7 +93,7 @@ Component({
         LiuTime.MINUTE * 10,
       )
       if(!orderId || !within10mins) {
-        orderId = await this.handleOrderId()
+        orderId = await this.handleOrderData()
         if(!orderId) return
       }
 
@@ -82,6 +108,7 @@ Component({
         success(res4) {
           console.warn("requestPayment success: ", res4)
           _this.setData({ hasPaid: true })
+          Loginer.justPaid(paymentData.planId)
         },
         fail(err4) {
           console.warn("requestPayment fail: ", err4)

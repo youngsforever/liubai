@@ -184,5 +184,6 @@ export default {
     "btn_title": "¥20",
     "hint": "Hint: \n1. We won't automatically deduct your account;\n2. After purchase, you will unlock all Premium features of Liubai for one month.",
     "learn_more": "Learn more",
+    "x_yuan": "¥{x}",
   },
 }

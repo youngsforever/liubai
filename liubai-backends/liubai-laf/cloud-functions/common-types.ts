@@ -1999,50 +1999,40 @@ export const Sch_Param_WebhookQiniu = vbot.object({
 })
 
 /********* payment-order ********/
-export interface Param_PaymentOrder_A {
-  operateType: "create_order"
-  subscription_id: string
-}
+
 export const Sch_Param_PaymentOrder_A = vbot.object({
   operateType: vbot.literal("create_order"),
   subscription_id: Sch_Id,
 })
 
-export interface Param_PaymentOrder_B {
-  operateType: "get_order"
-  order_id: string
-}
 export const Sch_Param_PaymentOrder_B = vbot.object({
   operateType: vbot.literal("get_order"),
   order_id: Sch_Id,
 })
 
-export interface Param_PaymentOrder_C {
-  operateType: "wxpay_jsapi"
-  order_id: string
-  wx_gzh_openid: string
-}
 export const Sch_Param_PaymentOrder_C = vbot.object({
   operateType: vbot.literal("wxpay_jsapi"),
   order_id: Sch_Id,
   wx_gzh_openid: Sch_Id,
 })
 
-export interface Param_PaymentOrder_D {
-  operateType: "alipay_wap"
-  order_id: string
-}
 export const Sch_Param_PaymentOrder_D = vbot.object({
   operateType: vbot.literal("alipay_wap"),
   order_id: Sch_Id,
 })
 
-export type Param_PaymentOrder = Param_PaymentOrder_A | Param_PaymentOrder_B | Param_PaymentOrder_C
+export const Sch_Param_PaymentOrder_E = vbot.object({
+  operateType: vbot.literal("wxpay_mini"),
+  order_id: Sch_Id,
+  wx_mini_openid: Sch_Id,
+})
+
 export const Sch_Param_PaymentOrder = vbot.variant("operateType", [
   Sch_Param_PaymentOrder_A,
   Sch_Param_PaymentOrder_B,
   Sch_Param_PaymentOrder_C,
   Sch_Param_PaymentOrder_D,
+  Sch_Param_PaymentOrder_E,
 ])
 
 export interface Res_OrderData {

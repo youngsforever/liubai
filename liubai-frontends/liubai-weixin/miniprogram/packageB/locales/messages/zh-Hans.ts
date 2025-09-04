@@ -181,5 +181,6 @@ export default {
     "btn_title": "20 元",
     "hint": "温馨提示: \n1. 请放心，这不会连续自动扣款；\n2. 购买后，将解锁留白记事 Premium 所有权益一个月。",
     "learn_more": "了解详情",
+    "x_yuan": "{x} 元",
   },
 }

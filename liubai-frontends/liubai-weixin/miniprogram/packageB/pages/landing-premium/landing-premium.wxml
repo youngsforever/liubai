@@ -52,7 +52,8 @@
 
       <view class="lp-buy-btn">
         <custom-button catchtap="onTapBuy">
-          <text>{{t1.btn_title}}</text>
+          <text wx:if="{{buyBtnText}}">{{buyBtnText}}</text>
+          <text wx:else>{{t1.btn_title}}</text>
         </custom-button>
       </view>
       
