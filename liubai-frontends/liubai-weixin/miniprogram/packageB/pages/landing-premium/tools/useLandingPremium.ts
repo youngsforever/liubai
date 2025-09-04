@@ -2,8 +2,12 @@ import APIs from "~/packageB/requests/APIs";
 import { LiuReq } from "~/packageB/requests/LiuReq";
 import type { 
   Res_PO_CreateOrder, 
+  Res_PO_WxpayMini, 
   Res_SubPlan_Info,
 } from "~/packageB/requests/req-types";
+import { LiuUtil } from "~/packageB/utils/liu-util";
+import { LiuApi } from "~/packageB/utils/LiuApi";
+import { ShowTip } from "~/packageB/utils/managers/ShowTip";
 
 
 export async function getOrderId() {
@@ -28,4 +32,29 @@ export async function getOrderId() {
   }
   const res2 = await LiuReq.request<Res_PO_CreateOrder>(url2, param2)
   return res2.data?.orderData.order_id
+}
+
+export async function getWxpayParam(
+  order_id: string,
+  wx_mini_openid: string,
+) {
+  // 1. fetch
+  const url1 = APIs.PAYMENT_ORDER
+  const param1 = {
+    operateType: "wxpay_mini",
+    order_id,
+    wx_mini_openid,
+  }
+  LiuUtil.showCustomLoading({ title_key: "shared.hold_on" })
+  const res1 = await LiuReq.request<Res_PO_WxpayMini>(url1, param1)
+  LiuApi.hideLoading()
+  
+  // 2. handle result
+  const result = res1.data?.param
+  if(!result) {
+    ShowTip.showErrMsg("fail to fetch wxpay param", res1)
+    return
+  }
+
+  return result
 }

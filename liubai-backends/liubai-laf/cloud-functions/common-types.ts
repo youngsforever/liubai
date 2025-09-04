@@ -2083,7 +2083,7 @@ export interface Res_PO_WxpayJsapi {
 
 export interface Res_PO_WxpayMini {
   operateType: "wxpay_mini"
-  param: Wxpay_Jsapi_Params
+  param: Wxpay_Mini_Params
 }
 
 export interface Res_PO_AlipayWap {
@@ -3526,7 +3526,15 @@ export interface Wxpay_Jsapi_Params {
   timeStamp: string
   nonceStr: string
   package: string
-  signType: string
+  signType: "RSA"
+  paySign: string
+}
+
+export interface Wxpay_Mini_Params {
+  timeStamp: string
+  nonceStr: string
+  package: string
+  signType: "RSA"
   paySign: string
 }
 

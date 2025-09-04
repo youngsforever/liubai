@@ -517,4 +517,8 @@ export class LiuApi {
     wx.sendSms(opt)
   }
 
+  static requestPayment(opt: WechatMiniprogram.RequestPaymentOption) {
+    wx.requestPayment(opt)
+  }
+
 }

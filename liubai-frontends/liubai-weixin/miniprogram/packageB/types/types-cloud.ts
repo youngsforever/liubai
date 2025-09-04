@@ -43,12 +43,11 @@ export interface SubscriptionWxpay {
 export type SubscriptionPaymentCircle = "monthly" | "quarterly" | "yearly"
 
 /******************* Some Types from Wxpay  ****************/
-export interface Wxpay_Jsapi_Params {
-  appId: string
+export interface Wxpay_Mini_Params {
   timeStamp: string
   nonceStr: string
   package: string
-  signType: string
+  signType: "RSA"
   paySign: string
 }
 

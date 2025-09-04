@@ -6,6 +6,7 @@ import type {
   SubscriptionPaymentCircle, 
   SubscriptionWxpay, 
   UserSubscription,
+  Wxpay_Mini_Params,
 } from "../types/types-cloud"
 import type { LocalLocale } from "../types/types-locale"
 import type { WxMiniAPI } from "../types/types-wx"
@@ -179,4 +180,9 @@ export interface Res_OrderData {
 export interface Res_PO_CreateOrder {
   operateType: "create_order"
   orderData: Res_OrderData
+}
+
+export interface Res_PO_WxpayMini {
+  operateType: "wxpay_mini"
+  param: Wxpay_Mini_Params
 }
