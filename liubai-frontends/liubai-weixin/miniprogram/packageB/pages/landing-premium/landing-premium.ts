@@ -27,7 +27,7 @@ Component({
   
   data: {
     pageName: "landing-premium",
-    key: "add-calendar" as LpKey | undefined,
+    key: undefined as LpKey | undefined,
     hasPaid: false,
     buyBtnText: "",
     _paymentData: {
@@ -39,7 +39,10 @@ Component({
 
   methods: {
 
-    onLoad() {
+    onLoad(query?: Record<string, string>) {
+      if(!query) return
+      const key = query.key as LpKey
+      this.setData({ key })
       this.handleOrderData()
     },
 

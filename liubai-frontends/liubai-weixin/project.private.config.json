@@ -4,11 +4,18 @@
     "miniprogram": {
       "list": [
         {
+          "name": "任务详情",
+          "pathName": "packageB/pages/task-detail/task-detail",
+          "query": "id=68a298c2bc41e450e5491f70",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "Premium",
           "pathName": "packageB/pages/landing-premium/landing-premium",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

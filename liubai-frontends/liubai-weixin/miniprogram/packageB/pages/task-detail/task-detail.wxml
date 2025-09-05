@@ -64,6 +64,11 @@
           <view class="td-box-bar-text">
             <text>{{detail.whenStr}}</text>
           </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
+          </view>
         </view>
 
         <!-- Remind -->
@@ -75,6 +80,11 @@
             <text wx:if="{{bindingStatus === 'unfollowed'}}">{{t1.remind_3}}</text>
             <text wx:else>{{detail.remindStr}}</text>
           </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
+          </view>
         </view>
 
         <!-- AI -->
@@ -84,6 +94,11 @@
           </view>
           <view class="td-box-bar-text">
             <text>{{detail.aiHelpStr}}</text>
+          </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
           </view>
         </view>
         

@@ -19,14 +19,14 @@ import {
   toAddNote,
   whenTapNote,
   checkForUpdatingTitle,
+  whenTapDateTime,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type {
   ConfirmTaskDateTime,
   HasNewTaskText,
-  JustCreateTask, 
-  OpenTaskDateTime, 
+  JustCreateTask,
   PleaseCreateTask,
 } from "~/packageB/types/types-tunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
@@ -398,17 +398,7 @@ Component({
       if(!detail || !_id) return
       if(!detail.isMine) return
       LiuApi.vibrateShort({ type: "light" })
-
-      const tunnelData: OpenTaskDateTime = {
-        id: _id,
-        whenStamp: detail.whenStamp,
-        remindMe: detail.remindMe,
-      }
-      LiuTunnel.setStuff("open-task-date-time", tunnelData)
-      LiuApi.navigateTo({ 
-        url: "/packageB/pages/task-date-time/task-date-time",
-        routeType: "wx://upwards",
-      })
+      whenTapDateTime(_id, detail)
     },
     
     onTapRemindMe() {

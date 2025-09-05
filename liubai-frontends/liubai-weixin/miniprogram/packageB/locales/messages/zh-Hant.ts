@@ -82,7 +82,7 @@ export default {
     "create_for_title": "建在哪裡？",
     "create_for_current_chat": "當前會話",
     "create_for_current_group": "當前群組",
-    "create_for_others": "其他會話或群組",
+    "create_for_others": "其他",
     "title_for_guests": "只有創建人才能修改標題",
     "updated": "已更新",
     "updated_tip": "請轉發↗️，否則他們會不知道",

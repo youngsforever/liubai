@@ -76,4 +76,5 @@
 <custom-navibar 
   height1="{{height1}}" height2="{{height2}}" 
   visible="{{visible}}"
+  always-arrow-back
 ></custom-navibar>

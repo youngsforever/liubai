@@ -14,8 +14,8 @@ export class TaskManager {
 
   // private static mockChatInfo() {
   //   this.chatInfo = {
-  //     open_single_roomid: "AF66ptTqfQ_7hNIGFwZMQpzGz3jrEx-KZSqzY0IBHw8clQJ0sw",
-  //     group_openid: "AF66ptQVIiGdKk-rwvMXoiYCwSqASxebl8gV1tM6c_RsZ0Q5_A",
+  //     open_single_roomid: "AF66ptTLqMhlPvl-SgXNfePzal3g7SK-IVIZOoOb_cxzpb-c8A",
+  //     group_openid: "AF66ptTtnWsu9rWZFeIMgvcufyEbN6eJlX5KodGD2e1Dww3-4Q",
   //     chat_type: 1,
   //   }
   //   return true
