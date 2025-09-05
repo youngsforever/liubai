@@ -173,7 +173,7 @@ export default {
     "paid_bd": "支付是一種交互方式！\n謝謝你用行動支持我們🥂",
     "back": "返回",
     "three_things_hd": "事不過三",
-    "three_things_bd": "你已有三個任務未處理，我們要索取任務管理費喔！",
+    "three_things_bd": "你已有三個任務未處理，向您酌收任務管理費。\nTip: 省錢的方法是盡快完成任務",
     "old_school_hd": "這彷彿手工針織",
     "old_school_bd": "AI 時代還想手動選擇時間？古法煉製法會增加我們的開發和維護成本，我們只好收取一點開發費用啦！",
     "mobile_calendar_hd": "新增到行事曆",

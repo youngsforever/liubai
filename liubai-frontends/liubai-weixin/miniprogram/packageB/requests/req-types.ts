@@ -98,6 +98,11 @@ export namespace PeopleTasksAPI {
     chatInfo: WxMiniAPI.ChatInfo
   }
 
+  export interface Res_CanIPostTask { 
+    operateType: "can-i-post-task"
+    status: "yes" | "no"
+  }
+
   export interface AssigneeItem {
     group_openid: string
     doneStamp?: number
