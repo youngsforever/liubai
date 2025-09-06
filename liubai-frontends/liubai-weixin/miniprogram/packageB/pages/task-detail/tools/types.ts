@@ -30,11 +30,15 @@ export interface TaskDetail {
   aiHelpStr?: string
   aiWorker?: LiuAi.AiWorker
   note?: string
+  calendar_path?: string
+  calendar_signature?: string
 }
 
 export type BindingStatus = "followed" | "unfollowed"
 
-export type BtnType = "CompleteTask" | "Reminder" | "Urge" | "Share" | "CreateTask"
+export type BtnType = "CompleteTask" | "Reminder" | "Urge" | "Share" 
+  | "CreateTask"
   | "CloseTask"
   | "More"
   | "AddNote"
+  | "AddCalendar"

@@ -4446,6 +4446,8 @@ export namespace PeopleTasksAPI {
     aiWorker?: LiuAi.AiWorker
 
     note?: string
+    calendar_path?: string
+    calendar_signature?: string
   }
 
   export const Sch_Param_GetWxTask = vbot.object({

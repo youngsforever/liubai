@@ -104,6 +104,8 @@ export function showDetail(
     aiHelpStr,
     aiWorker: data.aiWorker,
     note: data.note,
+    calendar_path: data.calendar_path,
+    calendar_signature: data.calendar_signature,
   }
   return detail
 }

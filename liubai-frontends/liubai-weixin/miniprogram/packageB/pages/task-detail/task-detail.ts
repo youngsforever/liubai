@@ -44,6 +44,11 @@ import { checkNameExisted } from "../shared/some-funcs";
 import { defaultData } from "~/packageB/config/default-data";
 import type { PeopleTasksAPI } from "~/packageB/requests/req-types";
 import type { BindingStatus } from "./tools/types";
+import { 
+  invokeOnHide, 
+  invokeOnShow, 
+  toAddCalendarEvent,
+} from "./tools/handleCalendar";
 
 Component({
 
@@ -94,12 +99,17 @@ Component({
     },
 
     async onShow() {
+      invokeOnShow()
       const stamp1 = this.data._whenLoadStamp
       const justOnLoad = LiuTime.isWithinMillis(stamp1, 1500, true)
       if(justOnLoad) return
 
       await this.checkBindingStatusWhileShowing()
       await this.checkDetailWhileShowing()
+    },
+
+    onHide() {
+      invokeOnHide()
     },
 
     async checkDetailWhileShowing() {
@@ -488,6 +498,13 @@ Component({
           _this.toCompleteTask(_id, idx)
         }
       })
+    },
+
+    onTapAddCalendar() {
+      const { detail } = this.data
+      if(!detail) return
+      LiuApi.vibrateShort({ type: "medium" })
+      toAddCalendarEvent(detail)
     },
 
     async toCompleteTask(

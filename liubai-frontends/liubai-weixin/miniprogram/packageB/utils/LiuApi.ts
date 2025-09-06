@@ -521,4 +521,8 @@ export class LiuApi {
     wx.requestPayment(opt)
   }
 
+  static addPhoneCalendar(opt: WechatMiniprogram.AddPhoneCalendarOption) {
+    wx.addPhoneCalendar(opt)
+  }
+
 }

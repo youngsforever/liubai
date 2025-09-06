@@ -556,7 +556,8 @@ async function get_wx_task(
   }
   const id = body.id as string
   let chatInfo = body.chatInfo as WxMiniAPI.ChatInfo | undefined
-  const userId = vRes.userData._id
+  const user = vRes.userData
+  const userId = user._id
 
   // 2. get the task
   const wtCol = db.collection("WxTask")
@@ -603,7 +604,8 @@ async function get_wx_task(
   }
 
   // 4. package data
-  const data4 = packageResOfGetWxTask(data2, userId)
+  const session_key = user.thirdData?.wx_mini?.session_key
+  const data4 = packageResOfGetWxTask(data2, userId, session_key)
 
   return { code: "0000", data: data4 }
 }
@@ -768,6 +770,7 @@ async function checkTaskForSecurity(
 function packageResOfGetWxTask(
   v: Table_WxTask,
   myUserId: string,
+  session_key?: string,
 ) {
   const obj: PeopleTasksAPI.Res_GetWxTask = {
     operateType: "get-wx-task",
@@ -795,6 +798,15 @@ function packageResOfGetWxTask(
     
     note: v.note,
   }
+
+  if(session_key) {
+    const path = `pages/index/index?task=${v._id}`
+    const sign = WxMiniHandler.hmac_sha256(path, session_key)
+    obj.calendar_path = path
+    obj.calendar_signature = sign
+  }
+
+
   return obj
 }
 
