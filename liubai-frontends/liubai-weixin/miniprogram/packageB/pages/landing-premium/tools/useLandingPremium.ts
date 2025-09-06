@@ -53,6 +53,7 @@ export async function getWxpayParam(
   // 2. handle result
   const result = res1.data?.param
   if(!result) {
+    console.warn("fail to fetch wxpay param", res1)
     ShowTip.showErrMsg("fail to fetch wxpay param", res1)
     return
   }

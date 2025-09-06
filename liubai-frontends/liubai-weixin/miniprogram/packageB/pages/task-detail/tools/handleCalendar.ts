@@ -3,6 +3,7 @@ import { LiuTime } from "~/packageB/utils/LiuTime"
 import type { TaskDetail } from "./types"
 import { LiuUtil } from "~/packageB/utils/liu-util/index"
 import type { LiuTimeout } from "~/packageB/utils/basic/type-tool"
+import { Loginer } from "~/packageB/utils/login/Loginer"
 
 let lastShowHideToggleStamp = 0
 
@@ -18,8 +19,7 @@ export function invokeOnHide() {
 export function toAddCalendarEvent(
   detail: TaskDetail,
 ) {
-
-  // 1. get parameters
+  // 1.1 get parameters
   const title = detail.desc
   const description = detail.note
   const whenStamp = detail.whenStamp
@@ -29,6 +29,15 @@ export function toAddCalendarEvent(
   const alarmOffset = earlyMinute ? earlyMinute * 60 : 0
   // console.log("path: ", detail.calendar_path)
   // console.log("signature: ", detail.calendar_signature)
+
+  // 1.2 check out premium
+  const isPremium = Loginer.amIPremium()
+  if(!isPremium) {
+    LiuApi.navigateTo({
+      url: "/packageB/pages/landing-premium/landing-premium?key=add-calendar"
+    })
+    return
+  }
 
   // 2. set timeout to prompt for system bug
   const delay2 = 1250
@@ -50,7 +59,6 @@ export function toAddCalendarEvent(
         LiuApi.openAppAuthorizeSetting()
       }
     })
-
   }, delay2)
   const _removeTimeout = () => {
     if(timeout2) {
