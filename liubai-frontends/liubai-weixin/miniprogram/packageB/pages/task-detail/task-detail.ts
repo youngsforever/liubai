@@ -419,9 +419,17 @@ Component({
       const bs = this.data.bindingStatus
       console.log("bs: ", bs)
 
+      if(!bs) {
+        this.handleBindingStatus()
+        return
+      }
+
       if(bs === "unfollowed") {
         if(this.data.qrCodePicUrl) {
           this.setData({ openBindingPopup: true })
+        }
+        else {
+          this.handleQrCode()
         }
         return
       }
