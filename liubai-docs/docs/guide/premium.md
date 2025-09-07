@@ -41,7 +41,7 @@ description: 我们的会员权益
 |     [AI 对话](/guide/three-assistants)      |      10 轮/月      |         200 轮/月      |
 
 
-## [IDE Extension](/guide/ide)
+## [IDE Extension](/guide/ide/index)
 
 |                                |      **免费版**      |      **Premium**      |
 | ------------------------------ | ------------------- | --------------------- |
