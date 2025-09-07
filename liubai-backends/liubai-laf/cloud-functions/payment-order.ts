@@ -134,8 +134,8 @@ async function handle_alipay_wap(
   if(!subPlan) {
     return { code: "E4004", errMsg: "fail to get sub plan" }
   }
-  if(!subPlan.wxpay || subPlan.wxpay?.isOn !== "Y") {
-    return { code: "E4003", errMsg: "wxpay for this sub plan is not supported" }
+  if(!subPlan.alipay || subPlan.alipay?.isOn !== "Y") {
+    return { code: "E4003", errMsg: "alipay for this sub plan is not supported" }
   }
 
   // 7. get required data
@@ -197,6 +197,9 @@ async function handle_wxpay_mini(
   const order_id = body.order_id as string
   const wx_mini_openid = body.wx_mini_openid as string
   const userTimezone = body.x_liu_timezone
+  if(!wx_mini_openid) {
+    return { code: "E4000", errMsg: "wx_mini_openid is not set" }
+  }
 
   // 1. get order
   const res1 = await getSharedData_1(order_id)
@@ -579,7 +582,7 @@ function checkBody(
   // 2. check out wxpay_apiclient_cert
   const _env = process.env
   const oT = body.operateType as string
-  if(oT === "wxpay_jsapi") {
+  if(oT === "wxpay_jsapi" || oT === "wxpay_mini") {
     if(!wxpay_apiclient_serial_no) {
       return { code: "E5001", errMsg: "wxpay_apiclient_serial_no is not set" }
     }
@@ -589,8 +592,11 @@ function checkBody(
     if(!wxpay_apiclient_key) {
       return { code: "E5001", errMsg: "wxpay_apiclient_key is not set" }
     }
-    if(!_env.LIU_WX_GZ_APPID) {
+    if(oT === "wxpay_jsapi" && !_env.LIU_WX_GZ_APPID) {
       return { code: "E5001", errMsg: "wx gzh appid is not set" }
+    }
+    if(oT === "wxpay_mini" && !_env.LIU_WX_MINI_APPID) {
+      return { code: "E5001", errMsg: "wx mini appid is not set" }
     }
     if(!_env.LIU_WXPAY_MCH_ID) {
       return { code: "E5001", errMsg: "wxpay mchid is not set" }
