@@ -1742,6 +1742,11 @@ export interface Table_Order extends BaseTable {
     jsapi_prepay_id?: string
     jsapi_created_stamp?: number
 
+    mini_out_trade_no?: string         // format: w4xxxxLD......
+    mini_openid?: string
+    mini_prepay_id?: string
+    mini_created_stamp?: number
+
     h5_out_trade_no?: string           // format: w2xxxxLD......
     h5_url?: string
     h5_created_stamp?: number
@@ -1994,50 +1999,40 @@ export const Sch_Param_WebhookQiniu = vbot.object({
 })
 
 /********* payment-order ********/
-export interface Param_PaymentOrder_A {
-  operateType: "create_order"
-  subscription_id: string
-}
+
 export const Sch_Param_PaymentOrder_A = vbot.object({
   operateType: vbot.literal("create_order"),
   subscription_id: Sch_Id,
 })
 
-export interface Param_PaymentOrder_B {
-  operateType: "get_order"
-  order_id: string
-}
 export const Sch_Param_PaymentOrder_B = vbot.object({
   operateType: vbot.literal("get_order"),
   order_id: Sch_Id,
 })
 
-export interface Param_PaymentOrder_C {
-  operateType: "wxpay_jsapi"
-  order_id: string
-  wx_gzh_openid: string
-}
 export const Sch_Param_PaymentOrder_C = vbot.object({
   operateType: vbot.literal("wxpay_jsapi"),
   order_id: Sch_Id,
   wx_gzh_openid: Sch_Id,
 })
 
-export interface Param_PaymentOrder_D {
-  operateType: "alipay_wap"
-  order_id: string
-}
 export const Sch_Param_PaymentOrder_D = vbot.object({
   operateType: vbot.literal("alipay_wap"),
   order_id: Sch_Id,
 })
 
-export type Param_PaymentOrder = Param_PaymentOrder_A | Param_PaymentOrder_B | Param_PaymentOrder_C
+export const Sch_Param_PaymentOrder_E = vbot.object({
+  operateType: vbot.literal("wxpay_mini"),
+  order_id: Sch_Id,
+  wx_mini_openid: Sch_Id,
+})
+
 export const Sch_Param_PaymentOrder = vbot.variant("operateType", [
   Sch_Param_PaymentOrder_A,
   Sch_Param_PaymentOrder_B,
   Sch_Param_PaymentOrder_C,
   Sch_Param_PaymentOrder_D,
+  Sch_Param_PaymentOrder_E,
 ])
 
 export interface Res_OrderData {
@@ -2074,6 +2069,11 @@ export interface Res_PO_GetOrder {
 export interface Res_PO_WxpayJsapi {
   operateType: "wxpay_jsapi"
   param: Wxpay_Jsapi_Params
+}
+
+export interface Res_PO_WxpayMini {
+  operateType: "wxpay_mini"
+  param: Wxpay_Mini_Params
 }
 
 export interface Res_PO_AlipayWap {
@@ -3516,7 +3516,15 @@ export interface Wxpay_Jsapi_Params {
   timeStamp: string
   nonceStr: string
   package: string
-  signType: string
+  signType: "RSA"
+  paySign: string
+}
+
+export interface Wxpay_Mini_Params {
+  timeStamp: string
+  nonceStr: string
+  package: string
+  signType: "RSA"
   paySign: string
 }
 
@@ -4384,10 +4392,16 @@ export namespace PeopleTasksAPI {
     | "update-task-note"
     | "delete-wx-task"
     | "update-task-time"
+    | "can-i-post-task"
 
   export interface Res_EnterWxChatTool {
     operateType: "enter-wx-chat-tool"
     chatInfo: WxMiniAPI.ChatInfo
+  }
+
+  export interface Res_CanIPostTask { 
+    operateType: "can-i-post-task"
+    status: "yes" | "no"
   }
 
   export const Sch_Param_CreateWxTask = vbot.object({
@@ -4432,6 +4446,8 @@ export namespace PeopleTasksAPI {
     aiWorker?: LiuAi.AiWorker
 
     note?: string
+    calendar_path?: string
+    calendar_signature?: string
   }
 
   export const Sch_Param_GetWxTask = vbot.object({

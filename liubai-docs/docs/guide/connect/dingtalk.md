@@ -2,13 +2,13 @@
 
 我们提供保姆级（小白也能用！）的简易配置方法，让你轻松把留白上的记事备份到钉钉上。
 
-配置只要 5 分钟!! 超过 5 分钟者，请直接[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)，我们在线为你服务。
+配置只要 5 分钟!! 超过 5 分钟者，请直接 [联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)，我们在线为你服务。
 
 ## 开始
 
 ### 1. 新建多维表格
 
-打开[钉钉文档](https://alidocs.dingtalk.com/i/desktop)首页。
+打开 [钉钉文档](https://alidocs.dingtalk.com/i/desktop) 首页。
 
 ![新建多维表格](./assets-dingtalk/dingtalk-1.png)
 
@@ -42,7 +42,7 @@
 
 ![栏位](./assets-dingtalk/dingtalk-5.png)
 
-这是我[配置完的结果](https://alidocs.dingtalk.com/i/nodes/y20BglGWOGLj1zreSEowkG4eWA7depqY)，供你参考。
+这是我 [配置完的结果](https://alidocs.dingtalk.com/i/nodes/y20BglGWOGLj1zreSEowkG4eWA7depqY)，供你参考。
 
 ### 3. 自动化
 
@@ -79,7 +79,7 @@
 
 接下来，按上图所示，我们点击 `复制`，把 Webhook 地址复制到剪贴板里。
 
-紧接着，将它粘贴到[留白记事](https://my.liubai.cc/connect/dingtalk)上，点击`保存`，如下图所示。
+紧接着，将它粘贴到 [留白记事](https://my.liubai.cc/connect/dingtalk) 上，点击`保存`，如下图所示。
 
 <img src="./assets-dingtalk/dingtalk-10.png" width="450" alt="粘贴 Webhook" />
 
@@ -126,7 +126,7 @@
 
 ## 进阶
 
-钉钉的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎[联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f)或[邮件](mailto:hi@liubai.cc)告诉我们，我再把它整理到文档上来。
+钉钉的多维表格似乎支持 DeepSeek R1 回复（分析）你表格的数据，有玩出花样的朋友，欢迎 [联系客服](https://work.weixin.qq.com/kfid/kfcfb6f3959d36f6a0f) 或 [邮件](mailto:hi@liubai.cc) 告诉我们，我再把它整理到文档上来。
 
 当然，你也可以直接在 [GitHub](https://github.com/yenche123/liubai/blob/cool/liubai-docs/docs/guide/connect/dingtalk.md) 上编辑本页面，提交 PR 🙌
 
@@ -134,9 +134,9 @@
 
 ### 1. 只能备份吗？可不可以双向同步？
 
-“在第三方云文档上的编辑，需要同步到留白”
-
-“在留白上更新某个字段又要同步过去”...... 
+> “在第三方云文档上的编辑，需要同步到留白”
+> 
+> “在留白上更新某个字段又要同步过去”...... 
 
 这将引发一系列需求，没完没了，同时可能存在安全隐患（比如循环触发），故“同步”功能目前没有计划。
 

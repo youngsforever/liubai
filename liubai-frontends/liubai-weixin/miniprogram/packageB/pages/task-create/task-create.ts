@@ -10,6 +10,8 @@ import { pageBehavior } from "../../behaviors/page-behavior";
 import { checkNameExisted } from "../shared/some-funcs";
 import { LiuUtil } from "~/packageB/utils/liu-util/index";
 import { ShowTip } from "~/packageB/utils/managers/ShowTip";
+import { LiuTime } from "~/packageB/utils/LiuTime";
+import { canIPostTask } from "./tools/useTaskCreate2";
 
 Component({
 
@@ -31,7 +33,9 @@ Component({
     assignees: [] as string[],
     inputValue: "",
     titleMaxLength: defaultData.title_max_length,
+    canPost: true,
     _val: "",
+    _whenLoadStamp: 0,
   },
 
   methods: {
@@ -134,12 +138,36 @@ Component({
       const res1 = checkNameExisted()
       if(!res1) return
 
-      // 2. ready to post
+      // 2. check if i can post
+      if(!this.data.canPost) {
+        LiuApi.navigateTo({
+          url: "/packageB/pages/landing-premium/landing-premium?key=three-things"
+        })
+        return
+      }
+
+      // 3. ready to post
       prePost(this.data._val, this.data.assignees, this)
     },
 
     onLoad() {
       TaskManager.init()
+      this.data._whenLoadStamp = LiuTime.getLocalTime()
+      this.handleCanIPost(true)
+    },
+
+    onShow() {
+      const stamp1 = this.data._whenLoadStamp
+      const justOnLoad = LiuTime.isWithinMillis(stamp1, 1500, true)
+      if(justOnLoad) return
+      this.handleCanIPost(false)
+    },
+
+    async handleCanIPost(fromOnLoad: boolean) {
+      const canPost = await canIPostTask(fromOnLoad)
+      if(canPost !== this.data.canPost) {
+        this.setData({ canPost })
+      }
     },
 
     onReady() {

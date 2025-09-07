@@ -1,6 +1,32 @@
 {
   "libVersion": "3.9.1",
-  "condition": {},
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "发任务",
+          "pathName": "packageB/pages/task-create/task-create",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "任务详情",
+          "pathName": "packageB/pages/task-detail/task-detail",
+          "query": "id=68a298c2bc41e450e5491f70",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "Premium",
+          "pathName": "packageB/pages/landing-premium/landing-premium",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  },
   "setting": {
     "urlCheck": false,
     "coverView": false,

@@ -3,7 +3,10 @@ import type {
   CloudStorageService, 
   LiuAi, 
   LiuSpaceAndMember, 
+  SubscriptionPaymentCircle, 
+  SubscriptionWxpay, 
   UserSubscription,
+  Wxpay_Mini_Params,
 } from "../types/types-cloud"
 import type { LocalLocale } from "../types/types-locale"
 import type { WxMiniAPI } from "../types/types-wx"
@@ -62,7 +65,6 @@ export namespace UserSettingsAPI {
   export type Res_Latest = Omit<Res_Enter, "new_serial" | "new_token">
 }
 
-
 export namespace HappySystemAPI {
   export interface Res_GetAdData {
     operateType: "get-ad-data"
@@ -94,6 +96,11 @@ export namespace PeopleTasksAPI {
   export interface Res_EnterWxChatTool {
     operateType: "enter-wx-chat-tool"
     chatInfo: WxMiniAPI.ChatInfo
+  }
+
+  export interface Res_CanIPostTask { 
+    operateType: "can-i-post-task"
+    status: "yes" | "no"
   }
 
   export interface AssigneeItem {
@@ -131,6 +138,8 @@ export namespace PeopleTasksAPI {
     aiWorker?: LiuAi.AiWorker
 
     note?: string
+    calendar_path?: string
+    calendar_signature?: string
   }
 
 }
@@ -150,4 +159,40 @@ export interface Res_OC_GetWeChat {
   wx_gzh_openid?: string
   wx_gzh_toggle?: boolean
   wx_gzh_subscribed?: boolean
+}
+
+export interface Res_SubPlan_Info {
+  id: string
+  payment_circle: SubscriptionPaymentCircle
+  badge: string
+  title: string
+  desc: string
+  wxpay?: SubscriptionWxpay
+
+  // 以下价格是向用户在前端展示的价格，请使用用户能理解的常用单位
+  // 而非最终收费的单位
+  price: string
+  currency: string   // 三位英文大写字符组成
+  symbol: string     // 货币符号，比如 "¥"
+  original_price?: string
+}
+
+
+/************************ payment-order ********************/
+
+export interface Res_OrderData {
+  order_id: string
+  orderAmount: number
+  plan_id?: string
+  product_id?: string
+}
+
+export interface Res_PO_CreateOrder {
+  operateType: "create_order"
+  orderData: Res_OrderData
+}
+
+export interface Res_PO_WxpayMini {
+  operateType: "wxpay_mini"
+  param: Wxpay_Mini_Params
 }

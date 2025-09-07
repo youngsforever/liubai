@@ -1,4 +1,5 @@
 
+import { LiuTime } from "~/packageB/utils/LiuTime";
 import type { BtnType, TaskDetail } from "./types";
 
 
@@ -25,6 +26,15 @@ interface GetMoreBtnList {
   itemKeyList: string[]
 }
 
+function getCanAddCalendar(
+  detail: TaskDetail,
+) {
+  const now = LiuTime.getTime()
+  const whenStamp = detail.whenStamp
+  const canAddCalendar = Boolean(whenStamp && whenStamp > now) 
+  return canAddCalendar
+}
+
 export function getMoreBtnList(
   detail: TaskDetail,
   btnList: BtnType[],
@@ -32,8 +42,15 @@ export function getMoreBtnList(
 ): GetMoreBtnList | void {
   const moreBtnList: BtnType[] = []
   const itemKeyList: string[] = []
+  const canAddCalendar = getCanAddCalendar(detail)
 
   if(justCreated) {
+
+    if(canAddCalendar && !btnList.includes("AddCalendar")) {
+      moreBtnList.push("AddCalendar")
+      itemKeyList.push("task-detail.add_calendar2")
+    }
+
     moreBtnList.push("CreateTask")
     itemKeyList.push("task-detail.create_other")
 
@@ -59,6 +76,12 @@ export function getMoreBtnList(
         itemKeyList.push("task-detail.add_note")
       }
     }
+
+    if(canAddCalendar && !btnList.includes("AddCalendar")) {
+      moreBtnList.push("AddCalendar")
+      itemKeyList.push("task-detail.add_calendar2")
+    }
+
     if(!btnList.includes("Share")) {
       moreBtnList.push("Share")
       itemKeyList.push("task-detail.share")
@@ -84,11 +107,17 @@ function whenTaskHasAnyIncomplete(
   detail: TaskDetail,
 ) {
   const btnList: BtnType[] = []
+  const canAddCalendar = getCanAddCalendar(detail)
+
   if(detail.canIComplete) {
     btnList.push("CompleteTask")
   }
   else {
     btnList.push("Urge")
+  }
+
+  if(canAddCalendar) {
+    btnList.push("AddCalendar")
   }
 
   btnList.push("Share")
@@ -122,8 +151,11 @@ function whenTaskIsMine(
   }
 
   btnList.push("CloseTask")
+  const canAddCalendar = getCanAddCalendar(detail)
+
+
   if(hasShare) {
-    if(btnList.length >= 3) {
+    if(btnList.length >= 3 || canAddCalendar) {
       btnList.push("More")
       return btnList
     }

@@ -17,6 +17,10 @@
 
 `CREATE_TASK`: 拉起 wx.openChatTool 去创建任务
 
+### index?task=
+
+`task`: 表示任务 id，用于打开特定任务
+
 ### watch-video?r=
 
 `r`: 表示 room id

@@ -15,7 +15,7 @@ import { LiuUtil } from "~/packageB/utils/liu-util/index";
 import { defaultData } from "~/packageB/config/default-data";
 import { Loginer } from "~/packageB/utils/login/Loginer";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
-import type { UpdateTaskText } from "~/packageB/types/types-tunnel";
+import type { OpenTaskDateTime, UpdateTaskText } from "~/packageB/types/types-tunnel";
 import { LiuTime } from "~/packageB/utils/LiuTime";
 import { TaskManager } from "../../shared/TaskManager";
 import type { LiuRemindMe } from "~/packageB/types/types-atom";
@@ -104,6 +104,8 @@ export function showDetail(
     aiHelpStr,
     aiWorker: data.aiWorker,
     note: data.note,
+    calendar_path: data.calendar_path,
+    calendar_signature: data.calendar_signature,
   }
   return detail
 }
@@ -465,5 +467,28 @@ export function whenTapNote(
       }
     }
   })
+}
 
+export function whenTapDateTime(
+  id: string,
+  detail: TaskDetail,
+) {
+  const isPremium = Loginer.amIPremium()
+  if(!isPremium) {
+    LiuApi.navigateTo({
+      url: "/packageB/pages/landing-premium/landing-premium?key=old-school"
+    })
+    return
+  }
+  
+  const tunnelData: OpenTaskDateTime = {
+    id,
+    whenStamp: detail.whenStamp,
+    remindMe: detail.remindMe,
+  }
+  LiuTunnel.setStuff("open-task-date-time", tunnelData)
+  LiuApi.navigateTo({ 
+    url: "/packageB/pages/task-date-time/task-date-time",
+    routeType: "wx://upwards",
+  })
 }

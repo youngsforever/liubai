@@ -136,6 +136,22 @@
   font-weight: 700;
 }
 
+.tdbb-arrow-box {
+  width: 20px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.tdbb-arrow {
+  width: 18px;
+  height: 18px;
+  transform: rotate(-90deg);
+  margin-right: -8px;
+}
+
 .tc-assignees {
   width: 100%;
   position: relative;

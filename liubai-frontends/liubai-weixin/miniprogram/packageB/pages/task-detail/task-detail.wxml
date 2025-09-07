@@ -64,6 +64,11 @@
           <view class="td-box-bar-text">
             <text>{{detail.whenStr}}</text>
           </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
+          </view>
         </view>
 
         <!-- Remind -->
@@ -75,6 +80,11 @@
             <text wx:if="{{bindingStatus === 'unfollowed'}}">{{t1.remind_3}}</text>
             <text wx:else>{{detail.remindStr}}</text>
           </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
+          </view>
         </view>
 
         <!-- AI -->
@@ -84,6 +94,11 @@
           </view>
           <view class="td-box-bar-text">
             <text>{{detail.aiHelpStr}}</text>
+          </view>
+
+          <!-- arrow right -->
+          <view wx:if="{{detail.isMine}}" class="tdbb-arrow-box">
+            <image src="{{imagePath}}arrow-down.png" class="tdbb-arrow" />
           </view>
         </view>
         
@@ -157,6 +172,7 @@
             <text wx:elif="{{item === 'CompleteTask'}}">{{t1.complete_task}}</text>
             <text wx:elif="{{item === 'CreateTask'}}">{{t1.create_other}}</text>
             <text wx:elif="{{item === 'CloseTask'}}">{{t1.close_task}}</text>
+            <text wx:elif="{{item === 'AddCalendar'}}">{{t1.add_calendar}}</text>
 
             <text wx:elif="{{item === 'AddNote'}}">
               <text wx:if="{{detail.note}}">{{t1.edit_note}}</text>

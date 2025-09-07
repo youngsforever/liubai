@@ -1,0 +1,80 @@
+<scroll-view 
+  scroll-y
+  class="liu-{{theme}} liu-scroll-view"
+  type="custom"
+  associative-container="pop-gesture"
+>
+  <virtual-navibar height1="{{height1}}" height2="{{height2}}"></virtual-navibar>
+
+  <view class="liu-main-container">
+
+    <!-- 1. PAID -->
+    <view wx:if="{{hasPaid}}" class="liu-main-box lp-paid-container">
+
+      <image src="../../images/shared/smiling_face_3d.png" 
+        class="lp-paid-image"
+      />
+      
+      <view class="lp-paid-title">
+        <text>{{t1.paid_hd}}</text>
+      </view>
+
+      <view class="lp-paid-tip">
+        <text>{{t1.paid_bd}}</text>
+      </view>
+
+      <view class="lp-paid-btn">
+        <custom-button catchtap="onTapBackAfterPaid">{{t1.back}}</custom-button>
+      </view>
+      
+    </view>
+
+    <!-- 2. UNPAID -->
+    <view wx:elif="{{key}}" class="liu-main-box lp-container">
+
+      <view class="lp-emoji">
+        <text wx:if="{{key === 'three-things'}}">👌</text>
+        <text wx:elif="{{key === 'old-school'}}">🧶</text>
+        <text wx:elif="{{key === 'add-calendar'}}">🗓️</text>
+      </view>
+
+      <view class="lp-title">
+        <text wx:if="{{key === 'three-things'}}">{{t1.three_things_hd}}</text>
+        <text wx:elif="{{key === 'old-school'}}">{{t1.old_school_hd}}</text>
+        <text wx:elif="{{key === 'add-calendar'}}">{{t1.mobile_calendar_hd}}</text>
+      </view>
+
+      <view class="lp-tip">
+        <text wx:if="{{key === 'three-things'}}">{{t1.three_things_bd}}</text>
+        <text wx:elif="{{key === 'old-school'}}">{{t1.old_school_bd}}</text>
+        <text wx:elif="{{key === 'add-calendar'}}">{{t1.mobile_calendar_bd}}</text>
+      </view>
+
+      <view class="lp-buy-btn">
+        <custom-button catchtap="onTapBuy">
+          <text wx:if="{{buyBtnText}}">{{buyBtnText}}</text>
+          <text wx:else>{{t1.btn_title}}</text>
+        </custom-button>
+      </view>
+      
+
+      <view class="lp-footer-box">
+        <view class="lp-hint">
+          <text>{{t1.hint}}</text>
+        </view>
+        <view class="lp-learn-more" hover-class="liu-hover-class" catchtap="onTapLearnMore">
+          <text>{{t1.learn_more}}</text>
+        </view>
+      </view>
+
+      
+    </view>
+
+  </view>
+</scroll-view>
+
+<custom-navibar 
+  height1="{{height1}}" height2="{{height2}}" 
+  visible="{{visible}}"
+  always-arrow-back
+></custom-navibar>

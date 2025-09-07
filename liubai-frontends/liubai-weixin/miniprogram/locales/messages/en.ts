@@ -23,7 +23,7 @@ export default {
     "confirm": "Confirm",
     "cancel": "Cancel",
     "got_it": "Got it",
-    "contact_us": "Contact us",
+    "contact_us": "Contact",
     "try_again_later": "Try again later",
     "cannot_use_1": "Function not open",
     "privacy_tip": "Privacy 🔏",

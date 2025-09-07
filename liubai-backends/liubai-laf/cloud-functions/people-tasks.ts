@@ -2,7 +2,7 @@
 // Function Name: people-tasks
 import cloud from "@lafjs/cloud"
 import { 
-  checker, getDocAddId, valTool, verifyToken, WxMiniHandler,
+  checker, checkIfUserSubscribed, getDocAddId, valTool, verifyToken, WxMiniHandler,
 } from "@/common-util"
 import { 
   type LiuRqReturn, 
@@ -63,8 +63,52 @@ export async function main(ctx: FunctionContext) {
   else if(oT === "update-task-time") {
     res = await update_task_time(body, vRes)
   }
+  else if(oT === "can-i-post-task") {
+    res = await can_i_post_task(body, vRes)
+  }
 
   return res
+}
+
+async function can_i_post_task(
+  body: Record<string, any>,
+  vRes: VerifyTokenRes_B,
+): Promise<LiuRqReturn<PeopleTasksAPI.Res_CanIPostTask>> {
+  // 1. define result
+  const data: PeopleTasksAPI.Res_CanIPostTask = {
+    operateType: "can-i-post-task",
+    status: "yes",
+  }
+
+  // 2. check out cache
+  const res2 = checkIfUserSubscribed(vRes.userData)
+  if(res2) {
+    return { code: "0000", data }
+  }
+
+  // 3. check out db
+  const userId = vRes.userData._id
+  const col = db.collection("User")
+  const res3 = await col.doc(userId).get<Table_User>()
+  const user = res3.data
+  if(!user) return { code: "E4004", errMsg: "no such user" }
+  const isPremium = checkIfUserSubscribed(user)
+  if(isPremium) {
+    return { code: "0000", data }
+  }
+
+  // 4. get active tasks
+  const body4 = {
+    operateType: "list-wx-tasks",
+    listType: "available",
+  }
+  const res4 = await list_wx_tasks(body4, vRes)
+  const tasks = res4.data?.tasks ?? []
+  console.log("tasks length: ", tasks.length)
+  if(tasks.length >= ppl_system_cfg.freemium_task_count) {
+    data.status = "no"
+  }
+  return { code: "0000", data }
 }
 
 async function update_task_time(
@@ -512,7 +556,8 @@ async function get_wx_task(
   }
   const id = body.id as string
   let chatInfo = body.chatInfo as WxMiniAPI.ChatInfo | undefined
-  const userId = vRes.userData._id
+  const user = vRes.userData
+  const userId = user._id
 
   // 2. get the task
   const wtCol = db.collection("WxTask")
@@ -559,7 +604,8 @@ async function get_wx_task(
   }
 
   // 4. package data
-  const data4 = packageResOfGetWxTask(data2, userId)
+  const session_key = user.thirdData?.wx_mini?.session_key
+  const data4 = packageResOfGetWxTask(data2, userId, session_key)
 
   return { code: "0000", data: data4 }
 }
@@ -724,6 +770,7 @@ async function checkTaskForSecurity(
 function packageResOfGetWxTask(
   v: Table_WxTask,
   myUserId: string,
+  session_key?: string,
 ) {
   const obj: PeopleTasksAPI.Res_GetWxTask = {
     operateType: "get-wx-task",
@@ -751,6 +798,15 @@ function packageResOfGetWxTask(
     
     note: v.note,
   }
+
+  if(session_key) {
+    const path = `pages/index/index?task=${v._id}`
+    const sign = WxMiniHandler.hmac_sha256(path, session_key)
+    obj.calendar_path = path
+    obj.calendar_signature = sign
+  }
+
+
   return obj
 }
 

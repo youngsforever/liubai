@@ -2686,6 +2686,11 @@ export class WxMiniHandler {
     this._accessToken = ""
   }
 
+  static hmac_sha256(str: string, key: string) {
+    const sign = crypto.createHmac("sha256", key).update(str).digest("hex")
+    return sign
+  }
+
   private static async toRequest<T = any>(
     link: string,
     data: any,

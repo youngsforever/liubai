@@ -154,5 +154,53 @@ export class Loginer {
     return { avatarUrl, nickname, memberId }
   }
 
+  private static _lastPaidStamp = 0
+
+  static justPaid(plan_id: string) {
+    this._lastPaidStamp = LiuTime.getTime()
+
+    // mock subscription
+    const loginData = this._loginData
+    if(!loginData) return false
+    let sub = loginData.subscription
+    if(!sub) {
+      sub = {
+        isOn: "Y",
+        plan: plan_id,
+        isLifelong: false,
+        createdStamp: LiuTime.getTime(),
+        firstChargedStamp: LiuTime.getTime(),
+      }
+    }
+    if(!sub.chargeTimes) {
+      sub.chargeTimes = 0
+    }
+    sub.chargeTimes++
+    if(!sub.expireStamp) {
+      sub.expireStamp = LiuTime.getTime()
+    }
+    // just add one day because we're just mocking
+    sub.expireStamp += LiuTime.DAY
+    loginData.subscription = sub
+    return true
+  }
+
+  static amIPremium() {
+    // 1. to avoid cache from cloud
+    const stamp1 = this._lastPaidStamp
+    if(LiuTime.isWithinMillis(stamp1, LiuTime.HOUR)) return true
+
+    // 2. check subscription locally
+    const sub = this._loginData?.subscription
+    if(!sub) return false
+    if(sub.isOn !== "Y") return false
+    if(sub.isLifelong) return true
+
+    // 3. check out expire stamp
+    const stamp2 = sub.expireStamp ?? 1
+    const now = LiuTime.getTime()
+    return stamp2 > now
+  }
+
 
 }

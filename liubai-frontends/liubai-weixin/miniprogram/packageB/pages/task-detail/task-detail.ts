@@ -19,14 +19,14 @@ import {
   toAddNote,
   whenTapNote,
   checkForUpdatingTitle,
+  whenTapDateTime,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import type {
   ConfirmTaskDateTime,
   HasNewTaskText,
-  JustCreateTask, 
-  OpenTaskDateTime, 
+  JustCreateTask,
   PleaseCreateTask,
 } from "~/packageB/types/types-tunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
@@ -44,6 +44,11 @@ import { checkNameExisted } from "../shared/some-funcs";
 import { defaultData } from "~/packageB/config/default-data";
 import type { PeopleTasksAPI } from "~/packageB/requests/req-types";
 import type { BindingStatus } from "./tools/types";
+import { 
+  invokeOnHide, 
+  invokeOnShow, 
+  toAddCalendarEvent,
+} from "./tools/handleCalendar";
 
 Component({
 
@@ -94,12 +99,17 @@ Component({
     },
 
     async onShow() {
+      invokeOnShow()
       const stamp1 = this.data._whenLoadStamp
       const justOnLoad = LiuTime.isWithinMillis(stamp1, 1500, true)
       if(justOnLoad) return
 
       await this.checkBindingStatusWhileShowing()
       await this.checkDetailWhileShowing()
+    },
+
+    onHide() {
+      invokeOnHide()
     },
 
     async checkDetailWhileShowing() {
@@ -398,17 +408,7 @@ Component({
       if(!detail || !_id) return
       if(!detail.isMine) return
       LiuApi.vibrateShort({ type: "light" })
-
-      const tunnelData: OpenTaskDateTime = {
-        id: _id,
-        whenStamp: detail.whenStamp,
-        remindMe: detail.remindMe,
-      }
-      LiuTunnel.setStuff("open-task-date-time", tunnelData)
-      LiuApi.navigateTo({ 
-        url: "/packageB/pages/task-date-time/task-date-time",
-        routeType: "wx://upwards",
-      })
+      whenTapDateTime(_id, detail)
     },
     
     onTapRemindMe() {
@@ -498,6 +498,13 @@ Component({
           _this.toCompleteTask(_id, idx)
         }
       })
+    },
+
+    onTapAddCalendar() {
+      const { detail } = this.data
+      if(!detail) return
+      LiuApi.vibrateShort({ type: "medium" })
+      toAddCalendarEvent(detail)
     },
 
     async toCompleteTask(
