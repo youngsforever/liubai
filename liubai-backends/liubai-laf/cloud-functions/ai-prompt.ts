@@ -293,7 +293,7 @@ export const aiBots: AiBot[] = [
     name: "智谱",
     character: "zhipu",
     provider: "zhipu",
-    model: "glm-4.1v-thinking-flashx",
+    model: "glm-4.5v",
     abilities: ["chat", "tool_use", "image_to_text", "reasoning"],
     alias: ["智谱AI", "智谱清言", "ChatGLM", "zp", "glm"],
     maxWindowTokenK: 16,
