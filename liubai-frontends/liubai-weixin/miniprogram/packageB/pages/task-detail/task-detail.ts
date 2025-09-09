@@ -20,6 +20,7 @@ import {
   whenTapNote,
   checkForUpdatingTitle,
   whenTapDateTime,
+  chooseReminder,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
@@ -414,17 +415,44 @@ Component({
     onTapRemindMe() {
       const detail = this.data.detail
       if(!detail?.remindStr) return
-      LiuApi.vibrateShort({ type: "light" })
-      
-      const bs = this.data.bindingStatus
-      console.log("bs: ", bs)
+      if(detail.isMine) {
+        this.whenCreatorTapRemindMe()
+      }
+      else {
+        this.whenOthersTapRemindMe()
+      }
+    },
 
+    async whenCreatorTapRemindMe() {
+      LiuApi.vibrateShort({ type: "medium" })
+
+      // 1. get to bind
+      const bs = this.data.bindingStatus
+      if(bs === "unfollowed" && this.data.qrCodePicUrl) {
+        this.setData({ openBindingPopup: true })
+        return
+      }
+
+      // 2. choose reminder
+      const { _id, detail} = this.data
+      if(!detail || !_id) return
+      const res2 = await chooseReminder(_id, detail)
+      if(!res2) return
+      const bind2: Record<string, any> = {}
+      bind2["detail.remindStr"] = res2.remindStr
+      bind2["detail.remindMe"] = res2.remindMe
+      this.setData(bind2)
+    },
+
+    whenOthersTapRemindMe() {
+      const bs = this.data.bindingStatus
       if(!bs) {
         this.handleBindingStatus()
         return
       }
 
       if(bs === "unfollowed") {
+        LiuApi.vibrateShort({ type: "medium" })
         if(this.data.qrCodePicUrl) {
           this.setData({ openBindingPopup: true })
         }
@@ -434,6 +462,18 @@ Component({
         return
       }
 
+      const assignees = this.data.detail?.assignees ?? []
+      const groupOpenid = this.data.chatInfo?.group_openid ?? ""
+      if(assignees.length > 0 && groupOpenid) {
+        const iAmInAssignees = assignees.includes(groupOpenid)
+        if(!iAmInAssignees) return
+      }
+
+      LiuApi.vibrateShort({ type: "light" })
+      this.showWeWillRemindYou()
+    },
+
+    showWeWillRemindYou() {
       LiuUtil.showCustomModal({
         title_key: "task-detail.remind_1",
         content_key: "task-detail.remind_2",

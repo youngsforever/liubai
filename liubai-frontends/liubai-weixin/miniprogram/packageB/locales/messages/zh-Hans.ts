@@ -103,6 +103,7 @@ export default {
     "bug_1": "友情提示🪧",
     "bug_2": "如果点击后没有反应，可能需要你在系统设置中打开完整的日历权限。",
     "added": "添加成功",
+
   },
   "ai-related": {
     "help_to_organize": "由 {name} 协助整理",
@@ -146,6 +147,7 @@ export default {
     "early_day": "提前 {day} 天提醒",
     "today": "今天",
     "tomorrow": "明天",
+    "reminder": "提醒",
   },
   "qrcode": {
     "title": "长按识别二维码",

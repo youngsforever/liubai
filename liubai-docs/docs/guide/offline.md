@@ -1,9 +1,9 @@
 # 离线可用
 
-> [!IMPORTANT]
-> 离线可用的前提是你已 [安装](./install/index) 留白记事。
+> [!IMPORTANT] 重要
+> 离线可用的前提是你已 [安装](./install/index) 留白记事 Web App。
 > 
-> 值得注意的是，我们的 IDE 插件是不支持离线使用的，因为它背后配置了 [AI 结构化处理](./ide/how-to-use-vscode-ext#quick-note)，使用场景不同。
+> 值得注意的是，我们的 [微信小程序](../article/2025/weixin-task) 和 [IDE 插件](./ide/index) 是不支持离线使用的，因为它背后配置了 [AI 结构化处理](./ide/how-to-use-vscode-ext#quick-note)，使用场景不同。
 
 留白记事是本地优先的，你可以在断网的环境下使用留白记事。
 

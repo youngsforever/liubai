@@ -149,6 +149,7 @@ export default {
     "early_day": "{day} day(s) early",
     "today": "Today",
     "tomorrow": "Tomorrow",
+    "reminder": "Reminder",
   },
   "qrcode": {
     "title": "Long Press to Scan",

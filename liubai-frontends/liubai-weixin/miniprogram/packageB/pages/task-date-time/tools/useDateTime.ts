@@ -1,14 +1,13 @@
 import { LiuTime } from "~/packageB/utils/LiuTime";
-import type { DateItem, RemindItem, SubmitData } from "./types";
+import type { DateItem, RemindItem } from "./types";
+import type { SubmitTaskDateTime } from "~/packageB/types/types-task";
 import valTool from "~/packageB/utils/val-tool";
 import { useI18n } from "~/packageB/locales/index";
 import type { ConfirmTaskDateTime, OpenTaskDateTime } from "~/packageB/types/types-tunnel";
 import type { LiuRemindMe } from "~/packageB/types/types-atom";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
 import { LiuApi } from "~/packageB/utils/LiuApi";
-import APIs from "~/packageB/requests/APIs";
-import { LiuReq } from "~/packageB/requests/LiuReq";
-import { LiuUtil } from "~/packageB/utils/liu-util/index";
+import { toFetchTaskDateTime } from "../../shared/some-funcs";
 
 export function generateDateList() {
 
@@ -160,7 +159,7 @@ export function getConfirmData(
   timeValue: number[],
   remindList: RemindItem[],
   remindValue: number[],
-): SubmitData | undefined {
+): SubmitTaskDateTime | undefined {
   const dateItem = dateList[dateValue[0]]
   const remindItem = remindList[remindValue[0]]
   if(!dateItem || !remindItem) return
@@ -188,7 +187,7 @@ export function getConfirmData(
 
 export async function toConfirm(
   id: string,
-  data: SubmitData,
+  data: SubmitTaskDateTime,
 ) {
   // 1. tunnel and navigate back
   const tunnelData: ConfirmTaskDateTime = { id }
@@ -196,17 +195,5 @@ export async function toConfirm(
   LiuApi.navigateBack()
 
   // 2. fetch
-  const w2 = {
-    operateType: "update-task-time",
-    id,
-    ...data,
-  }
-  const url2 = APIs.PPL_TASKS
-  const res2 = await LiuReq.request(url2, w2)
-  if(res2.code === "0000") {
-    LiuUtil.showCustomToast({
-      title_key: "task-detail.updated",
-      icon: "success",
-    })
-  }
+  toFetchTaskDateTime(id, data)
 }
