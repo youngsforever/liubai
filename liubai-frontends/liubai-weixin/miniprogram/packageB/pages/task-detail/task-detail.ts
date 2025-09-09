@@ -127,16 +127,7 @@ Component({
       const detail = this.data.detail
       const res2 = await LiuTunnel.takeStuff<HasNewTaskText>("has-new-task-text")
       if(res2 && _id === res2.id && detail) {
-        const bind2: Record<string, any> = {}
-        if(res2.updateType === "title") {
-          const oldTitle = detail.desc
-          checkForUpdatingTitle(_id, oldTitle)
-          bind2["detail.desc"] = res2.text
-        }
-        else if(res2.updateType === "note") {
-          bind2["detail.note"] = res2.text
-        }
-        this.setData(bind2)
+        this.thereIsNewTaskText(res2, detail)
         return
       }
 
@@ -146,6 +137,29 @@ Component({
       }
 
       await this.getTaskDetail(false)
+    },
+
+    async thereIsNewTaskText(
+      res2: HasNewTaskText,
+      detail: TaskDetail,
+    ) {
+      const updateType = res2.updateType
+      const oldTitle = detail.desc
+      const bind2: Record<string, any> = {}
+      if(updateType === "title") {
+        bind2["detail.desc"] = res2.text
+      }
+      else if(updateType === "note") {
+        bind2["detail.note"] = res2.text
+      }
+      this.setData(bind2)
+
+      if(updateType === "title") {
+        const res2_2 = await checkForUpdatingTitle(res2.id, oldTitle)
+        if(!res2_2) return
+        await valTool.waitMilli(4500)
+        this.getTaskDetail(false)
+      }
     },
 
     async checkBindingStatusWhileShowing() {

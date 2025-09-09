@@ -315,14 +315,14 @@ export async function checkForUpdatingTitle(
   const chatInfo = TaskManager.getChatInfo()
   if(!chatInfo) {
     console.warn("no chatInfo in checkForUpdatingTitle")
-    return
+    return false
   }
 
   // 2. fetch
   const res1 = await fetchTaskDetail(id, chatInfo)
   const code1 = res1.code
   const data1 = res1.data
-  if(code1 !== "0000" || !data1) return
+  if(code1 !== "0000" || !data1) return false
 
   // 3. check out desc (title)
   const newTitle = data1.desc
@@ -330,7 +330,7 @@ export async function checkForUpdatingTitle(
     console.warn("it's weird that the title is not updated")
     console.log("newTitle: ", newTitle)
     console.log("oldTitle: ", oldTitle)
-    return
+    return true
   }
 
   // 4. show modal
@@ -345,6 +345,7 @@ export async function checkForUpdatingTitle(
       toForward(id, title3)
     }
   })
+  return true
 }
 
 export async function jumpToUpdateTitle(

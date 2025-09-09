@@ -110,7 +110,7 @@ export function navibarBehavior() {
 
         }
         else {
-          console.log(height2, mbTop, mbHeight)
+          // console.log(height2, mbTop, mbHeight)
           height2 = mbTop + mbHeight
           height2 = Math.max(height1, height2)
           if (mbTop <= 12) height2 += mbTop
