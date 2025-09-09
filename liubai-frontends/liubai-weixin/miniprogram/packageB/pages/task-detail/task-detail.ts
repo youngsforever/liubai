@@ -20,6 +20,7 @@ import {
   whenTapNote,
   checkForUpdatingTitle,
   whenTapDateTime,
+  chooseReminder,
 } from "./tools/useTaskDetail";
 import { getMoreBtnList, handleBtnList } from "./tools/handleBtnList";
 import { LiuTunnel } from "~/packageB/utils/LiuTunnel";
@@ -126,16 +127,7 @@ Component({
       const detail = this.data.detail
       const res2 = await LiuTunnel.takeStuff<HasNewTaskText>("has-new-task-text")
       if(res2 && _id === res2.id && detail) {
-        const bind2: Record<string, any> = {}
-        if(res2.updateType === "title") {
-          const oldTitle = detail.desc
-          checkForUpdatingTitle(_id, oldTitle)
-          bind2["detail.desc"] = res2.text
-        }
-        else if(res2.updateType === "note") {
-          bind2["detail.note"] = res2.text
-        }
-        this.setData(bind2)
+        this.thereIsNewTaskText(res2, detail)
         return
       }
 
@@ -145,6 +137,29 @@ Component({
       }
 
       await this.getTaskDetail(false)
+    },
+
+    async thereIsNewTaskText(
+      res2: HasNewTaskText,
+      detail: TaskDetail,
+    ) {
+      const updateType = res2.updateType
+      const oldTitle = detail.desc
+      const bind2: Record<string, any> = {}
+      if(updateType === "title") {
+        bind2["detail.desc"] = res2.text
+      }
+      else if(updateType === "note") {
+        bind2["detail.note"] = res2.text
+      }
+      this.setData(bind2)
+
+      if(updateType === "title") {
+        const res2_2 = await checkForUpdatingTitle(res2.id, oldTitle)
+        if(!res2_2) return
+        await valTool.waitMilli(4500)
+        this.getTaskDetail(false)
+      }
     },
 
     async checkBindingStatusWhileShowing() {
@@ -414,17 +429,44 @@ Component({
     onTapRemindMe() {
       const detail = this.data.detail
       if(!detail?.remindStr) return
-      LiuApi.vibrateShort({ type: "light" })
-      
-      const bs = this.data.bindingStatus
-      console.log("bs: ", bs)
+      if(detail.isMine) {
+        this.whenCreatorTapRemindMe()
+      }
+      else {
+        this.whenOthersTapRemindMe()
+      }
+    },
 
+    async whenCreatorTapRemindMe() {
+      LiuApi.vibrateShort({ type: "medium" })
+
+      // 1. get to bind
+      const bs = this.data.bindingStatus
+      if(bs === "unfollowed" && this.data.qrCodePicUrl) {
+        this.setData({ openBindingPopup: true })
+        return
+      }
+
+      // 2. choose reminder
+      const { _id, detail} = this.data
+      if(!detail || !_id) return
+      const res2 = await chooseReminder(_id, detail)
+      if(!res2) return
+      const bind2: Record<string, any> = {}
+      bind2["detail.remindStr"] = res2.remindStr
+      bind2["detail.remindMe"] = res2.remindMe
+      this.setData(bind2)
+    },
+
+    whenOthersTapRemindMe() {
+      const bs = this.data.bindingStatus
       if(!bs) {
         this.handleBindingStatus()
         return
       }
 
       if(bs === "unfollowed") {
+        LiuApi.vibrateShort({ type: "medium" })
         if(this.data.qrCodePicUrl) {
           this.setData({ openBindingPopup: true })
         }
@@ -434,6 +476,18 @@ Component({
         return
       }
 
+      const assignees = this.data.detail?.assignees ?? []
+      const groupOpenid = this.data.chatInfo?.group_openid ?? ""
+      if(assignees.length > 0 && groupOpenid) {
+        const iAmInAssignees = assignees.includes(groupOpenid)
+        if(!iAmInAssignees) return
+      }
+
+      LiuApi.vibrateShort({ type: "light" })
+      this.showWeWillRemindYou()
+    },
+
+    showWeWillRemindYou() {
       LiuUtil.showCustomModal({
         title_key: "task-detail.remind_1",
         content_key: "task-detail.remind_2",

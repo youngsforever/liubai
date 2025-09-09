@@ -4,6 +4,8 @@ import type { TaskDetail } from "./types"
 import { LiuUtil } from "~/packageB/utils/liu-util/index"
 import type { LiuTimeout } from "~/packageB/utils/basic/type-tool"
 import { Loginer } from "~/packageB/utils/login/Loginer"
+import { defaultData } from "~/packageB/config/default-data"
+import { ShowTip } from "~/packageB/utils/managers/ShowTip"
 
 let lastShowHideToggleStamp = 0
 
@@ -27,8 +29,6 @@ export function toAddCalendarEvent(
   const startTime = Math.floor(whenStamp / 1000)
   const earlyMinute = detail.remindMe?.early_minute
   const alarmOffset = earlyMinute ? earlyMinute * 60 : 0
-  console.log("path: ", detail.calendar_path)
-  console.log("signature: ", detail.calendar_signature)
 
   // 1.2 check out premium
   const isPremium = Loginer.amIPremium()
@@ -39,9 +39,11 @@ export function toAddCalendarEvent(
     return
   }
 
-  // 2. set timeout to prompt for system bug
-  const delay2 = 1750
+  // 2. show loading & set timeout to prompt for system bug
+  LiuUtil.showCustomLoading({ title_key: "shared.hold_on" })
+  const delay2 = 2000
   let timeout2: LiuTimeout = setTimeout(() => {
+    LiuApi.hideLoading()
     timeout2 = undefined
     const isJustHidden = LiuTime.isWithinMillis(
       lastShowHideToggleStamp, 
@@ -62,20 +64,35 @@ export function toAddCalendarEvent(
   }, delay2)
   const _removeTimeout = () => {
     if(timeout2) {
+      LiuApi.hideLoading()
       clearTimeout(timeout2)
       timeout2 = undefined
     }
   }
+  
+  // 3. clear path & signature for dev
+  let path = detail.calendar_path
+  let signature = detail.calendar_signature
+  try {
+    const accountInfo = LiuApi.getAccountInfoSync()
+    if(accountInfo?.miniProgram?.appId === defaultData.dev_appid) {
+      path = undefined
+      signature = undefined
+    }
+  }
+  catch(err) {
+    console.warn("get account info failed: ", err)
+  }
+  
 
-
-  // 3. to call API
+  // 4. to call API
   LiuApi.addPhoneCalendar({
     title,
     startTime,
     description,
     alarmOffset,
-    path: detail.calendar_path,
-    signature: detail.calendar_signature,
+    path,
+    signature,
     success(res) {
       console.log("addPhoneCalendar success: ", res)
       _removeTimeout()
@@ -87,8 +104,12 @@ export function toAddCalendarEvent(
     fail(err) {
       console.warn("addPhoneCalendar fail: ", err)
       _removeTimeout()
-      if(err && err.errMsg.includes("auth deny")) {
+      const errMsg = err?.errMsg
+      if(typeof errMsg === "string" && errMsg.includes("auth deny")) {
         needAuthForCalendar()
+      }
+      else {
+        ShowTip.showErrMsg("添加日历失败", err)
       }
     },
   })

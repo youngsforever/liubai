@@ -70,7 +70,7 @@ export function navibarBehavior() {
         const safeArea = sizeInfo?.safeArea
         const safeTop = safeArea?.top ?? 0
         const mbTop = menuButtonInfo?.top ?? 0
-        const mbHeight = menuButtonInfo.height ?? 0
+        const mbHeight = menuButtonInfo?.height ?? 0
         let height1 = Math.max(safeTop, mbTop)
         let height2 = mbHeight
         let height3 = pageInfo?.height ?? defaultHeight3
@@ -110,7 +110,7 @@ export function navibarBehavior() {
 
         }
         else {
-          console.log(height2, mbTop, mbHeight)
+          // console.log(height2, mbTop, mbHeight)
           height2 = mbTop + mbHeight
           height2 = Math.max(height1, height2)
           if (mbTop <= 12) height2 += mbTop

@@ -146,6 +146,7 @@ export default {
     "early_day": "提前 {day} 天提醒",
     "today": "今天",
     "tomorrow": "明天",
+    "reminder": "提醒",
   },
   "qrcode": {
     "title": "长按识别二维码",

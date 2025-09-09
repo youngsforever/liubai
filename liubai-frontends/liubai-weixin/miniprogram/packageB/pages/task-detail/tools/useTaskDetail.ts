@@ -19,6 +19,8 @@ import type { OpenTaskDateTime, UpdateTaskText } from "~/packageB/types/types-tu
 import { LiuTime } from "~/packageB/utils/LiuTime";
 import { TaskManager } from "../../shared/TaskManager";
 import type { LiuRemindMe } from "~/packageB/types/types-atom";
+import type { SubmitTaskDateTime } from "~/packageB/types/types-task";
+import { toFetchTaskDateTime } from "../../shared/some-funcs";
 
 export async function fetchTaskDetail(
   id: string,
@@ -313,14 +315,14 @@ export async function checkForUpdatingTitle(
   const chatInfo = TaskManager.getChatInfo()
   if(!chatInfo) {
     console.warn("no chatInfo in checkForUpdatingTitle")
-    return
+    return false
   }
 
   // 2. fetch
   const res1 = await fetchTaskDetail(id, chatInfo)
   const code1 = res1.code
   const data1 = res1.data
-  if(code1 !== "0000" || !data1) return
+  if(code1 !== "0000" || !data1) return false
 
   // 3. check out desc (title)
   const newTitle = data1.desc
@@ -328,7 +330,7 @@ export async function checkForUpdatingTitle(
     console.warn("it's weird that the title is not updated")
     console.log("newTitle: ", newTitle)
     console.log("oldTitle: ", oldTitle)
-    return
+    return true
   }
 
   // 4. show modal
@@ -343,6 +345,7 @@ export async function checkForUpdatingTitle(
       toForward(id, title3)
     }
   })
+  return true
 }
 
 export async function jumpToUpdateTitle(
@@ -491,4 +494,56 @@ export function whenTapDateTime(
     url: "/packageB/pages/task-date-time/task-date-time",
     routeType: "wx://upwards",
   })
+}
+
+export async function chooseReminder(
+  id: string,
+  detail: TaskDetail,
+) {
+  // 1. show action sheet
+  const item_key_list = [
+    "remind-early.min_0", 
+    "remind-early.min_10", 
+    "remind-early.min_30", 
+    "remind-early.min_60", 
+    "remind-early.min_120", 
+    "remind-early.min_1440",
+  ]
+  const minutes = [0, 10, 30, 60, 120, 1440]
+  let idx1 = -1
+  try {
+    const res1 = await LiuUtil.showCustomActionSheet({
+      alert_text_key: "date.reminder",
+      item_key_list,
+    })
+    LiuApi.vibrateShort({ type: "medium" })
+    idx1 = res1.tapIndex
+  }
+  catch(err) {}
+  if(idx1 < 0) return
+
+  // 2. calculate new reminder
+  const min = minutes[idx1]
+  if(min === detail.remindMe?.early_minute) return
+  const whenStamp = detail.whenStamp
+  if(!whenStamp) return
+  const newRemindMe: LiuRemindMe = {
+    type: "early",
+    early_minute: min,
+  }
+  const newRemindStamp = whenStamp - (min * LiuTime.MINUTE)
+  const newRemindStr = DateUtil.getRemindMeStrAfterPost(newRemindStamp, newRemindMe)
+
+  // 3. fetch
+  const submitData: SubmitTaskDateTime = {
+    whenStamp,
+    remindStamp: newRemindStamp,
+    remindMe: newRemindMe,
+  }
+  toFetchTaskDateTime(id, submitData)
+
+  return {
+    remindStr: newRemindStr,
+    remindMe: newRemindMe,
+  }
 }
