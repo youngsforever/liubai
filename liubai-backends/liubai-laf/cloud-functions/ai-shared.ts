@@ -99,13 +99,18 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen-plus-2025-04-28",
+    model: "qwen-plus-2025-09-11",
     character: "tongyi-qwen",
     stream: true,
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen-plus-2025-01-25",
+    model: "qwen-plus-2025-07-28",
+    character: "tongyi-qwen",
+  },
+  {
+    computingProvider: "aliyun-bailian",
+    model: "qwen3-next-80b-a3b-instruct",
     character: "tongyi-qwen",
   },
   {
@@ -120,24 +125,6 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
     character: "tongyi-qwen",
     stream: true,
   },
-  {
-    computingProvider: "aliyun-bailian",
-    model: "qwen-turbo",
-    character: "tongyi-qwen",
-    stream: true,
-  },
-  {
-    computingProvider: "aliyun-bailian",
-    model: "qwen-turbo-latest",
-    character: "tongyi-qwen",
-    stream: true,
-  },
-  {
-    computingProvider: "aliyun-bailian",
-    model: "qwen-turbo-2025-04-28",
-    character: "tongyi-qwen",
-    stream: true,
-  }
 ]
 
 // export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [

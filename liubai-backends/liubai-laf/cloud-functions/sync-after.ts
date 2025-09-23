@@ -43,12 +43,12 @@ const AI_CLUSTER_FREE = 10
 const fastAiWorkers: LiuAi.AiWorker[] = [
   {
     "computingProvider": "aliyun-bailian",
-    "model": "qwen-max",
+    "model": "qwen3-max-preview",
     "character": "tongyi-qwen",
   },
   {
     "computingProvider": "aliyun-bailian",
-    "model": "qwen-max-latest",
+    "model": "qwen-plus-2025-09-11",
     "character": "tongyi-qwen",
   },
   {
