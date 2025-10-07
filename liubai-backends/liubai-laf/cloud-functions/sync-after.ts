@@ -73,7 +73,7 @@ const fastAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     "computingProvider": "zhipu",
-    "model": "glm-4.5",
+    "model": "glm-4.6",
     "character": "zhipu",
   },
   {
@@ -108,7 +108,7 @@ const fastAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     "computingProvider": "siliconflow",
-    "model": "zai-org/GLM-4.5",
+    "model": "zai-org/GLM-4.6",
     "character": "zhipu",
   }
 ]
@@ -714,7 +714,7 @@ class ClusterHelper {
       prompts.push(prompt_32 as OaiPrompt) 
     }
     // 3.2 close thinking for zhipu
-    if(provider === "zhipu" && aiWorker.model.startsWith("glm-4.5")) {
+    if(provider === "zhipu" && aiWorker.model.startsWith("glm-")) {
       //@ts-expect-error thinking
       param3.thinking = { type: "disabled" }
     }

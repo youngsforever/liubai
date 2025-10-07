@@ -125,6 +125,12 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
     character: "tongyi-qwen",
     stream: true,
   },
+  {
+    computingProvider: "zhipu",
+    model: "glm-4.6",
+    character: "zhipu",
+    stream: true,
+  }
 ]
 
 // export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
@@ -143,11 +149,6 @@ export const img2TxtWorkers: LiuAi.AiWorker[] = [
     character: "yuewen",
   },
   {
-    computingProvider: "zhipu",
-    model: "glm-4v-plus-0111",
-    character: "zhipu",
-  },
-  {
     computingProvider: "minimax",
     model: "MiniMax-Text-01",
     character: "hailuo",
@@ -162,12 +163,12 @@ export const img2TxtWorkers: LiuAi.AiWorker[] = [
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen-vl-max-latest",
+    model: "qwen3-vl-plus-2025-09-23",
     character: "tongyi-qwen",
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen-vl-max-2025-01-25",
+    model: "qwen-vl-max-2025-08-13",
     character: "tongyi-qwen",
   },
 
