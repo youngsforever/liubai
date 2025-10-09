@@ -53,7 +53,8 @@ async function toLogin(
   // 2.3 get `goto` of query
   const goto = onceData.goto
 
-  console.log("去登录当前用户 userId: ", userId)
+  console.log(`the current userId: ${userId}`)
+  console.log(`see goto: ${goto}`)
 
   // 2.4 timer starts
   const t1 = performance.now()
