@@ -667,7 +667,7 @@ class AiDirective {
     "我要", "我要", "I want", "i want",
     "添加", "新增", "Add", "add",
     "呼叫", "Call", "call",
-    "@",
+    "@", "呼唤", "呼喚"
   ]
 
   private static isBotNotAvailable(text: string) {

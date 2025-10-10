@@ -1,7 +1,7 @@
 {
   "name": "liubai-docs",
   "private": true,
-  "version": "0.21.3",
+  "version": "0.24.0",
   "type": "module",
   "description": "It's the docs center for Liubai",
   "author": {
@@ -20,10 +20,10 @@
   "devDependencies": {
     "@types/node": "^22.13.14",
     "vitepress": "^1.6.4",
-    "vitepress-plugin-llms": "^1.7.3"
+    "vitepress-plugin-llms": "^1.8.0"
   },
   "dependencies": {
     "howxm-js": "^0.0.10",
-    "vue": "^3.5.21"
+    "vue": "^3.5.22"
   }
 }
