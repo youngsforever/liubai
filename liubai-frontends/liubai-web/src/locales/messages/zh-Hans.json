@@ -618,7 +618,7 @@
     "dingtalk_webhook_url": "Webhook 地址",
     "dingtalk_webhook_err": "这似乎不是钉钉的 Webhook 地址。请输入 https://connector.dingtalk.com/... 开头的链接。",
     "vika": "维格云",
-    "vika_desc": "把你的记事连接到维格云上i",
+    "vika_desc": "把你的记事连接到维格云上",
     "vika_backup": "备份到维格云",
     "vika_backup_desc": "开通后，你的留白记事能备份到维格云上",
     "vika_apitoken_err": "这似乎不是维格云的 api token",
