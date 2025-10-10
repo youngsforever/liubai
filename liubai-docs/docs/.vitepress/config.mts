@@ -124,6 +124,7 @@ export default defineConfig({
           items: [
             { text: "WPS", link: "/guide/connect/wps" },
             { text: "钉钉", link: "/guide/connect/dingtalk" },
+            { text: "飞书", link: "/guide/connect/feishu" },
             { text: "维格云", link: "/guide/connect/vika" },
           ]
         },
