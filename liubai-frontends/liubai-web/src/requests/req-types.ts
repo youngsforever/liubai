@@ -311,6 +311,14 @@ export interface Res_OC_GetDingTalk {
   webhook_url?: string
 }
 
+export interface Res_OC_GetFeishu {
+  operateType: "get-feishu"
+  enable?: BaseIsOn
+  personal_base_token?: string
+  base_id?: string
+  table_id?: string
+}
+
 export interface Res_OC_GetVika {
   operateType: "get-vika"
   enable?: BaseIsOn

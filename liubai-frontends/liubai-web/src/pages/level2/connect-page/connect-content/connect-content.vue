@@ -29,16 +29,34 @@ const {
     desc-key="connect.dingtalk_desc" icon-url="/images/third-party/dingtalk.svg"
   ></ConnectItem>
 
+  <!-- feishu -->
+  <ConnectItem v-if="_env.C_FEISHU" 
+    :prefix="prefix" connector-id="feishu" title-key="connect.feishu"
+    desc-key="connect.feishu_desc" icon-url="/images/third-party/feishu.png"
+  ></ConnectItem>
+
   <!-- vika -->
   <ConnectItem v-if="_env.C_VIKA" 
     :prefix="prefix" connector-id="vika" title-key="connect.vika"
     desc-key="connect.vika_desc" icon-url="/images/third-party/vika.svg"
   ></ConnectItem>
 
-  <!-- TODO: feishu -->
-  <ConnectItem v-if="_env.C_FEISHU" 
-    :prefix="prefix" connector-id="feishu" title-key="connect.feishu"
-    desc-key="connect.feishu_desc" icon-url="/images/third-party/feishu.png"
+  <!-- TODO: telegram -->
+  <ConnectItem v-if="_env.C_TELEGRAM" 
+    :prefix="prefix" connector-id="telegram" title-key="connect.telegram"
+    desc-key="connect.telegram_desc" icon-url="/images/third-party/telegram.svg"
+  ></ConnectItem>
+
+  <!-- whatsapp -->
+  <ConnectItem v-if="_env.C_WHATSAPP" 
+    :prefix="prefix" connector-id="whatsapp" title-key="connect.whatsapp"
+    desc-key="connect.whatsapp_desc" icon-url="/images/third-party/whatsapp.svg"
+  ></ConnectItem>
+
+  <!-- line -->
+  <ConnectItem v-if="_env.C_LINE" 
+    :prefix="prefix" connector-id="line" title-key="connect.line"
+    desc-key="connect.line_desc" icon-url="/images/third-party/line.svg"
   ></ConnectItem>
 
   <!-- teams -->

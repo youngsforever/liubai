@@ -90,7 +90,6 @@ export function useLoginPage() {
   // 3. listen to `goto` query
   initGoTo(rr)
 
-
   // 等待 init 返回结果，并作简单的防抖节流
   const _waitInitLogin = async () => {
     if(hasTap) return false
