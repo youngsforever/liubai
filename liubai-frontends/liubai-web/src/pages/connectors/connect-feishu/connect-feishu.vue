@@ -54,6 +54,10 @@ const {
           :placeholder="t('connect.feishu_personalBaseToken_ph')"
           @input="onBackupInput"
           maxlength="72"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="off"
+          autocorrect="off"
         />
 
         <!-- Base ID -->
@@ -66,6 +70,10 @@ const {
           :placeholder="t('connect.feishu_base_id_ph')"
           @input="onBackupInput"
           maxlength="48"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="off"
+          autocorrect="off"
         />
 
         <!-- Table ID -->
@@ -78,6 +86,10 @@ const {
           :placeholder="t('connect.feishu_table_id_ph')"
           @input="onBackupInput"
           maxlength="48"
+          autocomplete="off"
+          spellcheck="false"
+          autocapitalize="off"
+          autocorrect="off"
         />
 
         <!-- buttons -->
