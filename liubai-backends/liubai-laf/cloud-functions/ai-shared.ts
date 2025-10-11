@@ -625,8 +625,9 @@ export class AiShared {
 
   static getAvailableBots() {
     const bots: AiBot[] = []
-    for(let i=0; i<aiBots.length; i++) {
-      const bot = aiBots[i]
+    const tmpBots = [...aiBots].sort((a, b) => b.priority - a.priority)
+    for(let i=0; i<tmpBots.length; i++) {
+      const bot = tmpBots[i]
       const existedBot = bots.find(v => v.character === bot.character)
       if(existedBot) continue
       const apiData = AiShared.getApiEndpointFromBot(bot)
@@ -663,7 +664,8 @@ export class AiShared {
   static getCharacterName(character?: AiCharacter) {
     if(!character) return
     let name = ""
-    const bot = aiBots.find(v => v.character === character)
+    const availableBots = AiShared.getAvailableBots()
+    const bot = availableBots.find(v => v.character === character)
     if(bot) name = bot.name
     return name
   }

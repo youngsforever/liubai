@@ -83,12 +83,12 @@ export const aiBots: AiBot[] = [
     }
   },
   {
-    name: "DeepSeek R1",
+    name: "DeepSeek V3.2 思考模式",
     character: "ds-reasoner",
     provider: "deepseek",
     model: "deepseek-reasoner",
-    abilities: ["chat", "reasoning", "tool_use"],
-    alias: ["R1", "r1", "ds r1", "deep seek r1"],
+    abilities: ["chat", "reasoning"],
+    alias: ["R1", "r1", "ds r1", "deep seek r1", "DeepSeek 推理者", "DeepSeek推理者"],
     maxWindowTokenK: 64,
     priority: 45,
     metaData: {
@@ -131,12 +131,12 @@ export const aiBots: AiBot[] = [
     maxWindowTokenK: 64,
   },
   {
-    name: "DeepSeek V3",
+    name: "DeepSeek V3.2",
     character: "deepseek",
     provider: "deepseek",
     model: "deepseek-chat",
     abilities: ["chat", "tool_use"],
-    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek"],
+    alias: ["深度求索", "ds", "v3", "deepseek", "deep seek", "v3.2"],
     priority: 70,
     maxWindowTokenK: 64,
   },
@@ -456,7 +456,7 @@ ${system_last_request}
 `
 
 const wx_ds_reasoner_system_1 = `
-你叫 DeepSeek R1，是由深度求索公司开发的人工智能助手。
+你是 DeepSeek V3.2-exp 思考模式，是由深度求索公司开发的人工智能助手。
 你当前在留白记事微信公众号内与人们交流！
 
 【当前环境】
@@ -473,7 +473,7 @@ const wx_ds_reasoner_system_1 = `
 `
 
 const wx_ds_reasoner_system_2 = `
-你叫 DeepSeek R1，是由深度求索公司开发的人工智能助手。
+你是 DeepSeek V3.2-exp 思考模式，由深度求索公司开发的人工智能助手。
 你当前在留白记事微信公众号内与人们交流！
 
 【当前环境】
