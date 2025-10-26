@@ -1093,6 +1093,7 @@ export class AiShared {
     if(url.includes("api.qnaigc.com")) return "qiniu"
     if(url.includes("api.lkeap.cloud.tencent.com")) return "tencent-lkeap"
     if(url.includes("api.suanli.cn")) return "suanleme"
+    if(url.includes("ling.tbox.cn")) return "antgroup"
     
   }
 
