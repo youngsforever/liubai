@@ -1754,7 +1754,6 @@ class BotBailing extends BaseBot {
       model,
       tools,
     }
-    console.log("看一下 bailing 的 prompts: ", prompts)
     const chatCompletion = await this.chat(chatParam, bot)
     
     // 6. post run
