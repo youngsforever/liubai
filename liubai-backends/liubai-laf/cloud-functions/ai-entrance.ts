@@ -93,7 +93,7 @@ const SEC_15 = SECOND * 15
 const MIN_3 = MINUTE * 3
 const HOUR_12 = HOUR * 12
 const INDEX_TO_PRESERVE_IMAGES = 12     // the images which appears in the first INDEX_TO_PRESERVE_IMAGES will be preserved rather than compressed to text like [image]
-const MAX_WORDS_TTS = 180
+const MAX_WORDS_TTS = 160
 
 /************************** types ************************/
 
@@ -1484,7 +1484,7 @@ class BaseBot {
 
     // 4. handle audio
     const isAudioCharacter = ai_cfg.speaking_characters.includes(character)
-    if(isAudioCharacter && !showCoT && text.length <= MAX_WORDS_TTS) {
+    if(isAudioCharacter && text.length <= MAX_WORDS_TTS) {
       await this._replyWithAudio(param)
       return
     }

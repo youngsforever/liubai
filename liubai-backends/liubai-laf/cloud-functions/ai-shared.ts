@@ -3092,7 +3092,7 @@ export class TextToSpeech {
       "Content-Type": "application/json",
     }
     const body = {
-      model: "speech-02-hd",
+      model: "speech-2.6-hd",
       text,
       stream: false,
       voice_setting: {
