@@ -82,10 +82,7 @@ const _ = db.command
 
 // characters which take a rest will not be filled whle users launch a new chat
 export const MAX_CHARACTERS = 3
-export const charactersTakingARest: AiCharacter[] = [
-  "ds-reasoner",
-  "deepseek",
-]
+export const charactersTakingARest: AiCharacter[] = []
 
 type BaseChatResolver = (res: OaiChatCompletion | undefined) => void
 type BufferResolver = (res: Buffer | undefined) => void
