@@ -3138,13 +3138,14 @@ export class TextToSpeech {
 
     // 2. get voice
     const voicePreference = this._room?.voicePreference ?? ai_cfg.default_voice
-    // 深沉男音 vs. 爽快姐姐
-    const voice = voicePreference === "male" ? "shenchennanyin" : "shuangkuaijiejie"
+    // 爽快男声 vs. 活力女声
+    // @reference: https://platform.stepfun.com/docs/guide/tts
+    const voice = voicePreference === "male" ? "shuangkuainansheng" : "huolinvsheng"
     
     // 3. to request
     const client = new OpenAI({ apiKey, baseURL: baseUrl })
     const body = {
-      model: "step-tts-mini",
+      model: "step-tts-vivid",
       input: text,
       voice,
       extra_body: {
