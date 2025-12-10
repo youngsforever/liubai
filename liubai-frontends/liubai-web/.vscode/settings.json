@@ -4,5 +4,6 @@
   ],
   "i18n-ally.keystyle": "nested",
   "material-icon-theme.activeIconPack": "vue",
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.experimental.useTsgo": true
 }
