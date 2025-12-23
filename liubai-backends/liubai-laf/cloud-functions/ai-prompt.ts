@@ -172,9 +172,9 @@ export const aiBots: AiBot[] = [
     name: "海螺",
     character: "hailuo",
     provider: "minimax",
-    model: "MiniMax-M2",
+    model: "MiniMax-M2.1",
     abilities: ["chat", "tool_use", "reasoning"],
-    alias: ["海螺AI", "minimax", "M2", "minimax-m2"],
+    alias: ["海螺AI", "minimax", "M2", "M2.1", "minimax-m2", "minimax-m2.1"],
     maxWindowTokenK: 200,
     priority: 10,
     metaData: {
