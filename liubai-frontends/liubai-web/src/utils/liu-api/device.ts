@@ -58,8 +58,30 @@ const copyToClipboard = (text: string) => {
   return new Promise(_t)
 }
 
+// Simulate vibration on iOS
+// @reference: https://github.com/tijnjh/ios-haptics/blob/main/src/index.ts
+const _vibrateFallback = () => {
+  const labelEl = document.createElement("label");
+  labelEl.ariaHidden = "true";
+  labelEl.style.display = "none";
+
+  const inputEl = document.createElement("input");
+  inputEl.type = "checkbox";
+  inputEl.setAttribute("switch", "");
+  labelEl.appendChild(inputEl);
+
+  document.head.appendChild(labelEl);
+  labelEl.click();
+  setTimeout(() => {
+    labelEl.remove();
+    inputEl.remove();
+  }, 500);
+}
+
+
 const vibrate = (pattern: VibratePattern) => {
   if(!navigator || !('vibrate' in navigator)) {
+    _vibrateFallback()
     return false
   }
 

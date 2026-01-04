@@ -3,9 +3,17 @@ import type { ThreadShow } from "~/types/types-content"
 import valTool from "~/utils/basic/val-tool"
 import threadOperate from "~/hooks/thread/thread-operate"
 import { preHandle } from "../../utils/preHandle"
+import liuApi from "~/utils/liu-api"
 
 // 1. 开始执行，去获取前置数据
 export async function handleCollect(ctx: PreCtx) {
+  // 1.1 iOS 必须在“触摸手势”同步周期内，触发振动
+  const cha = liuApi.getCharacteristic()
+  if(cha.isIOS || cha.isIPadOS) {
+    liuApi.vibrate([50])
+  }
+
+  // 1.2 原先的逻辑
   const { thread } = ctx
   const data = await preHandle(ctx)
   if(!data) return
