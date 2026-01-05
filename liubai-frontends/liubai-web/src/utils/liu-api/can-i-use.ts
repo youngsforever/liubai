@@ -93,7 +93,6 @@ async function hasInstalledPWA(): Promise<LiuYorN> {
 
   const { isSafari } = getCharacteristic()
   if(isSafari) {
-    if(res1) return "Y"
     return "N"
   }
 
@@ -156,6 +155,46 @@ function fileSystemAccessAPI() {
 }
 
 
+function webPush() {
+  const res1 = "Notification" in window
+  if(!res1) {
+    return false
+  }
+  if(typeof Notification.requestPermission !== "function") {
+    return false
+  }
+
+  const cha = getCharacteristic()
+  const browserVersion = cha.browserVersion
+  if(!browserVersion) return false
+
+  // for iOS and iPadOS
+  if(cha.isIOS || cha.isIPadOS) {
+    // see: https://developer.apple.com/videos/play/wwdc2025/235/
+    const isBiggerThan18_4 = valTool.compareVersion(browserVersion, "18.4")
+    if(isBiggerThan18_4 >= 0 && isRunningStandalone()) {
+      return true
+    }
+    return false
+  }
+
+  // for macOS
+  if(cha.isMac) {
+    // see: https://developer.apple.com/videos/play/wwdc2025/235/
+    const isBiggerThan15_0 = valTool.compareVersion(browserVersion, "15.0")
+    return isBiggerThan15_0 >= 0
+  }
+
+  // 是否在 super app 里头
+  if(cha.isInWebView) {
+    return false
+  }
+
+  const hasServiceWorker = "serviceWorker" in navigator
+  return hasServiceWorker
+}
+
+
 export default {
   fileSystemAccessAPI,
   isSafeBrowser,
@@ -167,4 +206,5 @@ export default {
   isRunningStandalone,
   hasInstalledPWA,
   canAddToHomeScreenInSafari,
+  webPush,
 }

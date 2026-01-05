@@ -588,7 +588,10 @@
     "new_version_desc2": "新版本已下载完成，是否立即更新？",
     "no_new_version": "都很好！暂无新版本。",
     "checking": "检查中..",
-    "installing_tip": "正在载入新的版本，请稍后再来点击更新。"
+    "installing_tip": "正在载入新的版本，请稍后再来点击更新。",
+    "web_push_title": "打开通知",
+    "web_push_desc": "不错过你的任何日程 🔔",
+    "web_push_confirm": "去打开"
   },
   "index": {
     "inbox": "收件箱",

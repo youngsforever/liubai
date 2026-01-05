@@ -17,6 +17,8 @@ import { useShowAddToHomeScreen } from "~/hooks/pwa/useA2HS";
 import type { SimpleFunc } from "~/utils/basic/type-tool";
 import { useActiveSyncNum } from "~/hooks/useCommon";
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore";
+import valTool from "~/utils/basic/val-tool";
+import { getWebPushPermission, requestWebPush } from "~/hooks/pwa/useWebPush";
 
 const SEC_90 = 90 * time.SECOND
 
@@ -32,6 +34,7 @@ export function useIndexBoard() {
     a2hs: false,
     newVersion: false,
     subscribePrompt: false,
+    webPush: false,
   })
   const ctx: IbCtx = {
     rr,
@@ -41,6 +44,7 @@ export function useIndexBoard() {
   listenToNewVersion(ctx)
   const { toA2HS } = listenToA2HS(ibData)
   handleSubscribePrompt(ibData)
+  handleWebPush(ibData)
 
   const onTapInstall = () => {
     ctx.hasEverTapInstall = true
@@ -76,8 +80,51 @@ export function useIndexBoard() {
     onCancelNewVersion: () => toCancelNewVersion(ctx),
     onTapViewSubscription,
     onTapCancelSubscription,
+    onTapWebPush: () => toTapWebPush(ibData),
+    onCancelWebPush: () => toCancelWebPush(ibData),
   }
 }
+
+async function toTapWebPush(ibData: IbData) {
+  const res1 = await requestWebPush()
+
+  if(res1 === "granted") {
+    ibData.webPush = false
+    // TODO: 获取 web push subscription 并保存到后端
+    console.log('Web push subscription obtained, need to save to backend');
+
+    return
+  }
+  
+
+  if(res1 === "denied") {
+    // safari: 可以在“设置”的“网站”部分更改通知设置。
+    // chrome: chrome://settings/content/siteDetails?site=https%3A%2F%2Fmy.liubai.cc%2F
+
+  }
+
+
+}
+
+function toCancelWebPush(ibData: IbData) {
+  ibData.webPush = false;
+}
+
+
+async function handleWebPush(
+  ibData: IbData,
+) {
+  await valTool.waitMilli(3000)
+  if(!canIShow(ibData)) {
+    return
+  }
+
+  const permission = getWebPushPermission()
+  if(permission !== "default") return
+
+  ibData.webPush = true
+}
+
 
 
 async function toConfirmNewVersion(

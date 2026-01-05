@@ -41,6 +41,10 @@ declare global {
       /** 兜底的语言信息，若该字段不存在，系统会使用 'en' 做兜底 */
       LIU_FALLBACK_LOCALE?: string
 
+      /** Web Push VAPID 公私钥对 */
+      LIU_VAPID_PUBLIC_KEY?: string
+      LIU_VAPID_PRIVATE_KEY?: string
+
       /** 默认时区，比如 "8.5" 就是东 8.5 时区 */
       LIU_TIMEZONE?: string
       LIU_CURRENCY?: string   // 默认货币单位（兜底用，大写）

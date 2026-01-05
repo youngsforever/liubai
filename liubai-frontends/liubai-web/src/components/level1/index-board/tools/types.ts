@@ -5,11 +5,15 @@ export interface IbData {
   a2hs: boolean
   newVersion: boolean
   subscribePrompt: boolean
+  webPush: boolean
 }
 
 export type IbDataKey = keyof IbData
 
 export interface IbChildProps {
+  title: string
+  desc: string
+  confirmText: string
   expand: boolean
 }
 
