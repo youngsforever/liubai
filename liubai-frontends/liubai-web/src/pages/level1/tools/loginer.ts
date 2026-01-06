@@ -52,13 +52,13 @@ async function toLogin(
   }
 
   // 2.3 get `goto`
-  let goto: string | undefined
+  let goto = ""
   const qGoto = rr.route.query.goto
 
   const gotoStamp = onceData.gotoStamp
 
   if (valTool.isStringWithVal(qGoto)) {
-    goto = qGoto as string
+    goto = qGoto
   } else {
     // fallback to localStorage
     const cacheGoto = onceData.goto
@@ -113,7 +113,9 @@ async function toLogin(
 
   // 9. router 切换
   if (autoRedirect) {
-    if (goto) {
+    const res9_1 = goto.startsWith("/")
+    const res9_2 = goto.includes("//")
+    if (goto && res9_1 && !res9_2) {
       rr.router.replace(goto)
     }
     else {
