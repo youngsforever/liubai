@@ -69,7 +69,8 @@ async function toLogin(
         goto = cacheGoto
         console.log("Using goto from fallback cache:", goto)
       } else {
-        console.warn("goto parameter in cache is too old, ignore it.")
+        const now2 = time.getTime()
+        console.warn(`goto parameter in cache is too old (stamp: ${gotoStamp}, age: ${now2 - gotoStamp}ms), ignore it.`)
       }
     }
   }

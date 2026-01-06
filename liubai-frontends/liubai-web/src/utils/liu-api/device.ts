@@ -80,16 +80,16 @@ const _vibrateFallback = () => {
 
 
 const vibrate = (pattern: VibratePattern) => {
-  if(!navigator || !('vibrate' in navigator)) {
+  if (!navigator || !('vibrate' in navigator)) {
     _vibrateFallback()
     return false
   }
 
-  let res: Boolean
+  let res: boolean
   try {
     res = navigator.vibrate(pattern)
   }
-  catch(err) {
+  catch (err) {
     console.log("vibrate err: ")
     console.log(err)
     return false
@@ -98,7 +98,7 @@ const vibrate = (pattern: VibratePattern) => {
 }
 
 const getBattery = async () => {
-  if(!navigator || !('getBattery' in navigator)) {
+  if (!navigator || !('getBattery' in navigator)) {
     return false
   }
 
@@ -111,7 +111,7 @@ const getBattery = async () => {
 function getThemeFromSystem(): SupportedTheme {
   const m = window.matchMedia('(prefers-color-scheme: dark)')
   const isDarkWhenInit = m.matches
-  if(isDarkWhenInit) return "dark"
+  if (isDarkWhenInit) return "dark"
   return "light"
 }
 
@@ -121,7 +121,7 @@ function getThemeFromTime(): SupportedTheme {
   const now = time.getTime()
   const date = new Date(now)
   const hr = date.getHours()
-  if(hr >= 6 && hr <= 17) return "light"
+  if (hr >= 6 && hr <= 17) return "light"
   return "dark"
 }
 
@@ -133,21 +133,21 @@ export function isPrefersReducedMotion() {
 // 从浏览器获取当前支持的语言
 function getLanguageFromSystem(): SupportedLocale {
   const lang = navigator.language
-  if(isSupportedLocale(lang)) return lang
+  if (isSupportedLocale(lang)) return lang
 
   const langs = navigator.languages
-  for(let i=0; i<langs.length; i++) {
+  for (let i = 0; i < langs.length; i++) {
     const aLang = langs[i]
-    if(isSupportedLocale(aLang)) return aLang
+    if (isSupportedLocale(aLang)) return aLang
     const _aLang = aLang.toLowerCase()
-    if(_aLang === "zh-tw") return "zh-Hant"
-    if(_aLang === "zh-hk") return "zh-Hant"
-    if(_aLang === "zh-cn") return "zh-Hans"
-    if(_aLang === "en-us") return "en"
+    if (_aLang === "zh-tw") return "zh-Hant"
+    if (_aLang === "zh-hk") return "zh-Hant"
+    if (_aLang === "zh-cn") return "zh-Hans"
+    if (_aLang === "en-us") return "en"
   }
 
   // 判断 langs 是否有 zh
-  if(langs.includes("zh")) return "zh-Hans"
+  if (langs.includes("zh")) return "zh-Hans"
 
   return "en"
 }
@@ -156,7 +156,7 @@ function getLanguageFromSystem(): SupportedLocale {
 // w3c: https://www.w3.org/TR/badging/
 const setAppBadge = async (val?: number) => {
   const supported = "setAppBadge" in navigator
-  if(!supported) return false
+  if (!supported) return false
 
   const res = await navigator.setAppBadge(val)
   return res
@@ -165,7 +165,7 @@ const setAppBadge = async (val?: number) => {
 // 清除小红点，clearAppBadge() 等效于 setAppBadge(0)
 const clearAppBadge = async () => {
   const supported = "clearAppBadge" in navigator
-  if(!supported) return false
+  if (!supported) return false
 
   const res = await navigator.clearAppBadge()
   return res
