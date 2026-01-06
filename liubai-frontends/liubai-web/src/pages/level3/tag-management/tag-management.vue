@@ -56,6 +56,8 @@ const {
 
     </div>
 
+    <div class="tm-bottom"></div>
+
   </PageDefault>
 
 </template>
@@ -63,8 +65,8 @@ const {
 
 .tm-nothing-here {
   width: 100%;
-  height: 85vh;
-  height: 85dvh;
+  height: 75vh;
+  height: 75dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,6 +83,11 @@ const {
   box-shadow: var(--card-shadow);
   box-sizing: border-box;
   position: relative;
+}
+
+.tm-bottom {
+  width: 100%;
+  height: 50px;
 }
 
 </style>
