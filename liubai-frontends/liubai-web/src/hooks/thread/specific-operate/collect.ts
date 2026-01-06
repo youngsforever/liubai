@@ -20,7 +20,7 @@ export const toCollect = async (
   newThread.myFavoriteStamp = time.getTime()
 
   // 2. 操作 db & cloud
-  const res = await dbOp.collect(newThread, memberId, userId)
+  await dbOp.collect(newThread, memberId, userId)
 
   // 3. 通知全局
   const tsStore = useThreadShowStore()
@@ -30,8 +30,12 @@ export const toCollect = async (
   const text_key = newFavorite ? "tip.collected" : "tip.canceled"
   const tipPromise = cui.showSnackBar({ text_key, action_key: "tip.undo" })
 
-  // 5. 震动
-  const vib = liuApi.vibrate([50])
+  // 5. 震动；并且摒除 iOS 的振动，因为已经在 
+  // useThreadOperateInList 和 handleCollect 中处理了
+  const cha = liuApi.getCharacteristic()
+  if(!cha.isIOS && !cha.isIPadOS) {
+    liuApi.vibrate([50])
+  }
 
   return { tipPromise, newFavorite }
 }

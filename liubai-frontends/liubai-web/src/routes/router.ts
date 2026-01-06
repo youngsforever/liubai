@@ -1,10 +1,11 @@
-import { 
-  createRouter, 
-  createWebHistory, 
+import {
+  createRouter,
+  createWebHistory,
   type RouteLocationNormalizedGeneric,
 } from "vue-router"
 import { routes } from "./init-routes"
 import liuEnv from "~/utils/liu-env"
+import time from "~/utils/basic/time"
 import localCache from "~/utils/system/local-cache"
 import valTool from "~/utils/basic/val-tool"
 
@@ -34,12 +35,12 @@ const router = createRouter({
 
 const _getGoTo = (to: RouteLocationNormalizedGeneric) => {
   const toName = to.name
-  if(toName === "index") {
+  if (toName === "index") {
     return
   }
 
   const toQ = to.query
-  if(valTool.isStringWithVal(toQ.goto)) {
+  if (valTool.isStringWithVal(toQ.goto)) {
     return toQ.goto
   }
 
@@ -60,12 +61,14 @@ router.beforeEach((to, from) => {
   // 2. 并且 打开应用内的页面（需要登录），即 toInApp 不等于 false
   // 3. 并且 不是 login 页
   // 则路由至 login 页
-  if(backend && !hasLogin) {
-    if(toInApp !== false && toName !== "login") {
+  if (backend && !hasLogin) {
+    if (toInApp !== false && toName !== "login") {
       const loginRoute: Record<string, any> = { name: "login" }
       const goto = _getGoTo(to)
-      if(goto) {
+      if (goto) {
         loginRoute.query = { goto }
+        localCache.setOnceData("goto", goto)
+        localCache.setOnceData("gotoStamp", time.getTime())
       }
       return loginRoute
     }
@@ -74,12 +77,12 @@ router.beforeEach((to, from) => {
   // 0. 如果已经登录或者没有后端
   // 1. 但正在前往登录相关的页面（login / login-xxxx）
   // 全部路由至 index
-  if(hasLogin || !backend) {
-    if(typeof toName === "string" && toName.startsWith("login")) {
+  if (hasLogin || !backend) {
+    if (typeof toName === "string" && toName.startsWith("login")) {
       return { name: "index" }
     }
   }
-  
+
 })
 
 export { router }

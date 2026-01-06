@@ -3590,7 +3590,7 @@ export class AiToolUtil {
     }
 
     // 8. handle calendarStamp
-    calendarStamp = remindStamp ?? whenStamp
+    calendarStamp = whenStamp ?? remindStamp
 
     // 9. return data
     const waitingData: SyncOperateAPI.WaitingData = {

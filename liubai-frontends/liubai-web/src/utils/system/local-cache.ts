@@ -1,6 +1,6 @@
-import type { 
-  LocalPreference, 
-  LocalOnceData, 
+import type {
+  LocalPreference,
+  LocalOnceData,
   LocalKeepData,
   KeyOfLocalOnceData,
   KeyOfLocalKeepData,
@@ -56,14 +56,15 @@ function setOnceData(key: KeyOfLocalOnceData, data: any) {
 function removeOnceDataWhileLogging() {
   const localData = getOnceData()
   const keys: KeyOfLocalOnceData[] = [
-    "client_key", 
-    "enc_client_key", 
-    "githubOAuthState", 
+    "client_key",
+    "enc_client_key",
+    "githubOAuthState",
     "googleOAuthState",
     "wxGzhOAuthState",
     "goto",
+    "gotoStamp",
   ]
-  for(let i=0; i<keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     const k = keys[i]
     localData[k] = undefined
   }
@@ -90,7 +91,7 @@ function hasLoginWithBackend() {
     serial,
     token,
   } = getPreference()
-  if(local_id && serial && token) return true
+  if (local_id && serial && token) return true
   return false
 }
 

@@ -13,6 +13,7 @@ import threadOperate from "~/hooks/thread/thread-operate"
 import liuUtil from "~/utils/liu-util"
 import tlUtil from "./tl-util"
 import { filterForCalendar } from "./handle-calendar"
+import liuApi from "~/utils/liu-api"
 
 interface ToCtx {
   router: LiuRouter
@@ -304,6 +305,12 @@ async function handle_pin(ctx: ToCtx) {
 
 // 去收藏（or 取消）
 async function handle_collect(ctx: ToCtx) {
+  // 0. iOS 必须在“触摸手势”同步周期内，触发振动
+  const cha = liuApi.getCharacteristic()
+  if (cha.isIOS || cha.isIPadOS) {
+    liuApi.vibrate([50])
+  }
+
   const { memberId, userId, thread, tlData, position } = ctx
   const oldThread = liuUtil.copy.newData(thread)
   const { 

@@ -50,6 +50,7 @@ export interface LocalOnceData {
 
   // goto using in login-page
   goto?: string
+  gotoStamp?: number
 
   // the timestamp when user launched the app
   launchStamp?: number
