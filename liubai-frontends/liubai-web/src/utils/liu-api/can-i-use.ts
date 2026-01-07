@@ -5,10 +5,10 @@ import liuEnv from "../liu-env"
 import type { LiuYorN } from "~/types/types-basic"
 
 function isSafeBrowser() {
-  if(!window) return false
+  if (!window) return false
   const _sub = window.crypto?.subtle
   const hasBackend = liuEnv.hasBackend()
-  if(typeof _sub === "undefined" && hasBackend) return false
+  if (typeof _sub === "undefined" && hasBackend) return false
   return true
 }
 
@@ -17,7 +17,7 @@ function isSafeBrowser() {
 function isArcBrowser() {
   // the function cannot put into getCharacteristic()
   // because CSS from Arc may not be loaded yet
-  
+
   const arcPaletteTitle = window.getComputedStyle(document.documentElement)
     .getPropertyValue("--arc-palette-title")
   return Boolean(arcPaletteTitle)
@@ -25,7 +25,7 @@ function isArcBrowser() {
 
 function viewTransitionApi() {
   const res1 = isPrefersReducedMotion()
-  if(res1) return false
+  if (res1) return false
 
   const hasViewTransition = Boolean(document.startViewTransition)
 
@@ -33,8 +33,8 @@ function viewTransitionApi() {
 }
 
 function abortSignalTimeout() {
-  if(typeof AbortSignal === "undefined") return false
-  if(typeof AbortSignal.timeout === "undefined") return false
+  if (typeof AbortSignal === "undefined") return false
+  if (typeof AbortSignal.timeout === "undefined") return false
   return true
 }
 
@@ -48,7 +48,7 @@ function abortSignalTimeout() {
  */
 function cssDetectTextOverflow() {
   const cha = getCharacteristic()
-  if(!cha.isChrome || !cha.browserVersion) return false
+  if (!cha.isChrome || !cha.browserVersion) return false
   const res = valTool.compareVersion(cha.browserVersion, "115.0.0")
   return res >= 0
 }
@@ -59,7 +59,7 @@ function fedCM() {
   const cha = getCharacteristic()
   const { isChrome, browserVersion } = cha
 
-  if(isChrome && browserVersion) {
+  if (isChrome && browserVersion) {
     const res1 = valTool.compareVersion(browserVersion, "117.0.0")
     return res1 >= 0
   }
@@ -70,7 +70,7 @@ function fedCM() {
 function isRunningStandalone() {
   //@ts-expect-error Property only exists on Safari
   const standalone = window.navigator.standalone
-  if(typeof standalone === "boolean") {
+  if (typeof standalone === "boolean") {
     return standalone
   }
 
@@ -78,7 +78,7 @@ function isRunningStandalone() {
     const res = window.matchMedia('(display-mode: standalone)').matches
     return res
   }
-  catch(err) {
+  catch (err) {
     console.warn("fail to call window.matchMedia('(display-mode: standalone)').matches")
     console.log(err)
   }
@@ -89,19 +89,19 @@ function isRunningStandalone() {
 
 async function hasInstalledPWA(): Promise<LiuYorN> {
   const res1 = isRunningStandalone()
-  if(res1) return "Y"
+  if (res1) return "Y"
 
   const { isSafari } = getCharacteristic()
-  if(isSafari) {
+  if (isSafari) {
     return "N"
   }
 
   const res2 = "getInstalledRelatedApps" in navigator
-  if(!res2) {
+  if (!res2) {
     console.warn("navigator.getInstalledRelatedApps is not supported")
     return "U"
   }
-  
+
   // console.log("to call getInstalledRelatedApps............")
 
   const d1 = Date.now()
@@ -114,27 +114,27 @@ async function hasInstalledPWA(): Promise<LiuYorN> {
   // console.log(relatedApps)
   // console.table(relatedApps)
 
-  if(relatedApps.length > 0) return "Y"
+  if (relatedApps.length > 0) return "Y"
   return "N"
 }
 
 function canAddToHomeScreenInSafari() {
-  const { 
-    isSafari, 
-    isInWebView, 
+  const {
+    isSafari,
+    isInWebView,
     browserVersion,
     isMobile,
   } = getCharacteristic()
-  if(isInWebView) return
-  if(!isSafari) return
-  if(!browserVersion) return
+  if (isInWebView) return
+  if (!isSafari) return
+  if (!browserVersion) return
 
   // for PC
   const res1 = valTool.compareVersion(browserVersion, "17.0")
-  if(res1 >= 0) return true
+  if (res1 >= 0) return true
 
   // for mobile
-  if(!isMobile) return false
+  if (!isMobile) return false
   const res2 = valTool.compareVersion(browserVersion, "14.0")
   return res2 >= 0
 }
@@ -150,48 +150,73 @@ function fileSystemAccessAPI() {
         return false;
       }
     })();
-  
+
   return supportsFileSystemAccess
 }
 
 
 function webPush() {
   const res1 = "Notification" in window
-  if(!res1) {
+  if (!res1) {
     return false
   }
-  if(typeof Notification.requestPermission !== "function") {
+  if (typeof Notification.requestPermission !== "function") {
     return false
   }
 
   const cha = getCharacteristic()
   const browserVersion = cha.browserVersion
-  if(!browserVersion) return false
+  if (!browserVersion) return false
 
   // for iOS and iPadOS
-  if(cha.isIOS || cha.isIPadOS) {
-    // see: https://developer.apple.com/videos/play/wwdc2025/235/
-    const isBiggerThan18_4 = valTool.compareVersion(browserVersion, "18.4")
-    if(isBiggerThan18_4 >= 0 && isRunningStandalone()) {
+  if (cha.isIOS || cha.isIPadOS) {
+    // https://caniuse.com/?search=PushManager
+    const isBiggerThan16_4 = valTool.compareVersion(browserVersion, "16.4")
+    if (isBiggerThan16_4 >= 0 && isRunningStandalone()) {
       return true
     }
     return false
   }
 
   // for macOS
-  if(cha.isMac) {
-    // see: https://developer.apple.com/videos/play/wwdc2025/235/
-    const isBiggerThan15_0 = valTool.compareVersion(browserVersion, "15.0")
-    return isBiggerThan15_0 >= 0
+  if (cha.isMac) {
+    // https://caniuse.com/?search=PushManager
+    const isBiggerThan16_0 = valTool.compareVersion(browserVersion, "16.0")
+    return isBiggerThan16_0 >= 0
   }
 
   // 是否在 super app 里头
-  if(cha.isInWebView) {
+  if (cha.isInWebView) {
     return false
   }
 
   const hasServiceWorker = "serviceWorker" in navigator
   return hasServiceWorker
+}
+
+function declarativeWebPush() {
+  const cha = getCharacteristic()
+  const browserVersion = cha.browserVersion
+  if (!browserVersion) return false
+
+  // for iOS and iPadOS
+  if (cha.isIOS || cha.isIPadOS) {
+    // see: https://developer.apple.com/videos/play/wwdc2025/235/
+    const isBiggerThan18_4 = valTool.compareVersion(browserVersion, "18.4")
+    if (isBiggerThan18_4 >= 0 && isRunningStandalone()) {
+      return true
+    }
+    return false
+  }
+
+  // for macOS
+  if (cha.isMac) {
+    // see: https://developer.apple.com/videos/play/wwdc2025/235/
+    const isBiggerThan18_5 = valTool.compareVersion(browserVersion, "18.5")
+    return isBiggerThan18_5 >= 0
+  }
+
+  return false
 }
 
 
@@ -207,4 +232,5 @@ export default {
   hasInstalledPWA,
   canAddToHomeScreenInSafari,
   webPush,
+  declarativeWebPush,
 }

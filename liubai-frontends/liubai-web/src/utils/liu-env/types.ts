@@ -8,6 +8,7 @@ export interface LiuSystemEnv {
   DOCUMENTATION_URL?: string
 
   PAYMENT_PRIORITY?: "stripe" | "one-off"
+  VAPID_PUBLIC_KEY?: string
 
   LOCAL_PIN_NUM: number
   FREE_PIN_NUM: number

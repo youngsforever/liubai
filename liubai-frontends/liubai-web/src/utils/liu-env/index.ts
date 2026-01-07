@@ -6,7 +6,7 @@ import type { LiuSystemEnv } from "./types"
 let _env: LiuSystemEnv | undefined
 
 function getEnv(): LiuSystemEnv {
-  if(_env) return _env
+  if (_env) return _env
 
   const DEV = import.meta.env.DEV
   const API_DOMAIN = import.meta.env.VITE_API_DOMAIN
@@ -15,6 +15,7 @@ function getEnv(): LiuSystemEnv {
 
   // payment priority
   const PAYMENT_PRIORITY = import.meta.env.VITE_PAYMENT_PRIORITY
+  const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
   // SaaS 各个服务情况上限
   const LOCAL_PIN_NUM = import.meta.env.VITE_LOCAL_PIN_NUM
@@ -128,6 +129,7 @@ function getEnv(): LiuSystemEnv {
     APP_NAME,
     DOCUMENTATION_URL,
     PAYMENT_PRIORITY,
+    VAPID_PUBLIC_KEY,
     LOCAL_PIN_NUM: Number(LOCAL_PIN_NUM),
     FREE_PIN_NUM: Number(FREE_PIN_NUM),
     PREMIUM_PIN_NUM: Number(PREMIUM_PIN_NUM),
@@ -197,7 +199,7 @@ function getEnv(): LiuSystemEnv {
 
 let backendExisted: boolean | undefined
 function hasBackend() {
-  if(typeof backendExisted === "boolean") return backendExisted
+  if (typeof backendExisted === "boolean") return backendExisted
   const env = getEnv()
   backendExisted = Boolean(env.API_DOMAIN)
   return backendExisted
@@ -205,9 +207,9 @@ function hasBackend() {
 
 function canISync() {
   const be = hasBackend()
-  if(!be) return false
+  if (!be) return false
   const env = getEnv()
-  if(env.DONOT_USE_SYNC) return false
+  if (env.DONOT_USE_SYNC) return false
   return true
 }
 
