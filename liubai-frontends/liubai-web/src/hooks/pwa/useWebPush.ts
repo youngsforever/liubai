@@ -4,7 +4,7 @@ import liuEnv from "~/utils/liu-env"
 
 export type LiuPermission = "granted" | "denied" | "default" | "not_supported"
 
-export function getWebPushPermission(): LiuPermission {
+export function getNotificationPermission(): LiuPermission {
   const res1 = liuApi.canIUse.webPush()
   if (!res1) return "not_supported"
 
@@ -12,10 +12,9 @@ export function getWebPushPermission(): LiuPermission {
   return res2
 }
 
-export async function requestWebPush() {
-  console.log("requestWebPush......")
+export async function requestNotification() {
   const res1 = await Notification.requestPermission()
-  console.log("requestWebPush: ", res1)
+  console.log("requestNotification: ", res1)
   return res1
 }
 

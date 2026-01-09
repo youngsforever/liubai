@@ -591,7 +591,8 @@
     "installing_tip": "We are loading new version. Please wait a moment and click again.",
     "web_push_title": "Turn on Notification",
     "web_push_desc": "Put your schedule at your fingertips 🔔",
-    "web_push_confirm": "Sounds great"
+    "web_push_confirm": "Sounds great",
+    "open_webpush": "You can turn on the notification in the Browser Settings"
   },
   "index": {
     "inbox": "Inbox",

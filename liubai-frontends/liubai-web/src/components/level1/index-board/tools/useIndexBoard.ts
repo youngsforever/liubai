@@ -18,9 +18,10 @@ import type { SimpleFunc } from "~/utils/basic/type-tool";
 import { useActiveSyncNum } from "~/hooks/useCommon";
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore";
 import valTool from "~/utils/basic/val-tool";
-import { getWebPushPermission, getWebPushSubscription, requestWebPush } from "~/hooks/pwa/useWebPush";
+import { getNotificationPermission, requestNotification } from "~/hooks/pwa/useWebPush";
 import { useSwRegStore } from "~/hooks/stores/useSwRegStore";
 import liuEnv from "~/utils/liu-env";
+import { handleWebPushSubscription } from "~/utils/business/web-push"
 
 const SEC_90 = 90 * time.SECOND
 
@@ -88,24 +89,23 @@ export function useIndexBoard() {
 }
 
 async function toTapWebPush(ibData: IbData) {
-  const res1 = await requestWebPush()
+  const res1 = await requestNotification()
 
   if (res1 === "granted") {
     ibData.webPush = false
-    console.log('Web push subscription obtained, need to save to backend');
-    const sub = await getWebPushSubscription()
-    if (sub) {
-      // TODO: 将 web push subscription 保存到后端
-
-    }
+    handleWebPushSubscription(false)
     return
   }
-
 
   if (res1 === "denied") {
     // safari: 可以在“设置”的“网站”部分更改通知设置。
     // chrome: chrome://settings/content/siteDetails?site=https%3A%2F%2Fmy.liubai.cc%2F
-
+    cui.showModal({
+      title: "🔕",
+      content_key: "pwa.open_webpush",
+      isTitleEqualToEmoji: true,
+      showCancel: false,
+    })
   }
 
 
@@ -127,7 +127,10 @@ async function handleWebPush(
     return
   }
 
-  const permission = getWebPushPermission()
+  const permission = getNotificationPermission()
+  if (permission === "granted") {
+    handleWebPushSubscription()
+  }
   if (permission !== "default") return
 
   const swRegStore = useSwRegStore()
@@ -137,7 +140,6 @@ async function handleWebPush(
     if (!newV) return
     ibData.webPush = true
   }, { immediate: true })
-
 }
 
 

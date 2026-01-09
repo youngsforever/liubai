@@ -87,6 +87,10 @@ const createOpenId = () => {
   return "op0" + _createId(16)
 }
 
+const createClientId = () => {
+  return "cl0" + _createId(16)
+}
+
 export default {
   createUserId,
   createStateId,
@@ -106,4 +110,5 @@ export default {
   createEncNonce,
   createFileNonce,
   createOpenId,
+  createClientId,
 }

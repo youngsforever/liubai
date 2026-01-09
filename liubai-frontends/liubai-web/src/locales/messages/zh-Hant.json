@@ -591,7 +591,8 @@
     "installing_tip": "正在加載新的版本，请稍後再來點選更新。",
     "web_push_title": "開啟通知",
     "web_push_desc": "不錯過你的任何日程 🔔",
-    "web_push_confirm": "去開啟"
+    "web_push_confirm": "去開啟",
+    "open_webpush": "你可以在瀏覽器「設定」的「網站」部分，開啟通知設定。"
   },
   "index": {
     "inbox": "收件匣",

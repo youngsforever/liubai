@@ -47,6 +47,7 @@ export interface LocalOnceData {
   lastInstallNewVersion?: number     // last stamp to install new version
   lastConfirmNewVersion?: number     // last stamp to confirm new version
   lastCancelNewVersion?: number      // last stamp to cancel new version
+  lastSaveWebPushStamp?: number           // last stamp to save web push subscription
 
   // goto using in login-page
   goto?: string
@@ -66,6 +67,7 @@ export interface LocalOnceData {
 
 export interface LocalKeepData {
   wx_gzh_openid?: string
+  client_id?: string
 }
 
 export type KeyOfLocalOnceData = keyof LocalOnceData
