@@ -272,7 +272,7 @@ export class LiuTencentSMS {
 }
 
 export interface ResultOfSMS {
-  send_channel: "tencent-sms" | "qiniu-sms"
+  send_channel: "tencent-sms"
   result: LiuRqReturn
 }
 
