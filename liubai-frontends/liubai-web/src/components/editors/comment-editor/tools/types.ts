@@ -3,9 +3,8 @@ import type {
   LiuFileStore,
   LiuImageStore,
 } from "~/types";
-import type { EditorCoreContent } from "~/types/types-editor";
 import type { WorkspaceStore } from "~/hooks/stores/useWorkspaceStore";
-import type { TipTapEditor } from "~/types/types-editor"
+import type { TipTapEditor, EditorCoreContent } from "~/types/types-editor"
 
 export interface CeReleasedData {
   text?: string

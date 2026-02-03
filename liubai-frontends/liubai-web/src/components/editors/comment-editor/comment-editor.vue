@@ -41,7 +41,7 @@ const props = defineProps({
   showSubmitBtn: {
     type: Boolean,
     default: true,
-  }
+  },
 })
 
 const emit = defineEmits<CeEmit>()

@@ -213,6 +213,9 @@ async function initEditorContent(
   
   const atom = getStorageAtom(props)
   let res = commentCache.toGet(atom)
+  if(props.commentId && res && !hasStoredContent(res)) {
+    res = undefined
+  }
 
   if(!res) {
     if(props.commentId) {
@@ -295,6 +298,16 @@ async function initEditorContentFromDB(
     ctx.isToolbarTranslateY = false
     ctx.releasedData.files = valTool.copyObject(files)
   }
+
+  ctx.numWhenSet++
+}
+
+
+function hasStoredContent(
+  atom: CommentStorageAtom,
+) {
+  const text = atom.editorContent?.text?.trim()
+  return Boolean(text) || Boolean(atom.images?.length) || Boolean(atom.files?.length)
 }
 
 
