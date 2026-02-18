@@ -39,11 +39,14 @@ Extension ID: `jock.svg`
 
 用于预览 svg 文件
 
-### 2. Material Icon Theme
+### 2. Vira Theme
 
-Extension ID: `PKief.material-icon-theme`
+Extension ID: `vira.vsc-vira-theme`
 
-用于让 Explorer 文件树上的文件夹和文件有个小图标，方便辨识。
+一个很好看的主题。
+
+- Theme，我通常用它的 `Vira Graphene High Contrast`。
+- File Icon Theme，我通常用它的 `Vira Icons Deepforest`。
 
 ### 3. Image Preview
 
@@ -56,9 +59,3 @@ Extension ID: `kisstkondoros.vscode-gutter-preview`
 Extension ID: `ambar.bundle-size`
 
 在编辑器上展示被引入的第三方依赖之体积
-
-### 5. Codeium
-
-Extension ID: `Codeium.codeium`
-
-基于 AI 的代码自动补全插件，辅助你写代码。
