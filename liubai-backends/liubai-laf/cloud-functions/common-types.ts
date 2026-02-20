@@ -956,18 +956,6 @@ export interface UserThirdData {
   wx_mini?: UserWeixinMini
 }
 
-// User 表里的 webPush 字段
-export interface UserWebPushItem {
-  endpoint: string
-  clientId: string
-  createdStamp: number
-}
-
-export interface UserWebPush {
-  enabled: boolean
-  list: UserWebPushItem[]
-}
-
 /** User's Subscription Plan */
 export interface UserSubscription {
   isOn: BaseIsOn
@@ -1426,7 +1414,7 @@ export interface Table_User extends BaseTable {
   open_id?: string
   github_id?: number
   thirdData?: UserThirdData
-  webPush?: UserWebPush
+
   theme: LocalTheme
   systemTheme?: SupportedTheme
   language: LocalLocale
@@ -1979,6 +1967,45 @@ export interface Table_WxTask extends BaseTable {
   each_other_openid?: string
 }
 
+
+/*********************** Web Push 相关类型 ***********************/
+
+// 1. Web Push 订阅的标准结构 (来源于和前端交互以及浏览器结构)
+export interface WebPushSubscription {
+  endpoint: string
+  expirationTime?: number | null
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
+
+export const Sch_WebPushSubscription = vbot.object({
+  endpoint: vbot.string(),
+  expirationTime: vbot.optional(vbot.nullable(vbot.number())),
+  keys: vbot.object({
+    p256dh: vbot.string(),
+    auth: vbot.string(),
+  })
+})
+
+// 2. 数据库中保存 Web Push 的数据表结构
+export interface Table_WebPushSub extends BaseTable {
+  userId: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  userAgent?: string
+}
+
+// 3. 关联的请求入参定义，比如从客户端发送过来订阅信息的入参
+export const Sch_Param_WebPush_SaveSub = vbot.object({
+  operateType: vbot.literal("save_webpush_sub"),
+  subscription: Sch_WebPushSubscription,
+  userAgent: Sch_Opt_Str,
+})
+
+export type Param_WebPush_SaveSub = vbot.Output<typeof Sch_Param_WebPush_SaveSub>
 
 /*********************** 基于 Table 的扩展类型 ***********************/
 
