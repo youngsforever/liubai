@@ -62,6 +62,7 @@ self.addEventListener('push', (event) => {
 
   try {
     const payload = event.data.json()
+    console.log("[my service worker] push payload:", payload)
     // 8030 is the custom web_push code defined in the backend
     if (payload.web_push === 8030 && payload.notification) {
       title = payload.notification.title || title
