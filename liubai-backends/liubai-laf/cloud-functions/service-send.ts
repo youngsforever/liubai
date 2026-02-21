@@ -684,6 +684,7 @@ export class WebPushSender {
 
     const payload = this.formatPayload(title, body, navigateUrl, tag, timestamp)
 
+    const startStamp = Date.now()
     try {
       // sub is expected to have { endpoint, keys: { p256dh, auth } }
       const pushSubscription = {
@@ -700,23 +701,25 @@ export class WebPushSender {
       })
 
       // Race the actual webpush call against the timeout
-      await Promise.race([
+      const result = await Promise.race([
         webpush.sendNotification(pushSubscription, payload),
         timeoutPromise
       ])
+      console.log(`webpush.sendNotification 耗时: ${Date.now() - startStamp}ms, result:`, result)
 
       return { code: "0000" }
     } catch (err: any) {
+      const duration = Date.now() - startStamp
       if (err.statusCode === 410 || err.statusCode === 404) {
         // Gone or Not Found - means the subscription is no longer valid
-        console.warn(`webpush returning ${err.statusCode}. deleting WebPushSub for user: ${sub.userId}`)
+        console.warn(`webpush returning ${err.statusCode}. deleting WebPushSub for user: ${sub.userId} 耗时: ${duration}ms`)
         console.log(`err: `, err)
         if (sub._id) {
           await db.collection("WebPushSub").doc(sub._id).remove()
         }
         return { code: "E4010", errMsg: "Subscription expired or unsubscribed." }
       }
-      console.warn("webpush.sendNotification failed or timed out:", err.message || err)
+      console.warn(`webpush.sendNotification failed or timed out. 耗时: ${duration}ms`, err.message || err)
       return { code: "E5004", errMsg: "Failed to send web push notification.", data: err.message || err }
     }
   }

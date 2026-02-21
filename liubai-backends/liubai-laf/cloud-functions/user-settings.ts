@@ -822,6 +822,13 @@ async function handle_logout(
   const map = getLiuTokenUser()
   map.delete(serial_id)
 
+  // 4. remove web push sub for current device
+  const userAgent = body.userAgent
+  if (userAgent && d.userId) {
+    const wpsCol = db.collection("WebPushSub")
+    await wpsCol.where({ userId: d.userId, userAgent }).remove()
+  }
+
   return { code: "0000" }
 }
 
