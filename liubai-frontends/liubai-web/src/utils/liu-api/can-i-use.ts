@@ -5,7 +5,7 @@ import liuEnv from "../liu-env"
 import type { LiuYorN } from "~/types/types-basic"
 
 function isSafeBrowser() {
-  if (!window) return false
+  if (typeof window === "undefined") return false
   const _sub = window.crypto?.subtle
   const hasBackend = liuEnv.hasBackend()
   if (typeof _sub === "undefined" && hasBackend) return false
