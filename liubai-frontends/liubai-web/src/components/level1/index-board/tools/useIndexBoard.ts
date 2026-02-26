@@ -4,8 +4,8 @@ import liuApi from "~/utils/liu-api";
 import cui from "~/components/custom-ui";
 import localCache from "~/utils/system/local-cache";
 import time from "~/utils/basic/time";
-import { 
-  type RouteAndLiuRouter, 
+import {
+  type RouteAndLiuRouter,
   useRouteAndLiuRouter,
 } from "~/routes/liu-router";
 import cfg from "~/config";
@@ -17,6 +17,11 @@ import { useShowAddToHomeScreen } from "~/hooks/pwa/useA2HS";
 import type { SimpleFunc } from "~/utils/basic/type-tool";
 import { useActiveSyncNum } from "~/hooks/useCommon";
 import { useWorkspaceStore } from "~/hooks/stores/useWorkspaceStore";
+import valTool from "~/utils/basic/val-tool";
+import { getNotificationPermission, requestNotification } from "~/hooks/pwa/useWebPush";
+import { useSwRegStore } from "~/hooks/stores/useSwRegStore";
+import liuEnv from "~/utils/liu-env";
+import { handleWebPushSubscription } from "~/utils/business/web-push"
 
 const SEC_90 = 90 * time.SECOND
 
@@ -32,6 +37,7 @@ export function useIndexBoard() {
     a2hs: false,
     newVersion: false,
     subscribePrompt: false,
+    webPush: false,
   })
   const ctx: IbCtx = {
     rr,
@@ -41,6 +47,7 @@ export function useIndexBoard() {
   listenToNewVersion(ctx)
   const { toA2HS } = listenToA2HS(ibData)
   handleSubscribePrompt(ibData)
+  handleWebPush(ibData)
 
   const onTapInstall = () => {
     ctx.hasEverTapInstall = true
@@ -55,7 +62,7 @@ export function useIndexBoard() {
   const onTapCancelSubscription = async () => {
     ibData.subscribePrompt = false
     const { launchNum = 0 } = localCache.getOnceData()
-    if(launchNum % 10 !== 4) return
+    if (launchNum % 10 !== 4) return
     const res1 = await cui.showModal({
       title: "🍞",
       content_key: "payment.subscription_prompt_3",
@@ -63,7 +70,7 @@ export function useIndexBoard() {
       cancel_key: "payment.still_close",
       isTitleEqualToEmoji: true,
     })
-    if(res1.confirm) {
+    if (res1.confirm) {
       rr.router.push({ name: "subscription" })
     }
   }
@@ -76,8 +83,65 @@ export function useIndexBoard() {
     onCancelNewVersion: () => toCancelNewVersion(ctx),
     onTapViewSubscription,
     onTapCancelSubscription,
+    onTapWebPush: () => toTapWebPush(ibData),
+    onCancelWebPush: () => toCancelWebPush(ibData),
   }
 }
+
+async function toTapWebPush(ibData: IbData) {
+  const res1 = await requestNotification()
+
+  if (res1 === "granted") {
+    ibData.webPush = false
+    handleWebPushSubscription(false)
+    return
+  }
+
+  if (res1 === "denied") {
+    // safari: 可以在“设置”的“网站”部分更改通知设置。
+    // chrome: chrome://settings/content/siteDetails?site=https%3A%2F%2Fmy.liubai.cc%2F
+    cui.showModal({
+      title: "🔕",
+      content_key: "pwa.open_webpush",
+      isTitleEqualToEmoji: true,
+      showCancel: false,
+    })
+  }
+
+
+}
+
+function toCancelWebPush(ibData: IbData) {
+  ibData.webPush = false;
+}
+
+
+async function handleWebPush(
+  ibData: IbData,
+) {
+  const _env = liuEnv.getEnv()
+  if (!_env.VAPID_PUBLIC_KEY) return
+
+  await valTool.waitMilli(3000)
+  if (!canIShow(ibData)) {
+    return
+  }
+
+  const permission = getNotificationPermission()
+  if (permission === "granted") {
+    handleWebPushSubscription()
+  }
+  if (permission !== "default") return
+
+  const swRegStore = useSwRegStore()
+  const { hasSwReady } = storeToRefs(swRegStore)
+  watch(hasSwReady, (newV) => {
+    console.log("handleWebPush hasSwReady:", newV)
+    if (!newV) return
+    ibData.webPush = true
+  }, { immediate: true })
+}
+
 
 
 async function toConfirmNewVersion(
@@ -106,18 +170,18 @@ async function toCloseA2HS(
     ctx.ibData.a2hs = false
   }
 
-  if(liuApi.canIUse.isArcBrowser()) {
+  if (liuApi.canIUse.isArcBrowser()) {
     _close()
     return
   }
 
-  if(liuApi.canIUse.isRunningStandalone()) {
+  if (liuApi.canIUse.isRunningStandalone()) {
     _close()
     return
   }
 
   const cha = liuApi.getCharacteristic()
-  if(cha.isSafari && ctx.hasEverTapInstall) {
+  if (cha.isSafari && ctx.hasEverTapInstall) {
     _close()
     return
   }
@@ -130,15 +194,15 @@ async function toCloseA2HS(
     tip_key: "common.never_prompt",
   })
 
-  if(res1.tipToggle) {
+  if (res1.tipToggle) {
     localCache.setOnceData("a2hs_never_prompt", true)
   }
-  
-  if(res1.cancel) {
+
+  if (res1.cancel) {
     _close()
   }
 
-  if(res1.confirm) {
+  if (res1.confirm) {
     toA2HS?.()
   }
 }
@@ -147,20 +211,20 @@ let hasListenedToIdle = false
 function listenToIdleAndUpdate(
   ctx: IbCtx,
 ) {
-  if(hasListenedToIdle) return
+  if (hasListenedToIdle) return
   hasListenedToIdle = true
-  
+
   const { idle } = useIdle(SEC_90)
   watch(idle, (newV) => {
-    if(!newV) return
+    if (!newV) return
 
-    const { 
-      vlink, 
+    const {
+      vlink,
       vfile,
       vcode,
     } = ctx.rr.route.query
 
-    if(vlink || vfile || vcode) {
+    if (vlink || vfile || vcode) {
       return
     }
 
@@ -176,7 +240,7 @@ function listenToNewVersion(
 
   const _checkIfPrompt = () => {
     const res1 = canIShow(ctx.ibData)
-    if(!res1) return
+    if (!res1) return
 
     const {
       lastInstallNewVersion,
@@ -186,47 +250,47 @@ function listenToNewVersion(
     } = localCache.getOnceData()
     const nv = cfg.newVersion
 
-    if(lastInstallNewVersion) {
+    if (lastInstallNewVersion) {
       const day0 = nv.install_min_duration
       const duration0 = day0 * time.DAY
       const within0 = time.isWithinMillis(lastInstallNewVersion, duration0)
-      if(within0) {
+      if (within0) {
         listenToIdleAndUpdate(ctx)
         return
       }
     }
 
-    if(lastCancelNewVersion) {
+    if (lastCancelNewVersion) {
       const day1 = nv.cancel_min_duration
       const duration1 = day1 * time.DAY
       const within1 = time.isWithinMillis(lastCancelNewVersion, duration1)
-      if(within1) {
+      if (within1) {
         listenToIdleAndUpdate(ctx)
         return
       }
     }
 
-    if(lastConfirmNewVersion) {
+    if (lastConfirmNewVersion) {
       const day2 = nv.confirm_min_duration
       const duration2 = day2 * time.DAY
       const within2 = time.isWithinMillis(lastConfirmNewVersion, duration2)
-      if(within2) {
+      if (within2) {
         listenToIdleAndUpdate(ctx)
         return
       }
     }
 
-    if(launchStamp && !lastInstallNewVersion) {
+    if (launchStamp && !lastInstallNewVersion) {
       const duration3 = 15 * time.MINUTE
       const within3 = time.isWithinMillis(launchStamp, duration3)
-      if(within3) return
+      if (within3) return
     }
-    
+
     ctx.ibData.newVersion = true
   }
 
   watch(hasNewVersion, (newV) => {
-    if(!newV) return
+    if (!newV) return
     console.log("发现新版本.................")
     _checkIfPrompt()
   })
@@ -236,9 +300,9 @@ function canIShow(
   ibData: IbData,
 ) {
   const keys = Object.keys(ibData) as IbDataKey[]
-  for(let i=0; i< keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
-    if(ibData[key]) {
+    if (ibData[key]) {
       return false
     }
   }
@@ -251,18 +315,18 @@ function listenToA2HS(
 ) {
   const cha = liuApi.getCharacteristic()
   const onceData = localCache.getOnceData()
-  if(onceData.a2hs_never_prompt) {
+  if (onceData.a2hs_never_prompt) {
     return {}
   }
 
   const lastCancelStamp = onceData.a2hs_last_cancel_stamp ?? 1
   const isWithin = time.isWithinMillis(lastCancelStamp, time.DAY)
-  if(isWithin) {
+  if (isWithin) {
     return {}
   }
 
-  if(onceData.a2hs_installed_stamp) {
-    if(cha.isHarmonyOS || cha.isHuaweiBrowser) {
+  if (onceData.a2hs_installed_stamp) {
+    if (cha.isHarmonyOS || cha.isHuaweiBrowser) {
       return {}
     }
   }
@@ -271,12 +335,12 @@ function listenToA2HS(
     showButtonForA2HS,
     toA2HS,
   } = useShowAddToHomeScreen()
-  if(!showButtonForA2HS) return {}
+  if (!showButtonForA2HS) return {}
 
   watch(showButtonForA2HS, (newV) => {
-    if(newV) {
+    if (newV) {
       const res1 = canIShow(ibData)
-      if(!res1) return
+      if (!res1) return
       ibData.a2hs = true
     }
     else {
@@ -293,18 +357,18 @@ function handleSubscribePrompt(
 
   const _check = () => {
     const res1 = canIShow(ibData)
-    if(!res1) return
+    if (!res1) return
 
     const { launchNum = 0 } = localCache.getOnceData()
-    if((launchNum % 5) !== 4) return
+    if ((launchNum % 5) !== 4) return
 
     const wStore = useWorkspaceStore()
-    if(wStore.isPremium) return
+    if (wStore.isPremium) return
 
     ibData.subscribePrompt = true
   }
 
-  const { 
+  const {
     activeSyncNum,
     stop: stop1,
   } = useActiveSyncNum()
@@ -316,9 +380,9 @@ function handleSubscribePrompt(
   }
 
   const stop2 = watch(activeSyncNum, (newV) => {
-    if(newV < 1) return
+    if (newV < 1) return
     _wait()
     stop1()
     stop2()
-  })  
+  })
 }

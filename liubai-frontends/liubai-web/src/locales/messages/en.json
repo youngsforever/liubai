@@ -588,7 +588,11 @@
     "checking": "Checking..",
     "new_version_desc2": "The new version has been downloaded. Do you want to update it now?",
     "no_new_version": "All good! No new version yet.",
-    "installing_tip": "We are loading new version. Please wait a moment and click again."
+    "installing_tip": "We are loading new version. Please wait a moment and click again.",
+    "web_push_title": "Turn on Notification",
+    "web_push_desc": "Put your schedule at your fingertips 🔔",
+    "web_push_confirm": "Sounds great",
+    "open_webpush": "You can turn on the notification in the Browser Settings"
   },
   "index": {
     "inbox": "Inbox",

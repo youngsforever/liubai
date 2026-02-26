@@ -15,13 +15,13 @@ const waitMilli = (milli = 0): Promise<true> => {
 // 因为 reactive（Proxy）“响应性” 复制后依然存在，但理应不该存在
 const copyObject = <T = any>(obj: T): T => {
   const type = typeof obj
-  if(type !== "object") return obj
+  if (type !== "object") return obj
 
   let obj2: T;
   try {
     obj2 = JSON.parse(JSON.stringify(obj))
   }
-  catch(err) {
+  catch (err) {
     return obj
   }
   return obj2
@@ -33,7 +33,7 @@ const strToObj = <T = any>(str: string): T => {
   try {
     res = JSON.parse(str)
   }
-  catch(err) {}
+  catch (err) { }
   return res as T
 }
 
@@ -46,13 +46,13 @@ const objToStr = <T = any>(obj: T): string => {
   try {
     str = JSON.stringify(obj)
   }
-  catch(err) {}
+  catch (err) { }
   return str
 }
 
 // 快速把入参 val 包裹在 Promise 里返回
 const getPromise = <T = any>(val: T): Promise<T> => {
-  return new Promise(a => a(val)) 
+  return new Promise(a => a(val))
 }
 
 
@@ -66,9 +66,9 @@ const numToFix = (num: number, fix: number): number => {
  */
 const isStringAsNumber = (str: string) => {
   str = str.trim()
-  if(!str) return false
+  if (!str) return false
   const num = Number(str)
-  if(isNaN(num)) return false
+  if (isNaN(num)) return false
   return true
 }
 
@@ -77,11 +77,11 @@ const isStringAsNumber = (str: string) => {
  * 返回小于 2 位时，前面补0
  */
 const format0 = (val: string | number): string => {
-  if(typeof val === "number") {
-    if(val < 10) return "0" + val
-    return "" + val  
+  if (typeof val === "number") {
+    if (val < 10) return "0" + val
+    return "" + val
   }
-  if(val.length < 2) return "0" + val
+  if (val.length < 2) return "0" + val
   return val
 }
 
@@ -89,10 +89,10 @@ const format0 = (val: string | number): string => {
  * 获取文本的中文字符数
  */
 const getChineseCharNum = (val: string) => {
-  if(!val) return 0
+  if (!val) return 0
   let num = 0
-  for(let i=0; i<val.length; i++) {
-    if(val.charCodeAt(i) >= 10000) num++
+  for (let i = 0; i < val.length; i++) {
+    if (val.charCodeAt(i) >= 10000) num++
   }
   return num
 }
@@ -110,9 +110,9 @@ const isAllEnglishChar = (val: string) => {
  */
 const getTextCharNum = (val: string) => {
   let num = 0
-  for(let i=0; i<val.length; i++) {
+  for (let i = 0; i < val.length; i++) {
     const v = val[i]
-    if(getChineseCharNum(v) > 0) num += 2
+    if (getChineseCharNum(v) > 0) num += 2
     else num += 1
   }
   return num
@@ -121,25 +121,25 @@ const getTextCharNum = (val: string) => {
 
 //获取小写字符串的数量
 const getLowerCaseNum = (text: string): number => {
-  if(!text || text.length < 1) return 0
+  if (!text || text.length < 1) return 0
   const list = text.split("")
   let num = 0
   list.forEach(v => {
-    if(v >= "a" && v <= "z") num++
+    if (v >= "a" && v <= "z") num++
   })
   return num
 }
 
 const getValInMinAndMax = (val: number, min: number, max: number): number => {
-  if(val < min) return min
-  if(val > max) return max
+  if (val < min) return min
+  if (val > max) return max
   return val
 }
 
 // 检查 a 是否包含于 b，即 a 的属性和值，是否 b 都有且一致（但 b 可以有 a 所没有的属性）
 const isAIncludedInB = (a: Record<string, any>, b: Record<string, any>): boolean => {
-  for(const key in a) {
-    if(a[key] !== b[key]) return false
+  for (const key in a) {
+    if (a[key] !== b[key]) return false
   }
   return true
 }
@@ -149,7 +149,7 @@ const isAIncludedInB = (a: Record<string, any>, b: Record<string, any>): boolean
 // 若提取失败 则返回空的字符串
 const getSuffix = (name: string): string => {
   const arr = /\.([\w]*)$/.exec(name)
-  if(!arr) return ""
+  if (!arr) return ""
   const format = arr[1].toLowerCase()
   return format
 }
@@ -159,12 +159,12 @@ const isInDomain = (
   hostname: string,
   domain: string
 ) => {
-  if(hostname === domain) return true
+  if (hostname === domain) return true
 
   // 把 www. 去掉
   const dList = domain.split(".")
-  if(dList.length === 3) {
-    if(dList[0] === "www") {
+  if (dList.length === 3) {
+    if (dList[0] === "www") {
       domain = dList[1] + "." + dList[2]
     }
   }
@@ -173,11 +173,11 @@ const isInDomain = (
   domain = firChar === "." ? domain : (`.${domain}`)
   hostname = `.${hostname}`
 
-  if(hostname === domain) return true
+  if (hostname === domain) return true
 
   const hLen = hostname.length
   const dLen = domain.length
-  if(hLen < dLen) return false
+  if (hLen < dLen) return false
   const lastOfHostname = hostname.substring(hLen - dLen)
   return lastOfHostname === domain
 }
@@ -191,9 +191,9 @@ const minusAndMinimumZero = (
   oldVal: number | undefined,
   subtrahend = 1,
 ) => {
-  if(!oldVal) return 0
+  if (!oldVal) return 0
   const newVal = oldVal - subtrahend
-  if(newVal < 0) return 0
+  if (newVal < 0) return 0
   return newVal
 }
 
@@ -211,9 +211,9 @@ const compareVersion = (v1: string, v2: string) => {
   for (let i = 0; i < len; i++) {
     const num1 = Number.parseInt(list1[i], 10)
     const num2 = Number.parseInt(list2[i], 10)
-    
-    if(num1 > num2) return 1
-    if(num1 < num2) return -1
+
+    if (num1 > num2) return 1
+    if (num1 < num2) return -1
   }
 
   return 0
@@ -227,16 +227,16 @@ const uniqueArray = (arr: string[]) => {
 }
 
 const hasValue = <T>(
-  val: any, 
+  val: any,
   type: string,
   checkLength = true,
 ): val is T => {
-  if(val && typeof val === type) {
-    if(checkLength && Array.isArray(val)) {
-      if(val.length < 1) return false
+  if (val && typeof val === type) {
+    if (checkLength && Array.isArray(val)) {
+      if (val.length < 1) return false
     }
 
-    if(type === "string") {
+    if (type === "string") {
       return Boolean(val.trim())
     }
 
@@ -253,16 +253,26 @@ const getURL = (val: string) => {
   let url: URL | undefined
   try {
     url = new URL(val)
-    if(!url.hostname) return
+    if (!url.hostname) return
   }
-  catch(err) {
+  catch (err) {
     // console.warn("getURL fail........")
     // console.log(err)
     // console.log(val)
     // console.log(" ")
   }
-  
+
   return url
+}
+
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/')
+
+  const rawData = atob(base64)
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
 }
 
 export default {
@@ -288,4 +298,5 @@ export default {
   hasValue,
   isStringWithVal,
   getURL,
+  urlBase64ToUint8Array,
 }
