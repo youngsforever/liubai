@@ -3,8 +3,8 @@
 // 发送提醒
 import cloud from "@lafjs/cloud";
 import { addSeconds, set as date_fn_set } from "date-fns"
-import type { 
-  Table_Member, 
+import type {
+  Table_Member,
   Table_User,
   Table_Content,
   RequireSth,
@@ -12,8 +12,9 @@ import type {
   Table_WxTask,
   Table_WxBond,
   Wx_Param_Msg_Templ_Send,
+  Table_WebPushSub,
 } from "@/common-types";
-import { 
+import {
   decryptEncData,
   LiuDateUtil,
   valTool,
@@ -23,7 +24,7 @@ import {
 } from "@/common-util";
 import { commonLang, getCurrentLocale, useI18n } from "@/common-i18n";
 import { wx_reminder_tmpl } from "@/common-config";
-import { WxGzhSender } from "@/service-send";
+import { WxGzhSender, WebPushSender } from "@/service-send";
 import { invoke_by_clock } from "@/ai-system-two";
 import { getNowStamp } from "@/common-time";
 
@@ -44,6 +45,7 @@ interface RemindAtom {
   wx_gzh_openid?: string
   locale?: SupportedLocale
   timezone?: string
+  web_push_subs?: Table_WebPushSub[]
 }
 
 interface TaskRemindAtom {
@@ -56,8 +58,8 @@ interface TaskRemindAtom {
   timezone?: string
 }
 
-type RemindAtom_2 = RequireSth<RemindAtom, "wx_gzh_openid">
-type TaskRemindAtom_2 = RequireSth<TaskRemindAtom, "wx_gzh_openid">
+type RemindAtom_2 = RequireSth<RemindAtom, "locale">
+type TaskRemindAtom_2 = RequireSth<TaskRemindAtom, "locale">
 
 interface AuthorAtom {
   userId: string
@@ -102,7 +104,7 @@ async function handle_system_two() {
   const date = new Date()
   const min = date.getMinutes()
   const remainder = min % 5
-  if(remainder !== 3) return
+  if (remainder !== 3) return
   await invoke_by_clock()
 }
 
@@ -133,7 +135,7 @@ async function handle_update_unionid() {
   const _unsubscribe = async (user: Table_User) => {
     const userId = user._id
     const wx_gzh = user.thirdData?.wx_gzh
-    if(!wx_gzh) return
+    if (!wx_gzh) return
     wx_gzh.subscribe = 0
     const now3 = getNowStamp()
     const u3 = {
@@ -150,16 +152,16 @@ async function handle_update_unionid() {
     if (!wx_gzh_openid || user.wx_unionid) continue
 
     const userInfoRes = await getWxGzhUserInfo(wx_gzh_openid)
-    if(!userInfoRes) {
+    if (!userInfoRes) {
       console.warn("handle_update_unionid: userInfoRes is not found")
       break
     }
 
     const wx_unionid = userInfoRes.unionid
-    if(!wx_unionid) {
+    if (!wx_unionid) {
       console.warn("handle_update_unionid: unionid is not found", wx_gzh_openid)
       console.log(userInfoRes)
-      if(userInfoRes.subscribe === 0) {
+      if (userInfoRes.subscribe === 0) {
         await _unsubscribe(user)
       }
       continue
@@ -171,7 +173,7 @@ async function handle_update_unionid() {
     await valTool.waitMilli(200)
   }
 
-  if(updatedNum > 0) {
+  if (updatedNum > 0) {
     console.log(`update ${updatedNum} for wx_unionid from ${users.length}`)
   }
 }
@@ -181,7 +183,7 @@ async function handle_task_remind() {
   // 1. get tmplId
   const _env = process.env
   const tmplId = _env.LIU_WX_GZ_TMPL_ID_1
-  if(!tmplId) {
+  if (!tmplId) {
     return false
   }
 
@@ -194,22 +196,22 @@ async function handle_task_remind() {
 
   // 3. find atoms
   const atoms = await get_task_atoms(startStamp, endStamp)
-  if(atoms.length < 1) {
+  if (atoms.length < 1) {
     return true
   }
 
   // 4. find authors
   const atoms2 = await find_task_authors(atoms)
-  if(atoms2.length < 1) {
+  if (atoms2.length < 1) {
     return true
   }
 
   // 5. get access token
   const access_token = await checkAndGetWxGzhAccessToken()
-  if(!access_token) {
+  if (!access_token) {
     return false
   }
-  
+
   // 6. batch send
   await batch_send_for_tasks(access_token, atoms2)
 }
@@ -227,7 +229,7 @@ async function find_task_authors(
   const MAX_TIMES = 100
 
   // to find authors
-  while(userIds.length > 0 && runTimes < MAX_TIMES) {
+  while (userIds.length > 0 && runTimes < MAX_TIMES) {
     const tmpUserIds = userIds.splice(0, NUM_ONCE)
     const w = {
       oState: "NORMAL",
@@ -245,10 +247,10 @@ async function find_task_authors(
     const res1 = await uCol.where(w).field(f).get<Table_User>()
     const results1 = res1.data
 
-    for(let i=0; i<results1.length; i++) {
+    for (let i = 0; i < results1.length; i++) {
       const user = results1[i]
       const wx_gzh_openid = user.wx_gzh_openid
-      if(!wx_gzh_openid) continue
+      if (!wx_gzh_openid) continue
       const author: TaskAuthorAtom = {
         userId: user._id,
         wx_gzh_openid,
@@ -257,20 +259,20 @@ async function find_task_authors(
       }
       authors.push(author)
     }
-    
+
     runTimes++
   }
 
   // match authors for atoms
   const newAtoms: TaskRemindAtom_2[] = []
-  for(let i=0; i<atoms.length; i++) {
+  for (let i = 0; i < atoms.length; i++) {
     const atom = atoms[i]
     const author = authors.find(v => v.userId === atom.userId)
-    if(author) {
+    if (author) {
       newAtoms.push({ ...atom, ...author })
     }
   }
-  
+
   return newAtoms
 }
 
@@ -291,24 +293,24 @@ async function get_task_atoms(
   const wtCol = db.collection("WxTask")
   const atoms: TaskRemindAtom[] = []
 
-  while(runTimes < MAX_TIMES) {
+  while (runTimes < MAX_TIMES) {
     let q = wtCol.where(w1).orderBy("remindStamp", "asc")
-    if(runTimes > 0) {
+    if (runTimes > 0) {
       q = q.skip(runTimes * NUM_ONCE)
     }
     const res = await q.limit(NUM_ONCE).get<Table_WxTask>()
     const tmpList = res.data
     const tLength = tmpList.length
 
-    for(let i=0; i<tLength; i++) {
+    for (let i = 0; i < tLength; i++) {
       const v = tmpList[i]
       const newAtoms = await turnTaskIntoAtoms(v)
-      if(newAtoms) {
+      if (newAtoms) {
         atoms.push(...newAtoms)
       }
     }
 
-    if(tLength < NUM_ONCE) break
+    if (tLength < NUM_ONCE) break
     runTimes++
   }
 
@@ -322,7 +324,7 @@ async function handle_remind() {
   // check out if the tmplId is enabled
   const _env = process.env
   const tmplId = _env.LIU_WX_GZ_TMPL_ID_1
-  if(!tmplId) {
+  if (!tmplId) {
     return false
   }
 
@@ -334,21 +336,21 @@ async function handle_remind() {
   const endStamp = endDate.getTime()
 
   const atoms = await get_remind_atoms(startStamp, endStamp)
-  if(atoms.length < 1) {
+  if (atoms.length < 1) {
     return true
   }
 
   const atoms2 = await find_remind_authors(atoms)
-  if(atoms2.length < 1) {
+  if (atoms2.length < 1) {
     return true
   }
 
   const access_token = await checkAndGetWxGzhAccessToken()
-  if(!access_token) {
+  if (!access_token) {
     console.warn("access_token is not found")
     return false
   }
-  
+
   await batch_send(access_token, atoms2)
 
 }
@@ -360,15 +362,15 @@ async function batch_send(
   const numMap = new Map<string, number>()
   const aLength = atoms.length
 
-  for(let i=0; i<atoms.length; i++) {
+  for (let i = 0; i < atoms.length; i++) {
     const v = atoms[i]
     const userId = v.userId
     const num = numMap.get(userId) ?? 0
-    if(num > 3) continue
+    if (num > 3) continue
     numMap.set(userId, num + 1)
-    send_wx_message(access_token, v)
+    send_remind_message(access_token, v)
 
-    if(i !== 0 && (i % 5) === 0 && i !== (aLength - 1)) {
+    if (i !== 0 && (i % 5) === 0 && i !== (aLength - 1)) {
       await valTool.waitMilli(200)
     }
   }
@@ -380,11 +382,11 @@ async function batch_send_for_tasks(
 ) {
   const numMap = new Map<string, number>()
 
-  for(let i=0; i<atoms.length; i++) {
+  for (let i = 0; i < atoms.length; i++) {
     const v = atoms[i]
     const userId = v.userId
     const num = numMap.get(userId) ?? 0
-    if(num > 3) continue
+    if (num > 3) continue
     numMap.set(userId, num + 1)
     await send_for_task(access_token, v)
   }
@@ -395,73 +397,99 @@ async function send_for_task(
   access_token: string,
   atom: TaskRemindAtom_2,
 ) {
-  const obj = { ...wx_reminder_tmpl } as Wx_Param_Msg_Templ_Send
   const _env = process.env
-  const domain = _env.LIU_DOMAIN
+  const domain = _env.LIU_DOMAIN || ""
   const tmplId = _env.LIU_WX_GZ_TMPL_ID_1 ?? ""
   const miniAppId = _env.LIU_WX_MINI_APPID ?? ""
-  obj.template_id = tmplId
   const { taskId, locale, wx_gzh_openid, calendarStamp, timezone } = atom
-  obj.touser = wx_gzh_openid
-  obj.url = `${domain}`
-  obj.miniprogram = {
-    appid: miniAppId,
-    pagepath: `pages/index/index?task=${taskId}`,
-  }
 
   let title = atom.title
-  if(title.length > 20) {
+  if (title.length > 20) {
     title = title.substring(0, 17) + "..."
   }
   title = title.replace(/\n/g, " ")
-  obj.data.thing18.value = title
   const str_time = LiuDateUtil.displayTime(calendarStamp, locale, timezone)
-  obj.data.time4.value = str_time
 
-  await WxGzhSender.sendTemplateMessage(access_token, obj)
+  // weixin gzh
+  if (wx_gzh_openid) {
+    const obj = valTool.copyObject(wx_reminder_tmpl) as Wx_Param_Msg_Templ_Send
+    obj.template_id = tmplId
+    obj.touser = wx_gzh_openid
+    obj.url = `${domain}`
+    obj.miniprogram = {
+      appid: miniAppId,
+      pagepath: `pages/index/index?task=${taskId}`,
+    }
+    obj.data.thing18.value = title
+    obj.data.time4.value = str_time
+    await WxGzhSender.sendTemplateMessage(access_token, obj)
+  }
+
   return true
 }
 
-async function send_wx_message(
+async function send_remind_message(
   access_token: string,
   atom: RemindAtom_2,
 ) {
-  const obj = { ...wx_reminder_tmpl }
   const _env = process.env
-  const domain = _env.LIU_DOMAIN
+  const domain = _env.LIU_DOMAIN || ""
   const tmplId = _env.LIU_WX_GZ_TMPL_ID_1 ?? ""
-  obj.template_id = tmplId
-  const { 
-    contentId, 
-    locale, 
+  const {
+    contentId,
+    locale,
     calendarStamp,
     wx_gzh_openid,
     timezone,
+    web_push_subs,
   } = atom
 
-  obj.touser = wx_gzh_openid
-  if(domain) {
-    obj.url = `${domain}/${contentId}`
-  }
-  
+  const navigateUrl = domain ? `${domain}/${contentId}` : ""
+
   let title = atom.title
-  if(!title) {
+  if (!title) {
     const { t: t1 } = useI18n(commonLang, { locale })
     title = `[${t1("other")}]`
-    if(atom.hasImage) title = `[${t1("image")}]`
-    else if(atom.hasFile) title = `[${t1("file")}]`
+    if (atom.hasImage) title = `[${t1("image")}]`
+    else if (atom.hasFile) title = `[${t1("file")}]`
   }
-  if(title.length > 20) {
+  if (title.length > 20) {
     title = title.substring(0, 17) + "..."
   }
   title = title.replace(/\n/g, " ")
 
-  obj.data.thing18.value = title
-
   const str_time = LiuDateUtil.displayTime(calendarStamp, locale, timezone)
-  obj.data.time4.value = str_time
-  
-  const res = await WxGzhSender.sendTemplateMessage(access_token, obj)
+
+  const promises: Promise<unknown>[] = []
+
+  if (web_push_subs && web_push_subs.length > 0) {
+    for (const sub of web_push_subs) {
+      const wpPromise = WebPushSender.sendNotification(
+        sub,
+        title,
+        str_time,
+        navigateUrl,
+        `remind-${contentId}`,
+        calendarStamp
+      )
+      promises.push(wpPromise)
+    }
+  }
+
+  if (wx_gzh_openid) {
+    const obj = valTool.copyObject(wx_reminder_tmpl)
+    obj.template_id = tmplId
+    obj.touser = wx_gzh_openid
+    if (domain) obj.url = navigateUrl
+    obj.data.thing18.value = title
+    obj.data.time4.value = str_time
+    promises.push(WxGzhSender.sendTemplateMessage(access_token, obj))
+  }
+
+  if (promises.length > 0) {
+    await Promise.allSettled(promises)
+  }
+
   return true
 }
 
@@ -473,10 +501,10 @@ async function find_remind_authors(
   const list_3: AuthorAtom_2[] = []
 
   // 1. package list_1
-  for(let i=0; i<atoms.length; i++) {
+  for (let i = 0; i < atoms.length; i++) {
     const v1 = atoms[i]
     const idx = list_1.findIndex(v2 => v1.userId === v2.userId)
-    if(idx >= 0) continue
+    if (idx >= 0) continue
     list_1.push({ userId: v1.userId, memberId: v1.memberId })
   }
 
@@ -486,7 +514,7 @@ async function find_remind_authors(
   const MAX_TIMES = 100
 
   // 2. find users
-  while(list_1.length > 0 && runTimes < MAX_TIMES) {
+  while (list_1.length > 0 && runTimes < MAX_TIMES) {
     let tmpList = list_1.splice(0, NUM_ONCE)
 
     const userIds = tmpList.map(v => v.userId)
@@ -515,7 +543,7 @@ async function find_remind_authors(
 
   // 3. find members
   const mCol = db.collection("Member")
-  while(list_2.length > 0 && runTimes < MAX_TIMES) {
+  while (list_2.length > 0 && runTimes < MAX_TIMES) {
     let tmpList = list_2.splice(0, NUM_ONCE)
     const memberIds = tmpList.map(v => v.memberId)
     const w = {
@@ -538,11 +566,11 @@ async function find_remind_authors(
   }
 
   // 4. get list_3 into atoms
-  for(let i=0; i<list_3.length; i++) {
+  for (let i = 0; i < list_3.length; i++) {
     const v1 = list_3[i]
-    for(let j=0; j<atoms.length; j++) {
+    for (let j = 0; j < atoms.length; j++) {
       const v2 = atoms[j]
-      if(v1.userId === v2.userId) {
+      if (v1.userId === v2.userId) {
         v2.wx_gzh_openid = v1.wx_gzh_openid
         v2.timezone = v1.timezone
         v2.locale = v1.locale
@@ -550,10 +578,20 @@ async function find_remind_authors(
     }
   }
 
-  // 5. filter atoms without wx_gzh_openid
-  // TODO: web push
-  let newAtoms = atoms.filter(v => v.wx_gzh_openid) as RemindAtom_2[]
-  
+  // 5. filter atoms without wx_gzh_openid and web_push_subs
+  const allUserIds = valTool.uniqueArray(atoms.map(v => v.userId))
+  if (allUserIds.length > 0) {
+    const wpCol = db.collection("WebPushSub")
+    const resWp = await wpCol.where({ userId: _.in(allUserIds) }).limit(500).get<Table_WebPushSub>()
+    const wpSubs = resWp.data || []
+    for (let i = 0; i < atoms.length; i++) {
+      const atom = atoms[i]
+      atom.web_push_subs = wpSubs.filter(sub => sub.userId === atom.userId)
+    }
+  }
+
+  const newAtoms = atoms.filter(v => v.wx_gzh_openid || (v.web_push_subs && v.web_push_subs.length > 0)) as RemindAtom_2[]
+
   return newAtoms
 }
 
@@ -574,24 +612,24 @@ async function get_remind_atoms(
   const cCol = db.collection("Content")
   const atoms: RemindAtom[] = []
 
-  while(runTimes < MAX_TIMES) {
+  while (runTimes < MAX_TIMES) {
     let q = cCol.where(w).orderBy("remindStamp", "asc")
-    if(runTimes > 0) {
+    if (runTimes > 0) {
       q = q.skip(runTimes * NUM_ONCE)
     }
     const res = await q.limit(NUM_ONCE).get<Table_Content>()
     const tmpList = res.data
     const tLength = tmpList.length
 
-    for(let i=0; i<tLength; i++) {
+    for (let i = 0; i < tLength; i++) {
       const v = tmpList[i]
       const atom = turnContentIntoAtom(v)
-      if(atom) {
+      if (atom) {
         atoms.push(atom)
       }
     }
 
-    if(tLength < NUM_ONCE) break
+    if (tLength < NUM_ONCE) break
     runTimes++
   }
 
@@ -599,21 +637,19 @@ async function get_remind_atoms(
 }
 
 // when we get members, package authors with them
-// filter members whose wx_gzh_toggle is false or undefined
+// clear wx_gzh_openid if wx_gzh_toggle is false or undefined
 function packAuthors2(
   tmpList: AuthorAtom_2[],
   members: Table_Member[],
 ) {
-  if(members.length < 1) return []
+  if (members.length < 1) return []
 
-  for(let i=0; i<tmpList.length; i++) {
+  for (let i = 0; i < tmpList.length; i++) {
     const v1 = tmpList[i]
     const member = members.find(v2 => v1.memberId === v2._id)
     const wx_gzh_toggle = member?.notification?.wx_gzh_toggle
-    if(!wx_gzh_toggle) {
-      tmpList.splice(i, 1)
-      i--
-      continue
+    if (!wx_gzh_toggle) {
+      delete v1.wx_gzh_openid
     }
   }
 
@@ -626,21 +662,23 @@ function packAuthors1(
   users: Table_User[],
 ) {
 
-  if(users.length < 1) return []
+  if (users.length < 1) return []
 
-  for(let i=0; i<tmpList.length; i++) {
+  for (let i = 0; i < tmpList.length; i++) {
     const v1 = tmpList[i]
     const user = users.find(v2 => v1.userId === v2._id)
-    const wx_gzh_openid = user?.wx_gzh_openid
-    const wx_subscribe = user?.thirdData?.wx_gzh?.subscribe
-    if(!user || !wx_gzh_openid || wx_subscribe !== 1) {
+    if (!user) {
       tmpList.splice(i, 1)
       i--
       continue
     }
+    const wx_gzh_openid = user.wx_gzh_openid
+    const wx_subscribe = user.thirdData?.wx_gzh?.subscribe
 
     v1.locale = getCurrentLocale({ user })
-    v1.wx_gzh_openid = wx_gzh_openid
+    if (wx_subscribe === 1 && wx_gzh_openid) {
+      v1.wx_gzh_openid = wx_gzh_openid
+    }
     v1.timezone = user.timezone
   }
 
@@ -655,17 +693,17 @@ async function turnTaskIntoAtoms(
     assigneeList = [],
     owner_userid,
   } = task
-  if(!calendarStamp) return
+  if (!calendarStamp) return
 
   // manage to get userIds
   let userIds: string[] = []
   const group_openids: string[] = []
   assigneeList.forEach(v1 => {
-    if(!v1.doneStamp) {
+    if (!v1.doneStamp) {
       group_openids.push(v1.group_openid)
     }
   })
-  if(group_openids.length) {
+  if (group_openids.length) {
     const w1 = {
       infoType: "chat-tool",
       group_openid: _.in(group_openids),
@@ -675,7 +713,7 @@ async function turnTaskIntoAtoms(
     const bonds = res1.data
     userIds = bonds.map(v => v.userId)
   }
-  if(!userIds.includes(owner_userid)) {
+  if (!userIds.includes(owner_userid)) {
     userIds.push(owner_userid)
   }
 
@@ -694,17 +732,17 @@ async function turnTaskIntoAtoms(
 function turnContentIntoAtom(
   v: Table_Content,
 ) {
-  if(!v.member) return
-  if(!v.calendarStamp) return
+  if (!v.member) return
+  if (!v.calendarStamp) return
 
   const res1 = decryptEncData(v)
-  if(!res1.pass) return
+  if (!res1.pass) return
 
   let title: string | undefined
-  if(res1.title) {
+  if (res1.title) {
     title = res1.title
   }
-  else if(res1.liuDesc) {
+  else if (res1.liuDesc) {
     title = RichTexter.getSummary(res1.liuDesc)
   }
 

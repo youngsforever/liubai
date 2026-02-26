@@ -22,10 +22,11 @@ const _checkSW = async (r: ServiceWorkerRegistration) => {
   console.log("r.installing: ", r.installing)
   console.log("r.waiting: ", r.waiting)
   console.log("r.active: ", r.active)
+  console.log("r.scope: ", r.scope)
   console.log(" ")
 
   const swUrl = _swUrl
-  if(!swUrl) return
+  if (!swUrl) return
   if (r.installing || !navigator) return
 
   if ("connection" in navigator) {
@@ -42,39 +43,39 @@ const _checkSW = async (r: ServiceWorkerRegistration) => {
   }
   localCache.setOnceData("lastCheckSWStamp", time.getTime())
 
-  const resp = await fetch(swUrl, {
-    cache: 'no-store',
-    headers: {
-      'cache': 'no-store',
-      'cache-control': 'no-cache',
-    },
-  })
+  try {
+    const resp = await fetch(swUrl, {
+      cache: 'no-store',
+    })
 
-  if (resp?.status === 200) {
-    console.time("r.update")
-    await r.update()
-    console.timeEnd("r.update")
-  }
-  else {
-    console.warn("fail to fetch the result from service worker:")
-    console.log(resp)
-    console.log(" ")
+    if (resp?.status === 200) {
+      console.time("r.update")
+      await r.update()
+      console.timeEnd("r.update")
+    }
+    else {
+      console.warn("fail to fetch the result from service worker:")
+      console.log(resp)
+      console.log(" ")
+    }
+  } catch (err) {
+    console.error("Error in _checkSW updates:", err)
   }
 }
 
 
 export function initServiceWorker() {
-  
+
   const onRegisteredSW = (
-    swUrl: string, 
+    swUrl: string,
     r: ServiceWorkerRegistration | undefined,
   ) => {
     // the func will be called every time you open the page
     // as long as sw is registered successfully
     _swRegistration = r
     _swUrl = swUrl
-    
-    if(!r) return
+
+    if (!r) return
     setTimeout(() => {
       _checkSW(r)
     }, time.SECOND)
@@ -86,10 +87,10 @@ export function initServiceWorker() {
       console.warn("service-worker updatefound......")
       console.log(evt)
       const newWorker = r.installing
-      if(!newWorker) return
+      if (!newWorker) return
       const state1 = newWorker.state
       console.log("newWorker.state: ", state1)
-      
+
       newWorker.addEventListener("statechange", (evt) => {
         console.warn("newWorker statechange......")
         console.log(newWorker.state)
@@ -100,7 +101,7 @@ export function initServiceWorker() {
   const onRegisterError = (err: any) => {
     console.warn("onRegisterError err:")
     console.log(err)
-    liuConsole.addBreadcrumb({ 
+    liuConsole.addBreadcrumb({
       category: "pwa.sw",
       message: "onRegisterError",
       level: "error",
@@ -130,7 +131,7 @@ export function initServiceWorker() {
   })
 
   window.addEventListener('beforeunload', (event) => {
-    if(needRefresh.value) {
+    if (needRefresh.value) {
       console.log("needRefresh is true, so we get to update the sw")
       updateServiceWorker()
     }
@@ -140,15 +141,15 @@ export function initServiceWorker() {
 export async function toUpdateSW(
   loading = false
 ) {
-  if(!_updateSW) return
+  if (!_updateSW) return
 
-  if(loading) {
+  if (loading) {
     cui.showLoading({ title_key: "common.updating" })
     setTimeout(() => {
       cui.hideLoading()
     }, 3000)
   }
-  
+
   localCache.setOnceData("lastInstallNewVersion", time.getTime())
 
   db.close()
@@ -158,7 +159,7 @@ export async function toUpdateSW(
 
 export function checkUpdateManually() {
   const r = _swRegistration
-  if(!r) return false
+  if (!r) return false
   _checkSW(r)
 }
 

@@ -68,7 +68,7 @@ export const Sch_Opt_Id = vbot.optional(Sch_Id)
 // trim 后有字符串的 string
 export const sch_string_length = (minLength: number = 1) => {
   return vbot.string([
-    vbot.toTrimmed(), 
+    vbot.toTrimmed(),
     vbot.minLength(minLength)
   ])
 }
@@ -78,7 +78,7 @@ export const Sch_String_WithLength = sch_string_length()
 
 // optional array something
 export const sch_opt_arr = (
-  sch: BaseSchema, 
+  sch: BaseSchema,
   pipe?: vbot.Pipe<any>,
 ) => {
   return vbot.optional(vbot.array(sch, pipe))
@@ -89,8 +89,10 @@ export const sch_opt_num = (
   max?: number,
 ) => {
   let pipe: vbot.Pipe<any> | undefined
-  if(min) pipe = [vbot.minValue(min)]
-  if(max) {
+  if (min !== undefined) {
+    pipe = [vbot.minValue(min)]
+  }
+  if (max !== undefined) {
     const m = vbot.maxValue(max)
     pipe = pipe ? [...pipe, m] : [m]
   }
@@ -153,9 +155,9 @@ export const Sch_OState_Draft = vbot.picklist(oState_Drafts)
 
 // coupon 的 oState
 export const oState_Cool = [
-  "OK", 
-  "REVIEWING", 
-  "DEL_BY_USER", 
+  "OK",
+  "REVIEWING",
+  "DEL_BY_USER",
   "DEL_BY_ADMIN",
   "DEL_BY_AI",
 ] as const
@@ -209,9 +211,9 @@ export type GenderType = typeof genderTypes[number]
 export const Sch_GenderType = vbot.picklist(genderTypes)
 
 export const threadListViewTypes = [
-  "TRASH", 
-  "TAG", 
-  "FAVORITE", 
+  "TRASH",
+  "TAG",
+  "FAVORITE",
   "PINNED",
   "INDEX",
   "STATE",
@@ -381,10 +383,10 @@ export interface ContentConfig {
   lastOperatePin?: number        // last stamp when user edited pin
   lastOperateTag?: number        // last stamp when user edited tag
   lastOperateWhenRemind?: number   // last stamp when user 
-                                   // edited whenStamp / remindStamp / remind
+  // edited whenStamp / remindStamp / remind
   lastUpdateEmojiData?: number      // last stamp when emojiData is updated
   lastUpdateLevelNum?: number   // last stamp when levelOne or 
-                                // levelOneAndTwo is updated
+  // levelOneAndTwo is updated
 }
 
 export const Sch_ContentConfig = vbot.object({
@@ -480,7 +482,7 @@ export interface LiuRemindMe {
   type: "early" | "later" | "specific_time"
 
   // 提前多少分钟，若提前一天则为 1440
-  early_minute?: number   
+  early_minute?: number
 
   // 30分钟后、1小时候、2小时后、3小时后、明天此刻
   later?: LiuRemindLater
@@ -692,7 +694,7 @@ export type DownloadUploadRes = DownloadUploadRes_1 | DownloadUploadRes_2
 
 
 /*********************** About AI **********************/
-export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan" 
+export type AiProvider = "aliyun-bailian" | "baichuan" | "deepseek" | "tencent-hunyuan"
   | "minimax" | "moonshot" | "stepfun" | "zero-one" | "zhipu" | "jina" | "antgroup"
 
 export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencent-lkeap"
@@ -703,10 +705,10 @@ export type AiSecondaryProvider = "siliconflow" | "gitee-ai" | "qiniu" | "tencen
 
 
 // AiCharacter 不跟供应商绑定，它是角色，只不过现在各个供应商都有自己的 To C 角色罢了
-export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "hunyuan" | "kimi" | "yuewen" | 
+export type AiCharacter = "baixiaoying" | "deepseek" | "hailuo" | "hunyuan" | "kimi" | "yuewen" |
   "wanzhi" | "zhipu" | "ds-reasoner" | "tongyi-qwen" | "bailing"
 
-export type AiInfoType = "user" | "assistant" | "summary" | "clear" | 
+export type AiInfoType = "user" | "assistant" | "summary" | "clear" |
   "background" | "tool_use"
 // user: 用户发来的消息
 // assistant: AI 的回复
@@ -715,7 +717,7 @@ export type AiInfoType = "user" | "assistant" | "summary" | "clear" |
 // background: 比如 url 的解析结果 / 关键词搜索结果
 // tool_use: 使用工具
 
-export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" | 
+export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" |
   "input_audio" | "reasoning"
 // chat: interact with plain-text
 // text_to_image: user inputs text and LLM return image
@@ -725,7 +727,7 @@ export type AiAbility = "chat" | "text_to_image" | "image_to_text" | "tool_use" 
 
 export type AiMsgType = "text" | "image" | "voice" | "location"
 
-export type AiCommandByHuman = "kick" | "add" | "clear_history" 
+export type AiCommandByHuman = "kick" | "add" | "clear_history"
   | "more_operations" | "continue" | "group_status" | "bot_not_available"
 
 export type AiFinishReason = "stop" | "length" | "tool_calls"
@@ -735,7 +737,7 @@ export interface AiBotMetaData {
   zhipuWebSearch?: boolean     // false is default
   thinkingInContent?: boolean  // <think>......</think>\n\nAnd then this is real content
   defaultHeaders?: Record<string, string>  // optional, it is in option of constructor 
-                                           // of new OpenAI() 
+  // of new OpenAI() 
 }
 
 export interface AiBot {
@@ -784,7 +786,7 @@ export type AiImageSizeType = typeof aiImageSizeTypes[number]
 export type OaiPrompt = OpenAI.Chat.ChatCompletionMessageParam
 export type OaiContentPart = OpenAI.Chat.ChatCompletionContentPart
 export type OaiTool = OpenAI.Chat.ChatCompletionTool
-export type OaiToolPrompt = OpenAI.Chat.ChatCompletionToolMessageParam 
+export type OaiToolPrompt = OpenAI.Chat.ChatCompletionToolMessageParam
 export type OaiCreateParam = OpenAI.Chat.ChatCompletionCreateParams
 export type OaiChatCompletion = OpenAI.Chat.ChatCompletion
 export type OaiChatCompletionChunk = OpenAI.Chat.ChatCompletionChunk
@@ -819,15 +821,15 @@ export const Sch_AiToolAddTodoParam = vbot.object({
 
 // the param of add_calendar
 export const aiToolAddCalendarSpecificDates = [
-  "today", 
-  "tomorrow", 
-  "day_after_tomorrow", 
-  "monday", 
-  "tuesday", 
-  "wednesday", 
-  "thursday", 
-  "friday", 
-  "saturday", 
+  "today",
+  "tomorrow",
+  "day_after_tomorrow",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
   "sunday"
 ] as const
 export type AiToolAddCalendarSpecificDate = typeof aiToolAddCalendarSpecificDates[number]
@@ -871,14 +873,14 @@ export type AiToolGetScheduleHoursFromNow = typeof aiToolGetScheduleHoursFromNow
 export const Sch_AiToolGetScheduleHoursFromNow = vbot.picklist(aiToolGetScheduleHoursFromNow)
 
 export const aiToolGetScheduleSpecificDates = [
-  "yesterday", "today", "tomorrow", 
-  "day_after_tomorrow", 
-  "monday", 
-  "tuesday", 
-  "wednesday", 
-  "thursday", 
-  "friday", 
-  "saturday", 
+  "yesterday", "today", "tomorrow",
+  "day_after_tomorrow",
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
   "sunday"
 ] as const
 export type AiToolGetScheduleSpecificDate = typeof aiToolGetScheduleSpecificDates[number]
@@ -1067,7 +1069,7 @@ export interface CredentialMetaData {
   x_liu_device?: string
   x_liu_theme?: string           // to create a user while signing up
   x_liu_language?: string        // to create a user while signing up,
-                                 // or to send welcome message for new wx gzh user
+  // or to send welcome message for new wx gzh user
 }
 
 export interface GetChaRes {
@@ -1163,8 +1165,8 @@ export const liuUploadTasks = [
   "member-nickname",          // 修改当前工作区自己的昵称
   "draft-clear",              // 删除某个 draft_id 的草稿
   "draft-set",                // 设置草稿，注意这时 UploadTaskLocalTable 的 content_id
-                              // 必须为空（否则会被当作 content-xxx 的事件处理），而是
-                              // 用 draft_id 来查询本地的哪个操作
+  // 必须为空（否则会被当作 content-xxx 的事件处理），而是
+  // 用 draft_id 来查询本地的哪个操作
 ] as const
 
 export type LiuUploadTask = (typeof liuUploadTasks)[number]
@@ -1179,7 +1181,7 @@ export interface LiuUploadBase {
   liuDesc?: LiuContent[]
   images?: Cloud_ImageStore[]
   files?: Cloud_FileStore[]
-  
+
   editedStamp?: number
 }
 
@@ -1203,7 +1205,7 @@ export interface LiuUploadThread extends LiuUploadBase {
   tagSearched?: string[]
   stateId?: string
   stateStamp?: number
-  
+
   // 只在 thread-post 时有效，且此时必填
   emojiData?: EmojiData
   config?: ContentConfig
@@ -1232,13 +1234,13 @@ export interface LiuUploadComment extends LiuUploadBase {
 export interface LiuUploadDraft extends LiuUploadBase {
   oState?: OState_Draft
   infoType?: ContentInfoType      // 新建 draft 时，必填
-  
+
   threadEdited?: string
   commentEdited?: string
   parentThread?: string
   parentComment?: string
   replyToComment?: string
-  
+
   title?: string
   whenStamp?: number
   remindMe?: LiuRemindMe
@@ -1322,8 +1324,8 @@ export interface SyncSetCtx {
   ideType?: LiuIDEType
 }
 
-export type SyncSetTable = Table_Content | 
-  Table_Draft | Table_Member | Table_Workspace | 
+export type SyncSetTable = Table_Content |
+  Table_Draft | Table_Member | Table_Workspace |
   Table_Collection | Table_AiChat
 
 export interface SyncSetAtomRes {
@@ -1363,7 +1365,7 @@ export interface SyncGetCtx {
   space_ids: string[]     // TODO: it might be optional for visitors
 }
 
-export type SyncGetTable = Table_User | Table_Content | 
+export type SyncGetTable = Table_User | Table_Content |
   Table_Member | Table_Collection
 
 
@@ -1414,6 +1416,7 @@ export interface Table_User extends BaseTable {
   open_id?: string
   github_id?: number
   thirdData?: UserThirdData
+
   theme: LocalTheme
   systemTheme?: SupportedTheme
   language: LocalLocale
@@ -1440,7 +1443,7 @@ export interface Table_User extends BaseTable {
   timezone?: string
   role?: LiuRole
   blockedFuncs?: LiuFunctionality[]
-  
+
 }
 
 /** Workspace 表 */
@@ -1597,7 +1600,7 @@ export interface Config_WeChat_GZH {
 
 export interface Config_WeChat_MINI {
   access_token?: string
-  expires_in?: number 
+  expires_in?: number
   lastGetStamp?: number
 }
 
@@ -1640,8 +1643,8 @@ export interface Table_Config extends BaseTable {
 }
 
 /** 临时凭证表的类型 */
-export type Table_Credential_Type =  "sms-code" | "email-code" | "wx-gzh-scan"
-  | "users-select" | "stripe-checkout-session" | "bind-wecom" | "bind-wechat" 
+export type Table_Credential_Type = "sms-code" | "email-code" | "wx-gzh-scan"
+  | "users-select" | "stripe-checkout-session" | "bind-wecom" | "bind-wechat"
   | "bind-phone" | "auth-code" | "weixin-ad" | "coupon-auth"
 
 /** 临时凭证表 */
@@ -1706,7 +1709,7 @@ export interface Table_Subscription extends BaseTable {
   original_TWD?: string
 
   amount_CNY?: number       // 人民币价格，单位为“分”，当调用 `payment-order` 且为下单订阅单时，必填
-                            // 该值可填 0
+  // 该值可填 0
   renewal_only?: boolean    // 是否仅续费者有效，新用户不适用
   channel?: string          // order channel, like "wx_gzh"
 
@@ -1746,7 +1749,7 @@ export interface Table_Order extends BaseTable {
   // 一些 wxpay 的信息
   wxpay_other_data?: {
     jsapi_out_trade_no?: string        // format: w1xxxxLD...... where xxxx is 4 digits random lowercase letters 
-                                       // that do not include "l" and "o"
+    // that do not include "l" and "o"
     jsapi_openid?: string
     jsapi_prepay_id?: string
     jsapi_created_stamp?: number
@@ -1768,7 +1771,7 @@ export interface Table_Order extends BaseTable {
     refund_id?: string                // 微信退款号，发起退款后获得
     trade_type?: Wxpay_Trade_Type     // 交易类型，支付成功后获得
     refund_created_stamp?: number     // 发起退款时间戳
-    
+
 
   }
 
@@ -1895,7 +1898,7 @@ export interface Table_HappyCoupon extends BaseTable {
 
     keywordModel?: string
     keywordProvider?: string
-    
+
   }
 }
 
@@ -1966,6 +1969,45 @@ export interface Table_WxTask extends BaseTable {
   each_other_openid?: string
 }
 
+
+/*********************** Web Push 相关类型 ***********************/
+
+// 1. Web Push 订阅的标准结构 (来源于和前端交互以及浏览器结构)
+export interface WebPushSubscription {
+  endpoint: string
+  expirationTime?: number | null
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
+
+export const Sch_WebPushSubscription = vbot.object({
+  endpoint: vbot.string(),
+  expirationTime: vbot.optional(vbot.nullable(vbot.number())),
+  keys: vbot.object({
+    p256dh: vbot.string(),
+    auth: vbot.string(),
+  })
+})
+
+// 2. 数据库中保存 Web Push 的数据表结构
+export interface Table_WebPushSub extends BaseTable {
+  userId: string
+  endpoint: string
+  p256dh: string
+  auth: string
+  userAgent?: string
+}
+
+// 3. 关联的请求入参定义，比如从客户端发送过来订阅信息的入参
+export const Sch_Param_WebPush_SaveSub = vbot.object({
+  operateType: vbot.literal("save_webpush_sub"),
+  subscription: Sch_WebPushSubscription,
+  userAgent: Sch_Opt_Str,
+})
+
+export type Param_WebPush_SaveSub = vbot.Output<typeof Sch_Param_WebPush_SaveSub>
 
 /*********************** 基于 Table 的扩展类型 ***********************/
 
@@ -2098,10 +2140,10 @@ export interface Res_ULN_User extends LiuSpaceAndMember {
   createdStamp: number
 }
 
-export type UserLoginOperate = "init" | "email" | "email_code" 
+export type UserLoginOperate = "init" | "email" | "email_code"
   | "phone"
   | "phone_code"
-  | "github_oauth" 
+  | "github_oauth"
   | "google_oauth"
   | "wx_gzh_oauth"
   | "wx_gzh_for_mini"
@@ -2167,14 +2209,14 @@ export namespace UserSettingsAPI {
     spaceMemberList: LiuSpaceAndMember[]
     subscription?: UserSubscription
     phone_pixelated?: string     // like 187******56
-    
+
     /** wechat data */
     wx_gzh_openid?: string
     wx_gzh_nickname?: string
-  
+
     /** wecom data for qynb, which is for company internal use */
     ww_qynb_external_userid?: string
-  
+
     new_serial?: string
     new_token?: string
   }
@@ -2413,7 +2455,7 @@ export const Sch_SyncGet_CommentList_D = vbot.object({
   commentId: Sch_Id,
 })
 
-export type SyncGet_CommentList = SyncGet_CommentList_A | 
+export type SyncGet_CommentList = SyncGet_CommentList_A |
   SyncGet_CommentList_B | SyncGet_CommentList_C | SyncGet_CommentList_D
 
 export const Sch_SyncGet_CommentList = vbot.variant("loadType", [
@@ -2453,7 +2495,7 @@ export const Sch_SyncGet_Draft = vbot.object({
 })
 
 export type CloudMergerOpt = SyncGet_ThreadList | SyncGet_ThreadData |
-SyncGet_CommentList | SyncGet_CheckContents | SyncGet_Draft | SyncGet_ContentList
+  SyncGet_CommentList | SyncGet_CheckContents | SyncGet_Draft | SyncGet_ContentList
 
 export const Sch_CloudMergerOpt = vbot.variant("taskType", [
   Sch_SyncGet_ThreadList,
@@ -2691,7 +2733,7 @@ export namespace HappySystemAPI {
     max_coupons?: number
     posted_coupons?: number
   }
-  
+
   export interface Res_CouponCheck {
     operateType: "coupon-check"
     pass: boolean
@@ -2740,7 +2782,7 @@ export namespace SyncOperateAPI {
 
   export const Sch_Param = vbot.object({
     operateType: vbot.picklist([
-      "agree-aichat", 
+      "agree-aichat",
       "get-aichat",
       "get-ai-detail",
     ]),
@@ -2783,7 +2825,7 @@ export namespace SyncOperateAPI {
 
 /****************** service-poly api ***************/
 export namespace ServicePolyAPI {
-  
+
   export interface Param {
     operateType: "get-wxjssdk-config"
     url: string
@@ -3093,7 +3135,7 @@ export interface Wx_Gzh_Base {
 // authorization_change from user
 // https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/authorization_change.html
 
-export type Wx_Gzh_Auth_Change_Event = "user_info_modified" | 
+export type Wx_Gzh_Auth_Change_Event = "user_info_modified" |
   "user_authorization_revoke" |
   "user_authorization_cancellation"
 
@@ -3180,7 +3222,7 @@ export interface Wx_Gzh_Subscribe extends Wx_Gzh_Base {
   MsgType: "event"
   Event: "subscribe"
   EventKey: string     // If available, qrscene_ is the prefix 
-                       // followed by the parameter value of the QR code
+  // followed by the parameter value of the QR code
   Ticket?: string
 }
 
@@ -3227,15 +3269,15 @@ export interface Wx_Gzh_Mass_Send_Job_Finish extends Wx_Gzh_Base {
   Status: string
   TotalCount: string         // tag_id下粉丝数；或者openid_list中的粉丝数
   FilterCount: string        // 过滤（用户设置拒收、用户接收已超4条）后，准备发送的粉丝数
-                             // 此值约等于 SentCount + ErrorCount
+  // 此值约等于 SentCount + ErrorCount
   SentCount: string          // 发送成功的粉丝数
   ErrorCount: string         // 发送失败的粉丝数
   CopyrightCheckResult: {
     Count: string
     ResultList: any
     CheckState: "1" | "2" | "3"    // "1": 未被判为转载，可以群发
-                                   // "2": 被判为转载，可以群发
-                                   // "3": 被判为转载，不能群发
+    // "2": 被判为转载，可以群发
+    // "3": 被判为转载，不能群发
   }
   ArticleUrlResult: {
     Count: string
@@ -3466,7 +3508,7 @@ export interface Ww_Wel_Attachment_Video {
 
 export interface Ww_Wel_Attachment_File {
   msgtype: "file"
-	file: {
+  file: {
     media_id: string
   }
 }
@@ -3838,14 +3880,14 @@ export interface Alipay_Notice {
   seller_id?: string
   seller_email?: string
   trade_status?: "WAIT_BUYER_PAY" | "TRADE_CLOSED" | "TRADE_SUCCESS" | "TRADE_FINISHED"
-  
+
   total_amount?: string      // 订单金额，单位为“元”
   receipt_amount?: string    // 实收金额，单位为“元”
   invoice_amount?: string    // 可开票金额，单位为“元”
   buyer_pay_amount?: string  // 买家付款金额，单位为“元”
   point_amount?: string      // 使用集分宝支付的金额，单位为“元”
   refund_fee?: string         // 退款通知中，返回总退款金额，单位为“元”
-  
+
   subject?: string           // 订单标题
   body?: string              // 订单的备注、描述、明细等。对应请求时的 body 参数，原样通知回来。
 
@@ -3857,7 +3899,7 @@ export interface Alipay_Notice {
   fund_bill_list?: string    // 支付成功的各个渠道金额信息。详情可查看 资金明细信息说明。
   passback_params?: string    // 公共回传参数，如果请求时传递了该参数，则返回给商户时会回传该参数。
   voucher_detail_list?: string    // 本交易支付时所使用的所有优惠券信息。
-  
+
   // 以下字段为文档 https://opendocs.alipay.com/open-v3/05w4ku?pathHash=af025e20
   // 中没有，但是实际返回中存在
   merchant_app_id?: string
@@ -3977,12 +4019,12 @@ export namespace LiuAi {
     hoursFromNow?: AiToolGetScheduleHoursFromNow
     specificDate?: AiToolGetScheduleSpecificDate
   }
-  
+
   export interface RunLog_B {
     toolName: "get_cards"
     cardType: AiToolGetCardType
   }
-  
+
   export interface RunLog_C {
     toolName: "draw_picture"
     drawResult: LiuAi.PaletteResult
@@ -3991,7 +4033,7 @@ export namespace LiuAi {
   export interface RunLog_D {
     toolName: "maps_whatever"
   }
-  
+
   export type RunLog = (RunLog_A | RunLog_B | RunLog_C | RunLog_D) & {
     character: AiCharacter
     textToUser: string
@@ -4075,7 +4117,7 @@ export namespace LiuAi {
 
   export type Sys2Role = "human" | "developer" | "bot" | "system" | "tool" | "you"
 
-  export type ToolName = "add_note" | "add_todo" | "add_calendar" 
+  export type ToolName = "add_note" | "add_todo" | "add_calendar"
     | "web_search" | "parse_link" | "draw_picture" | "get_schedule" | "get_cards"
     | "maps_regeo" | "maps_geo" | "maps_text_search" | "maps_around_search"
     | "maps_direction"
@@ -4292,7 +4334,7 @@ export namespace Ns_MapTool {
   })
 
   export const amapSortrules = ["distance", "weight"] as const
-  
+
   export const Sch_AroundSearchParam = vbot.object({
     location: sch_string_length(3),
     radius: Sch_Opt_Str,
@@ -4328,7 +4370,7 @@ export namespace Ns_MapTool {
     date: Sch_Opt_Str,
     time: Sch_Opt_Str,
   })
-  
+
 
 }
 
@@ -4340,7 +4382,7 @@ export namespace WxMiniAPI {
   }
 
   export type SecCheckSuggest = "risky" | "pass" | "review"
-  export type SecCheckLabel = 100 | 10001 | 
+  export type SecCheckLabel = 100 | 10001 |
     20001 | 20002 | 20003 | 20006 | 20008 | 20012 | 20013 | 21000
 
   export interface Res_MsgSecCheck extends ResultBase {
@@ -4387,9 +4429,9 @@ export namespace WxMiniAPI {
     open_single_roomid?: string    // 单聊下的房间唯一标识
     group_openid?: string          // 用户在当前聊天室的唯一标识
     chat_type?: ChatType           // 1: 单聊
-                                   // 2: 企业微信联系人
-                                   // 3: 普通微信群聊
-                                   // 4: 企业微信互通群聊
+    // 2: 企业微信联系人
+    // 3: 普通微信群聊
+    // 4: 企业微信互通群聊
   }
 
   export const Sch_ChatInfo = vbot.object({
@@ -4409,7 +4451,7 @@ export namespace WxMiniAPI {
 
 export namespace PeopleTasksAPI {
 
-  export type OperateType = "enter-wx-chat-tool" | "create-wx-task" 
+  export type OperateType = "enter-wx-chat-tool" | "create-wx-task"
     | "get-wx-task"
     | "close-wx-task"
     | "complete-wx-task"
@@ -4425,7 +4467,7 @@ export namespace PeopleTasksAPI {
     chatInfo: WxMiniAPI.ChatInfo
   }
 
-  export interface Res_CanIPostTask { 
+  export interface Res_CanIPostTask {
     operateType: "can-i-post-task"
     status: "yes" | "no"
   }
@@ -4436,7 +4478,7 @@ export namespace PeopleTasksAPI {
     desc: Sch_String_WithLength,
     assignees: vbot.array(Sch_String_WithLength),
   })
-  
+
   export interface AssigneeItem {
     group_openid: string
     doneStamp?: number
@@ -4446,7 +4488,7 @@ export namespace PeopleTasksAPI {
     group_openid: string
     engagedStamp?: number
   }
-  
+
   export interface Res_GetWxTask {
     operateType: "get-wx-task"
     id: string
@@ -4504,7 +4546,7 @@ export namespace PeopleTasksAPI {
     whenStamp?: number
     remindMe?: LiuRemindMe
     aiWorker?: LiuAi.AiWorker
-    
+
     each_other_openid?: string
     note?: string
   }

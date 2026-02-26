@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import type { IbChildProps, IbChildEmits } from "../tools/types";
 import { useLightBox } from "~/hooks/elements/useLightBox";
 import { toRef } from "vue";
@@ -9,8 +8,6 @@ const props = defineProps<IbChildProps>()
 defineEmits<IbChildEmits>()
 
 const { icData } = useIbChild(props)
-const { t } = useI18n()
-
 const icon_color = `var(--main-code)`
 
 const show = toRef(icData, "show")
@@ -30,7 +27,7 @@ const {
       :class="{ 'a2hs-box_show': icData.show }"
     >
       <div class="liu-no-user-select a2hs-first-bar">
-        <span>{{ t('payment.subscription_prompt_1') }}</span>
+        <span>{{ props.title }}</span>
         <div class="a2hsf-footer">
           <div class="a2hs-close-box" @click.stop="$emit('cancel')">
             <svg-icon name="close" class="a2hs-close-svg"
@@ -40,7 +37,7 @@ const {
         </div>
       </div>
       <div class="liu-no-user-select a2hs-desc">
-        <span>{{ t('payment.subscription_prompt_2') }}</span>
+        <span>{{ props.desc }}</span>
       </div>
       <div class="a2hs-btn-bar">
         <custom-btn class="a2hs-btn" 
@@ -48,7 +45,7 @@ const {
           size="mini" 
           @click="$emit('confirm')"
         >
-          <span class="a2hs-btn_span">{{ t('payment.let_me_see') }}</span>
+          <span class="a2hs-btn_span">{{ props.confirmText }}</span>
         </custom-btn>
       </div>
     </div>

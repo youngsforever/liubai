@@ -11,7 +11,7 @@ export function logout(
 ) {
 
   // 1. 防抖节流，3s内进来过，忽略
-  if(time.isWithinMillis(lastLogoutStamp, SEC_3)) return
+  if (time.isWithinMillis(lastLogoutStamp, SEC_3)) return
 
   // 2. 删除 local-cache
   const p = localCache.getPreference()
@@ -24,11 +24,14 @@ export function logout(
   delete p.loginStamp
   localCache.setAllPreference(p)
 
-  // 3. 删除 workspace store
+  // 3. 删除 web push 订阅
+  localCache.setOnceData("lastSaveWebPushStamp", undefined)
+
+  // 4. 删除 workspace store
   const wStore = useWorkspaceStore()
   wStore.logout()
 
-  // 4. 路由到 login
+  // 5. 路由到 login
   rr.router.replace({ name: "login" })
 
   // n. 赋值

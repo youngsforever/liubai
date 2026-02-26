@@ -7,6 +7,7 @@ import type {
 } from "./tools/types";
 import liuApi from "../liu-api";
 import liuEnv from "../liu-env";
+import ider from "../basic/ider";
 
 function _getPreKey() {
   const hasBackend = liuEnv.hasBackend()
@@ -41,7 +42,7 @@ function clearPreference() {
 }
 
 
-/********** 一些性、不依赖登录态的数据 ********/
+/********** 一次性、不依赖登录态的数据 ********/
 function getOnceData(): LocalOnceData {
   const res = liuApi.getStorageSync<LocalOnceData>("local-once-data") || {}
   return res
@@ -84,6 +85,23 @@ function setKeepData(key: KeyOfLocalKeepData, data: any) {
   liuApi.setStorageSync("local-keep-data", localData)
 }
 
+
+function setClientId(clientId: string) {
+  setKeepData("client_id", clientId)
+}
+
+
+function getClientId() {
+  const localData = getKeepData()
+  let clientId = localData.client_id
+  if (clientId) return clientId
+  clientId = ider.createClientId()
+  setClientId(clientId)
+  return clientId
+}
+
+
+
 /*********** 是否具备后端并且已登录 ********/
 function hasLoginWithBackend() {
   const {
@@ -106,5 +124,7 @@ export default {
   removeOnceDataWhileLogging,
   getKeepData,
   setKeepData,
+  getClientId,
+  setClientId,
   hasLoginWithBackend,
 }

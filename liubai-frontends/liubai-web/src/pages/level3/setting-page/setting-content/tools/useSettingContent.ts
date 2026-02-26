@@ -17,8 +17,8 @@ import { CloudEventBus } from "~/utils/cloud/CloudEventBus"
 import middleBridge from "~/utils/middle-bridge"
 import type { MemberShow } from "~/types/types-content"
 import { useGlobalStateStore } from "~/hooks/stores/useGlobalStateStore"
-import { 
-  getSWRegistration, 
+import {
+  getSWRegistration,
   toUpdateSW,
   checkUpdateManually,
 } from "~/hooks/pwa/useServiceWorker"
@@ -73,7 +73,7 @@ export function useSettingContent() {
 
   const version = LIU_ENV.version
   let appName = _env.APP_NAME ?? ""
-  if(appName && appName[0]) {
+  if (appName && appName[0]) {
     appName = appName[0].toUpperCase() + appName.substring(1)
   }
 
@@ -85,7 +85,7 @@ export function useSettingContent() {
   }
 
   const onTapContact = () => {
-    if(!contactLink) return
+    if (!contactLink) return
     window.open(contactLink, "_blank")
   }
 
@@ -98,17 +98,17 @@ export function useSettingContent() {
   }
 
   const onTapFooter = () => {
-    if(!data.lastTapFooterStamp) {
+    if (!data.lastTapFooterStamp) {
       data.lastTapFooterStamp = time.getTime()
     }
     const isIn500ms = time.isWithinMillis(data.lastTapFooterStamp, 500)
     data.lastTapFooterStamp = time.getTime()
-    if(!isIn500ms) {
+    if (!isIn500ms) {
       data.tapFooterNum = 0
       return
     }
 
-    if(data.tapFooterNum >= 5) {
+    if (data.tapFooterNum >= 5) {
       data.debugBtn = !data.debugBtn
       data.tapFooterNum = 0
     }
@@ -150,7 +150,7 @@ async function whenTapVersionUpdate(
       content_key: "pwa.new_version_desc2",
       confirm_key: "common.update",
     })
-    if(res.confirm) {
+    if (res.confirm) {
       toUpdateSW(true)
     }
   }
@@ -175,14 +175,14 @@ async function whenTapVersionUpdate(
 
   // 2. if hasNewVersion has been already true
   let value = hasNewVersion.value
-  if(value) {
+  if (value) {
     _newVersion()
     return
   }
 
   // 3. check network
   const networkStore = useNetworkStore()
-  if(networkStore.level < 1) {
+  if (networkStore.level < 1) {
     cui.showModal({
       title: "🌐",
       content_key: "tip.network_required",
@@ -200,13 +200,13 @@ async function whenTapVersionUpdate(
   cui.hideLoading()
 
   value = hasNewVersion.value
-  if(value) {
+  if (value) {
     _newVersion()
     return
   }
 
   const r = getSWRegistration()
-  if(r?.installing) {
+  if (r?.installing) {
     _loadingTip()
     return
   }
@@ -217,14 +217,14 @@ async function whenTapVersionUpdate(
 async function whenTapNickname(
   myProfile: Ref<MemberShow | null>,
 ) {
-  const res = await cui.showTextEditor({ 
-    title_key: "who_r_u.modify_name", 
+  const res = await cui.showTextEditor({
+    title_key: "who_r_u.modify_name",
     placeholder_key: "who_r_u.modify_name_ph",
     value: myProfile.value?.name,
     maxLength: 20,
   })
   const { confirm, value } = res
-  if(!confirm || !value) return
+  if (!confirm || !value) return
   middleBridge.modifyMemberNickname(value)
 }
 
@@ -235,7 +235,7 @@ function listenToA2HS(
     showButtonForA2HS,
     toA2HS,
   } = useShowAddToHomeScreen()
-  if(!showButtonForA2HS) return {}
+  if (!showButtonForA2HS) return {}
   watch(showButtonForA2HS, (newV) => {
     data.showA2HS = newV
   })
@@ -247,8 +247,8 @@ function listenSystemStore(
   data: SettingContentData
 ) {
   const systemStore = useSystemStore()
-  const { 
-    local_theme, 
+  const {
+    local_theme,
     local_lang,
     local_font_size,
   } = storeToRefs(systemStore)
@@ -256,19 +256,19 @@ function listenSystemStore(
   watch([local_theme, local_lang, local_font_size], (newV) => {
     const [theme, lang, fontSize] = newV
 
-    if(data.theme !== theme) {
+    if (data.theme !== theme) {
       data.theme = theme
     }
 
-    if(!data.language_txt || data.language !== lang) {
+    if (!data.language_txt || data.language !== lang) {
       data.language = lang
       const langList = getLanguageList()
       const langItem = langList.find(v => v.id === lang)
-      if(langItem) data.language_txt = langItem.text
+      if (langItem) data.language_txt = langItem.text
     }
 
 
-    if(fontSize !== data.fontSize) {
+    if (fontSize !== data.fontSize) {
       data.fontSize = fontSize
     }
 
@@ -280,7 +280,7 @@ async function whenTapClearCache() {
     title_key: "tip.tip",
     content_key: "setting.clear_cache_1"
   })
-  if(!res.confirm) return
+  if (!res.confirm) return
   localStorage.clear()
   liuApi.route.reload()
 }
@@ -294,7 +294,7 @@ function whenTapDebug(
 
 function whenTapLogout() {
   const res0 = liuEnv.hasBackend()
-  if(!res0) askLogoutWithPurelyLocal()
+  if (!res0) askLogoutWithPurelyLocal()
   else askLogoutWithBackend()
 }
 
@@ -303,13 +303,13 @@ async function askLogoutWithPurelyLocal() {
     title_key: "setting.logout",
     content_key: "setting.logout_bd_2",
   })
-  if(!res.confirm) return
+  if (!res.confirm) return
   const res2 = await cui.showModal({
     title_key: "setting.logout_hd_2",
     content_key: "setting.logout_bd_3",
     modalType: "warning",
   })
-  if(!res2.confirm) return
+  if (!res2.confirm) return
   deleteLocalData()
 }
 
@@ -320,11 +320,14 @@ async function askLogoutWithBackend() {
     content_key: "setting.logout_bd",
     tip_key: "setting.logout_tip",
   })
-  if(!res.confirm) return
+  if (!res.confirm) return
 
   // 1. logout remotely
   const url = APIs.LOGOUT
-  const res2 = liuReq.request(url, { operateType: "logout" })
+  liuReq.request(url, {
+    operateType: "logout",
+    userAgent: navigator.userAgent,
+  })
 
   await liuUtil.waitAFrame()
 
@@ -332,7 +335,7 @@ async function askLogoutWithBackend() {
   CloudEventBus.toLogout()
 
   // 3. delete local data
-  if(res.tipToggle) {
+  if (res.tipToggle) {
     deleteLocalData()
   }
 }
