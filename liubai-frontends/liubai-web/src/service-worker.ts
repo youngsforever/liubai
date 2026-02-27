@@ -97,8 +97,14 @@ self.addEventListener('notificationclick', (event) => {
   if (!navigateUrl) return
 
   // Normalize to absolute URL for accurate matching and opening
-  const url = new URL(navigateUrl, self.location.origin)
-  const targetUrl = url.href
+  let targetUrl: string
+  try {
+    const url = new URL(navigateUrl, self.location.origin)
+    targetUrl = url.href
+  } catch (e) {
+    console.error('[SW] Failed to parse navigateUrl:', navigateUrl, e)
+    return
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
