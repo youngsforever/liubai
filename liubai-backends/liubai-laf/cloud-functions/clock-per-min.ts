@@ -444,7 +444,8 @@ async function send_remind_message(
     web_push_subs,
   } = atom
 
-  const navigateUrl = domain ? `${domain}/${contentId}` : ""
+  const relPath = `/${contentId}`
+  const navigateUrl = domain ? `${domain}${relPath}` : ""
 
   let title = atom.title
   if (!title) {
@@ -468,7 +469,7 @@ async function send_remind_message(
         sub,
         title,
         str_time,
-        navigateUrl,
+        relPath,
         `remind-${contentId}`,
         calendarStamp
       )

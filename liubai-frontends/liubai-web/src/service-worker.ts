@@ -96,18 +96,22 @@ self.addEventListener('notificationclick', (event) => {
   const navigateUrl = event.notification.data?.navigate
   if (!navigateUrl) return
 
+  // Normalize to absolute URL for accurate matching and opening
+  const url = new URL(navigateUrl, self.location.origin)
+  const targetUrl = url.href
+
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       // Check if there is already a window/tab open with the target URL
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i]
-        if (client.url === navigateUrl && 'focus' in client) {
+        if (client.url === targetUrl && 'focus' in client) {
           return client.focus()
         }
       }
       // If not open, open a new window
       if (self.clients.openWindow) {
-        return self.clients.openWindow(navigateUrl)
+        return self.clients.openWindow(targetUrl)
       }
     })
   )
