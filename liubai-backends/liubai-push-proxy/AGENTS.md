@@ -1,4 +1,10 @@
-# Cloudflare Workers
+# liubai-push-proxy (Cloudflare Worker)
+
+这是一个为 Liubai 后端设计的 Web Push 代理服务。
+
+---
+
+# Cloudflare Workers API Documentation
 
 STOP. Your knowledge of Cloudflare Workers APIs and limits may be outdated. Always retrieve current documentation before any Workers, KV, R2, D1, Durable Objects, Queues, Vectorize, AI, or Agents SDK task.
 
