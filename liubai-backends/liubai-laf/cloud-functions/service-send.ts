@@ -730,7 +730,6 @@ export class WebPushSender {
       const url = new URL(sub.endpoint)
       url.host = proxyHost
       finalUrl = url.toString()
-      console.log(`webpush using proxy: ${proxyHost}, finalUrl: ${finalUrl}`)
     } catch (err) {
       console.warn("Failed to parse webpush endpoint for proxy:", err)
     }
@@ -747,8 +746,10 @@ export class WebPushSender {
       10000,
       'Web Push Proxy Timeout'
     )
-
-    console.log(`webpush via proxy status: ${response.status}, 耗时: ${Date.now() - start}ms`)
+    if (response.status !== 201) {
+      console.warn("[webpush] status code is not 201", response)
+      console.log(`耗时: ${Date.now() - start}ms`)
+    }
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -763,7 +764,9 @@ export class WebPushSender {
       10000,
       'Web Push Request Timeout'
     )
-    console.log(`webpush direct, 耗时: ${Date.now() - start}ms, result:`, result)
+    if (result.statusCode !== 201) {
+      console.warn("[webpush] status code is not 201", result)
+    }
   }
 
   /** [私有辅助] 统一处理错误 */

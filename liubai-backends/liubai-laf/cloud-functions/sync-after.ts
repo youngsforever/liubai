@@ -871,7 +871,6 @@ class AiCluster2 {
   ) {
     this._runTimes++
     const aiCapsule = ClusterHelper.getAiWorker(filterModels)
-    console.log("aiCapsule: ", aiCapsule)
     if (!aiCapsule) return false
 
     const msg = this._task.desc
