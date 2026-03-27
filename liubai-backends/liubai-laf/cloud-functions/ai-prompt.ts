@@ -172,13 +172,14 @@ export const aiBots: AiBot[] = [
     name: "海螺",
     character: "hailuo",
     provider: "minimax",
-    model: "MiniMax-M2.1",
+    model: "MiniMax-M2.7",
     abilities: ["chat", "tool_use", "reasoning"],
-    alias: ["海螺AI", "minimax", "M2", "M2.1", "minimax-m2", "minimax-m2.1"],
+    alias: ["海螺AI", "minimax", "M2", "M2.7", "minimax-m2", "minimax-m2.7"],
     maxWindowTokenK: 200,
     priority: 10,
     metaData: {
       onlyOneSystemRoleMsg: true,
+      thinkingInContent: true,
     }
   },
   {
@@ -251,7 +252,7 @@ export const aiBots: AiBot[] = [
     name: "智谱",
     character: "zhipu",
     provider: "zhipu",
-    model: "glm-5",
+    model: "glm-5.1",
     abilities: ["chat", "tool_use", "reasoning"],
     alias: ["智谱AI", "智谱清言", "ChatGLM", "zp", "glm", "z-ai"],
     maxWindowTokenK: 64,

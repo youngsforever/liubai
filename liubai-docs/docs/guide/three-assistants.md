@@ -28,12 +28,12 @@
 
 - 百灵 (来自 [蚂蚁金服](https://alipaytbox.yuque.com/sxs0ba/ling))
 - DeepSeek (来自 [深度求索](https://api-docs.deepseek.com/zh-cn/))
-- 海螺 (来自 [MiniMax](https://minimaxi.com/))，支持语音回复
+- 海螺 (来自 [MiniMax](https://minimaxi.com/))，已适配至 MiniMax-M2.7
 - 混元 (来自[腾讯](https://hunyuan.tencent.com/))
 - Kimi（来自[月之暗面](https://www.moonshot.cn/)），已适配至 kimi-2.5
-- 通义千问（来自[阿里巴巴](https://tongyi.aliyun.com/welcome)），支持语音回复
-- 跃问（来自[阶跃星辰](https://www.stepfun.com/)），支持语音回复
-- 智谱（来自[智谱华章](https://bigmodel.cn/)），已适配至 GLM-4.7
+- 通义千问（来自[阿里巴巴](https://tongyi.aliyun.com/welcome)）
+- 跃问（来自[阶跃星辰](https://www.stepfun.com/)）
+- 智谱（来自[智谱华章](https://bigmodel.cn/)），已适配至 GLM-5.1
 
 我们让你无需切换 APP，直接在微信里一次性体验世界顶尖大模型！
 
@@ -49,7 +49,7 @@
 
 `召唤r1`: 使用 DeepSeek V3.2 思考模式，支持在消息末尾展开思考过程
 
-`召唤海螺`: 使用来自 MiniMax 的 AI 大模型，已适配至其最新旗舰模型 MiniMax-M2.1
+`召唤海螺`: 使用来自 MiniMax 的 AI 大模型
 
 `召唤混元`: 使用来自腾讯的 AI 大模型
 
@@ -59,7 +59,7 @@
 
 `召唤跃问`: 使用来自阶跃星辰的 AI 大模型
 
-`召唤智谱`: 使用来自智谱华章的 AI 大模型，已适配至其最新旗舰模型 GLM-4.7
+`召唤智谱`: 使用来自智谱华章的 AI 大模型
 
 ### 踢掉... {#kick}
 
