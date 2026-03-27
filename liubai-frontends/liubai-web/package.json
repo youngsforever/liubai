@@ -70,6 +70,7 @@
     "dexie": "~4.0.11",
     "exifreader": "^4.37.0",
     "file-saver": "^2.0.5",
+    "flexsearch": "^0.8.212",
     "floating-vue": "^5.2.2",
     "highlight.js": "^11.11.1",
     "ics": "^3.8.1",

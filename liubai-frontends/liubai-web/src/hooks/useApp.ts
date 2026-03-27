@@ -20,6 +20,7 @@ import { initAwake } from "./tools/initAwake";
 import limit from "~/utils/limit";
 import { initLayout } from "./tools/initLayout";
 import { initListenDexie } from "./tools/initListenDexie";
+import searchController from "~/utils/controllers/search-controller";
 
 // 监听和处理一些全局的事务，比如路由变化
 
@@ -45,6 +46,9 @@ export function useApp() {
 
   // init analytics
   initAnalytics()
+
+  // init search worker and db hooks
+  searchController.init()
 
   // init space & CloudFiler & LocalToCloud or initForPureLocalMode
   initForSystem()
