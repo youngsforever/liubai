@@ -21,6 +21,7 @@ import limit from "~/utils/limit";
 import { initLayout } from "./tools/initLayout";
 import { initListenDexie } from "./tools/initListenDexie";
 import searchController from "~/utils/controllers/search-controller";
+import { getVConsole } from "./useVConsole";
 
 // 监听和处理一些全局的事务，比如路由变化
 
@@ -132,31 +133,27 @@ function initListenSelection() {
 }
 
 
-async function getVConsole() {
-  const VConsole = await import("vconsole")
-  return VConsole
-}
-
 async function initMobile(
   cha: GetChaRes,
   onceData: LocalOnceData,
 ) {
-
-  // 0. return if not mobile
-  if(!cha.isMobile) {
-    printInit()
-    return
-  }
-
   // 1. lock screen orientation
-  setTimeout(() => {
-    toLockOrientation(cha)
-  }, time.SECOND)
+  if(cha.isMobile) {
+    setTimeout(() => {
+      toLockOrientation(cha)
+    }, time.SECOND)
+  }
 
   // 2. open vconsole
   const _open = async () => {
     const VConsole = await getVConsole()
-    new VConsole.default({
+    if(!VConsole) {
+      printInit()
+      console.warn("vconsole is unavailable in current environment")
+      return
+    }
+
+    new VConsole({
       onReady() {
         printInit()
         console.log("characteristic: ", cha)
@@ -166,17 +163,11 @@ async function initMobile(
     import("~/styles/mobile-style.css")
   }
 
-  // const _env = liuEnv.getEnv()
-  // if(_env.DEV) {
-  //   _open()
-  //   return
-  // }
-
   if(onceData.mobile_debug) {
     _open()
     return
   }
-  
+
   printInit()
 }
 

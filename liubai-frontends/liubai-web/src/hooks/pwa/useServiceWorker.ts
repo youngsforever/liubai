@@ -18,12 +18,12 @@ let _swRegistration: ServiceWorkerRegistration | undefined
 // Reference: 
 // https://vite-pwa-org.netlify.app/guide/periodic-sw-updates.html#handling-edge-cases
 const _checkSW = async (r: ServiceWorkerRegistration) => {
-  console.warn("see service-worker status: ")
-  console.log("r.installing: ", r.installing)
-  console.log("r.waiting: ", r.waiting)
-  console.log("r.active: ", r.active)
-  console.log("r.scope: ", r.scope)
-  console.log(" ")
+  // console.warn("see service-worker status: ")
+  // console.log("r.installing: ", r.installing)
+  // console.log("r.waiting: ", r.waiting)
+  // console.log("r.active: ", r.active)
+  // console.log("r.scope: ", r.scope)
+  // console.log(" ")
 
   const swUrl = _swUrl
   if (!swUrl) return
