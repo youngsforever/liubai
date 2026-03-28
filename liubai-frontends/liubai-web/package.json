@@ -1,7 +1,7 @@
 {
   "name": "liubai-web",
   "private": true,
-  "version": "0.29.2",
+  "version": "0.29.3",
   "description": "It's the frontend project for Liubai",
   "author": {
     "name": "yenche123",
@@ -67,7 +67,7 @@
     "canvas-confetti": "^1.9.4",
     "compressorjs": "^1.2.1",
     "date-fns": "^4.1.0",
-    "dexie": "~4.0.11",
+    "dexie": "^4.4.1",
     "exifreader": "^4.37.0",
     "file-saver": "^2.0.5",
     "flexsearch": "^0.8.212",
