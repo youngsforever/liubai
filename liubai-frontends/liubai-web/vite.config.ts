@@ -4,7 +4,7 @@ import {
 } from 'vite'
 import { resolve } from "node:path"
 import { getVitePlugins } from "./build/vite/plugins"
-import { manualChunks } from "./build/vite/manual-chunks"
+import { vendorCodeSplitting } from "./build/vite/code-splitting"
 
 const { version, author } = require("./package.json")
 const projectRoot = process.cwd()
@@ -72,7 +72,7 @@ export default defineConfig(({ command, mode }) => {
       chunkSizeWarningLimit: 500,
       rolldownOptions: {
         output: {
-          manualChunks,
+          codeSplitting: vendorCodeSplitting,
         },
       },
     },
