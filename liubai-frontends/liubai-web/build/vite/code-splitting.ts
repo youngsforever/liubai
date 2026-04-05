@@ -28,29 +28,21 @@ function getPackageName(id: string) {
   return normalizePackageName(first)
 }
 
+const vendorChunkRules: { patterns: string[]; chunk: string }[] = [
+  { patterns: ["/vue/", "/vue-router/", "/pinia/"], chunk: "vue-core" },
+  { patterns: ["/vue-i18n/", "/@intlify/"], chunk: "vue-i18n" },
+  { patterns: ["/floating-vue/", "/@floating-ui/", "/vue-slicksort/", "/vue-draggable-resizable/"], chunk: "ui-vendor" },
+  { patterns: ["/dexie/", "/flexsearch/"], chunk: "search-vendor" },
+]
+
 function getVendorChunkName(moduleId: string) {
   const id = normalizeModuleId(moduleId)
   if (!id.includes("node_modules")) return null
 
-  if (id.includes("/vue/") || id.includes("/vue-router/") || id.includes("/pinia/")) {
-    return "vue-core"
-  }
-
-  if (id.includes("/vue-i18n/") || id.includes("/@intlify/")) {
-    return "vue-i18n"
-  }
-
-  if (
-    id.includes("/floating-vue/") ||
-    id.includes("/@floating-ui/") ||
-    id.includes("/vue-slicksort/") ||
-    id.includes("/vue-draggable-resizable/")
-  ) {
-    return "ui-vendor"
-  }
-
-  if (id.includes("/dexie/") || id.includes("/flexsearch/")) {
-    return "search-vendor"
+  for (const rule of vendorChunkRules) {
+    if (rule.patterns.some((p) => id.includes(p))) {
+      return rule.chunk
+    }
   }
 
   const packageName = getPackageName(id)
