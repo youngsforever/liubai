@@ -108,6 +108,12 @@ class LocalWorkerSearchProvider implements SearchProvider {
 
   async clear() {
     if(this.isBroken) return
+    if(this.syncTimer) {
+      clearTimeout(this.syncTimer)
+      this.syncTimer = undefined
+    }
+    this.pendingUpserts.clear()
+    this.pendingRemovals.clear()
     const initPromise = this.initPromise
     if(initPromise) {
       await initPromise
@@ -137,6 +143,10 @@ class LocalWorkerSearchProvider implements SearchProvider {
       console.warn("search worker crashed")
       console.log(evt)
       this.isBroken = true
+      for(const pending of this.requestMap.values()) {
+        pending.reject(new Error("search worker crashed"))
+      }
+      this.requestMap.clear()
     }
 
     this.worker = worker
