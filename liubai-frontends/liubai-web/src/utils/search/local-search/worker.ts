@@ -317,6 +317,7 @@ onmessage = async (evt: MessageEvent<SearchWorkerRequest<SearchWorkerAction>>) =
     if(req.action === "clear") {
       await handleClear()
       postOk(req, { cleared: true })
+      return
     }
   }
   catch(err) {
