@@ -29,7 +29,7 @@ import { useNetworkStore } from "~/hooks/stores/useNetworkStore"
 import { handleCalendarList } from "./handle-calendar"
 import type { ThreadListViewType } from "~/types/types-view"
 import time from "~/utils/basic/time"
-import { preLoadCreateFirst, preLoadEditFirst } from "./pre-download"
+import { preDownloadStart } from "~/utils/cloud/pre-download"
 import cfg from "~/config"
 
 const SEC_15 = time.SECOND * 15
@@ -488,32 +488,34 @@ async function loadAgain(
 }
 
 
+// 会话级锁：本函数会被 loadAgain 频繁触发，启动过一次后就彻底不再跑
+// 后续的 resume 由 initCycle / visibilitychange 负责，互不干扰
 let hasPreDownload = false
-async function preDownloadContents(
+function preDownloadContents(
   ctx: TlContext,
   results: ThreadShow[],
 ) {
   // 1. check if we can pre-download
+  if(hasPreDownload) return
   const vt1 = ctx.props.viewType
   if(vt1 !== "INDEX") return
   const spaceId = ctx.spaceIdRef.value
   if(!spaceId) return
-  if(hasPreDownload) return
-  hasPreDownload = true
   const rLength = results.length
   if(rLength < 10) return
 
+  hasPreDownload = true
+
   // 2. decide which one to download first
+  //    (preDownloadStart 内部会：有匹配 checkpoint 就 resume，没有才 fresh start)
   const localPf = localCache.getPreference()
   const loginStamp = localPf.loginStamp ?? 1
   const justLogged = time.isWithinMillis(loginStamp, SEC_15)
 
-  // 3. load created first
   if(justLogged) {
-    preLoadCreateFirst(spaceId)
+    preDownloadStart(spaceId, "CREATE_FIRST")
     return
   }
 
-  // 4. load edit first
-  preLoadEditFirst(spaceId, localPf.loadEditStamp)
+  preDownloadStart(spaceId, "EDIT_FIRST", localPf.loadEditStamp)
 }
