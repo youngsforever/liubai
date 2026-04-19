@@ -1,18 +1,3 @@
-// 预下载 (pre-download) 用户的云端数据到本地。
-//
-// 两种加载方向：
-//   - CREATE_FIRST: 按 createdStamp 倒序回填历史数据 (新设备首次登录)
-//   - EDIT_FIRST:   按 editedStamp 倒序同步最近编辑 (日常打开，有上界)
-//
-// 节流：
-//   - 每次请求之间至少 2s (服务端限流要求)
-//   - 再叠加 requestIdleCallback (浏览器闲下来才跑，不抢主线程)
-//
-// Checkpoint：
-//   - 每成功加载一批都存进 localCache
-//   - 到 MAX_STEPS 还没完 / 网络失败 / 关页面 → checkpoint 保留
-//   - 下次打开 App / 切回 tab / useThreadList 触发时 → resume
-
 import { watch } from "vue"
 import type { SyncGet_ContentList } from "~/types/cloud/sync-get/types"
 import time from "~/utils/basic/time"
@@ -25,17 +10,13 @@ export type PreDownloadLoadType = "CREATE_FIRST" | "EDIT_FIRST"
 
 export interface PreDownloadCheckpoint {
   spaceId: string
-  loadType: PreDownloadLoadType
   lastItemStamp?: number
-  // 仅 EDIT_FIRST 使用：此次 run 开始时的上界，resume 时要沿用
-  lastLoadEditStamp?: number
 }
 
+// CREATE_FIRST 跑满 500 轮 (8000 条) 就 markCreateFirstDone，以后不再回填。
+// 不考虑云端 > 8000 条的情况：那么多数据已经足够塞爆前端 IndexedDB。
 const MAX_STEPS: Record<PreDownloadLoadType, number> = {
-  // 新设备首次登录要回填全部历史，一轮 9 条
-  // 500 轮 = 4500 条，覆盖绝大多数用户；保险栓防止 bug 导致死循环
   CREATE_FIRST: 500,
-  // 日常场景有 lastLoadEditStamp 上界，自然收敛，20 次够用
   EDIT_FIRST: 20,
 }
 const BATCH_SIZE = 9
@@ -56,6 +37,20 @@ function loadCheckpoint(): PreDownloadCheckpoint | undefined {
   return localCache.getPreference().preDownloadCheckpoint
 }
 
+function markCreateFirstDone(spaceId: string) {
+  const pf = localCache.getPreference()
+  const done = pf.preDownloadCreateFirstDone ?? []
+  if (!done.includes(spaceId)) {
+    done.push(spaceId)
+    localCache.setPreference("preDownloadCreateFirstDone", done)
+  }
+}
+
+function isCreateFirstDone(spaceId: string): boolean {
+  const pf = localCache.getPreference()
+  return pf.preDownloadCreateFirstDone?.includes(spaceId) ?? false
+}
+
 // 等下一轮可以发请求：2s 硬下限 + idle (有就等，没有就算)
 async function waitForNext() {
   await valTool.waitMilli(REQ_INTERVAL)
@@ -65,127 +60,142 @@ async function waitForNext() {
   })
 }
 
-async function runLoop(cp: PreDownloadCheckpoint) {
-  isRunning = true
-
-  const maxSteps = MAX_STEPS[cp.loadType]
-  // 初次进 loop (非 resume) 才在第一步设 loadEditStamp
-  const isFreshRun = cp.lastItemStamp === undefined
+async function preLoadEditFirst(spaceId: string) {
+  const editUpperBound = localCache.getPreference().loadEditStamp
+  const arg: SyncGet_ContentList = {
+    taskType: "content_list",
+    spaceId,
+    loadType: "EDIT_FIRST",
+  }
+  let lastItemStamp: number | undefined
   let stepCount = 0
 
-  try {
-    while (stepCount < maxSteps) {
-      stepCount++
-      await waitForNext()
+  while (stepCount < MAX_STEPS.EDIT_FIRST) {
+    stepCount++
+    await waitForNext()
 
-      const arg: SyncGet_ContentList = {
-        taskType: "content_list",
-        spaceId: cp.spaceId,
-        loadType: cp.loadType,
-      }
-      if (cp.lastItemStamp) arg.lastItemStamp = cp.lastItemStamp
+    if (lastItemStamp) arg.lastItemStamp = lastItemStamp
 
-      const parcels = await CloudMerger.request(arg)
+    const parcels = await CloudMerger.request(arg)
+    if (!parcels) return
 
-      // 网络/服务端失败：保留 checkpoint，停下，等下次 resume
-      if (!parcels) return
-
-      // 首次 EDIT_FIRST 的第一步标记 loadEditStamp (resume 时不覆盖)
-      if (
-        cp.loadType === "EDIT_FIRST"
-        && stepCount === 1
-        && isFreshRun
-      ) {
-        localCache.setPreference("loadEditStamp", time.getTime())
-      }
-
-      // 少于一批 = 加载到底了
-      if (parcels.length < BATCH_SIZE) {
-        clearCheckpoint()
-        return
-      }
-
-      // 取下一个 lastItemStamp
-      const lastParcel = parcels[parcels.length - 1]
-      let newStamp: number | undefined
-      if (lastParcel?.parcelType === "content") {
-        newStamp = cp.loadType === "CREATE_FIRST"
-          ? lastParcel.content?.createdStamp
-          : lastParcel.content?.editedStamp
-      }
-      if (!newStamp) {
-        clearCheckpoint()
-        return
-      }
-
-      cp.lastItemStamp = newStamp
-
-      // EDIT_FIRST 命中上界
-      if (
-        cp.loadType === "EDIT_FIRST"
-        && cp.lastLoadEditStamp
-        && cp.lastLoadEditStamp > newStamp
-      ) {
-        clearCheckpoint()
-        return
-      }
-
-      // 持久化进度 (下次 resume 从这里继续)
-      saveCheckpoint(cp)
+    if (stepCount === 1) {
+      localCache.setPreference("loadEditStamp", time.getTime())
     }
 
-    // 到 session 上限：checkpoint 保留，下次打开 App 会 resume
+    if (parcels.length < BATCH_SIZE) return
+
+    const lastParcel = parcels[parcels.length - 1]
+    if (lastParcel?.parcelType === "content") {
+      lastItemStamp = lastParcel.content?.editedStamp
+    }
+    if (!lastItemStamp) return
+
+    if (editUpperBound && editUpperBound > lastItemStamp) return
+  }
+}
+
+async function preLoadCreateFirst(cp: PreDownloadCheckpoint) {
+  const arg: SyncGet_ContentList = {
+    taskType: "content_list",
+    spaceId: cp.spaceId,
+    loadType: "CREATE_FIRST",
+  }
+  let stepCount = 0
+
+  while (stepCount < MAX_STEPS.CREATE_FIRST) {
+    stepCount++
+    await waitForNext()
+
+    if (cp.lastItemStamp) arg.lastItemStamp = cp.lastItemStamp
+
+    const parcels = await CloudMerger.request(arg)
+    if (!parcels) return
+
+    if (parcels.length < BATCH_SIZE) {
+      clearCheckpoint()
+      markCreateFirstDone(cp.spaceId)
+      return
+    }
+
+    const lastParcel = parcels[parcels.length - 1]
+    let newStamp: number | undefined
+    if (lastParcel?.parcelType === "content") {
+      newStamp = lastParcel.content?.createdStamp
+    }
+    if (!newStamp) {
+      clearCheckpoint()
+      return
+    }
+
+    cp.lastItemStamp = newStamp
+    saveCheckpoint(cp)
+  }
+
+  clearCheckpoint()
+  markCreateFirstDone(cp.spaceId)
+}
+
+async function runCreateFirst(cp: PreDownloadCheckpoint) {
+  isRunning = true
+  try {
+    await preLoadCreateFirst(cp)
   } finally {
     isRunning = false
   }
 }
 
-/**
- * 触发 pre-download。
- * 如果已有同 spaceId 的 checkpoint → resume；否则 fresh start。
- * spaceId 不匹配的旧 checkpoint 会被清掉。
- */
+async function runEditFirst(spaceId: string) {
+  isRunning = true
+  try {
+    await preLoadEditFirst(spaceId)
+  } finally {
+    isRunning = false
+  }
+}
+
 export function preDownloadStart(
   spaceId: string,
   loadType: PreDownloadLoadType,
-  lastLoadEditStamp?: number,
 ) {
   if (isRunning) return
+
+  if (loadType === "EDIT_FIRST") {
+    runEditFirst(spaceId)
+    return
+  }
+
+  if (isCreateFirstDone(spaceId)) return
 
   const existing = loadCheckpoint()
   if (existing) {
     if (existing.spaceId === spaceId) {
-      runLoop(existing)
+      runCreateFirst(existing)
       return
     }
     clearCheckpoint()
   }
 
-  const cp: PreDownloadCheckpoint = {
-    spaceId,
-    loadType,
-    lastItemStamp: undefined,
-    lastLoadEditStamp: loadType === "EDIT_FIRST" ? lastLoadEditStamp : undefined,
-  }
+  const cp: PreDownloadCheckpoint = { spaceId }
   saveCheckpoint(cp)
-  runLoop(cp)
+  runCreateFirst(cp)
 }
 
-/**
- * 有未完成的 checkpoint 就 resume。
- * 被 init-cycle (App 启动) 和 visibilitychange (切回 tab) 调用。
- */
 export function preDownloadResume() {
   if (isRunning) return
   const cp = loadCheckpoint()
   if (!cp) return
-  runLoop(cp)
+  // 老版本会给 EDIT_FIRST 也存 checkpoint，带 loadType 字段；
+  // 新版本只有 CREATE_FIRST 持久化，碰到老格式直接清掉，避免拿 EDIT_FIRST 的
+  // lastItemStamp 误当 CREATE_FIRST 的起点 → 触发疯狂轮询。
+  const legacyLoadType = (cp as { loadType?: string }).loadType
+  if (legacyLoadType && legacyLoadType !== "CREATE_FIRST") {
+    clearCheckpoint()
+    return
+  }
+  runCreateFirst(cp)
 }
 
-/**
- * 注册 "tab 切回前台 → resume" 的监听。
- * 必须在 setup 上下文中调用一次 (由 initCycle 负责)。
- */
 export function setupPreDownload() {
   const visibility = useDocumentVisibility()
   watch(visibility, (v) => {

@@ -16,6 +16,9 @@ export interface LocalPreference {
 
   // 未完成的 pre-download 进度，下次启动 App 时 resume
   preDownloadCheckpoint?: PreDownloadCheckpoint
+
+  // 已完成 CREATE_FIRST 的 spaceId 列表，这些 space 不再重复跑历史回填
+  preDownloadCreateFirstDone?: string[]
 }
 
 export interface LocalOnceData {

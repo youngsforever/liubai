@@ -488,26 +488,24 @@ async function loadAgain(
 }
 
 
-// 会话级锁：本函数会被 loadAgain 频繁触发，启动过一次后就彻底不再跑
-// 后续的 resume 由 initCycle / visibilitychange 负责，互不干扰
-let hasPreDownload = false
+// 会话级锁：每个 space 最多触发一次，后续 resume 由 initCycle / visibilitychange 负责
+const preDownloadedSpaceIds = new Set<string>()
 function preDownloadContents(
   ctx: TlContext,
   results: ThreadShow[],
 ) {
   // 1. check if we can pre-download
-  if(hasPreDownload) return
   const vt1 = ctx.props.viewType
   if(vt1 !== "INDEX") return
   const spaceId = ctx.spaceIdRef.value
   if(!spaceId) return
+  if(preDownloadedSpaceIds.has(spaceId)) return
   const rLength = results.length
   if(rLength < 10) return
 
-  hasPreDownload = true
+  preDownloadedSpaceIds.add(spaceId)
 
   // 2. decide which one to download first
-  //    (preDownloadStart 内部会：有匹配 checkpoint 就 resume，没有才 fresh start)
   const localPf = localCache.getPreference()
   const loginStamp = localPf.loginStamp ?? 1
   const justLogged = time.isWithinMillis(loginStamp, SEC_15)
@@ -517,5 +515,5 @@ function preDownloadContents(
     return
   }
 
-  preDownloadStart(spaceId, "EDIT_FIRST", localPf.loadEditStamp)
+  preDownloadStart(spaceId, "EDIT_FIRST")
 }
