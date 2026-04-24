@@ -1663,7 +1663,7 @@ class ToolHandler2 {
 
     // 2. add msg
     const chatId = await this._addMsgToChat({
-      funcName: "add_note",
+      funcName: "add_todo",
       funcJson,
     })
     if (!chatId) {
