@@ -783,7 +783,15 @@ export interface AiI18nSharedParam {
 
 export const aiImageSizeTypes = ["square", "portrait"] as const
 export type AiImageSizeType = typeof aiImageSizeTypes[number]
-export type OaiPrompt = OpenAI.Chat.ChatCompletionMessageParam
+
+export interface DsReasonerMessage {
+  role: "assistant"
+  content: string
+  name?: string
+  reasoning_content?: string
+}
+
+export type OaiPrompt = OpenAI.Chat.ChatCompletionMessageParam | DsReasonerMessage
 export type OaiContentPart = OpenAI.Chat.ChatCompletionContentPart
 export type OaiTool = OpenAI.Chat.ChatCompletionTool
 export type OaiToolPrompt = OpenAI.Chat.ChatCompletionToolMessageParam
@@ -797,12 +805,6 @@ export type OaiStreamCompletion = Stream<OaiChatCompletionChunk>
 export type OaiStreamChoiceDelta = OpenAI.Chat.ChatCompletionChunk.Choice.Delta & {
   reasoning_content?: string
   reasoning?: string  // for stepfun
-}
-
-export interface DsReasonerMessage {
-  role: "assistant"
-  content: string
-  reasoning_content?: string
 }
 
 
@@ -4574,4 +4576,3 @@ export namespace PeopleTasksAPI {
   })
 
 }
-
