@@ -19,10 +19,10 @@ export function showModelName(
   const m = model.toLowerCase()
 
   if (m.includes("deepseek-v4-flash")) {
-    return "deepseek-v4-flash"
+    return "DeepSeek V4 Flash"
   }
   if (m.includes("deepseek-v4-pro")) {
-    return "deepseek-v4-pro"
+    return "DeepSeek V4 Pro"
   }
 
   // R1

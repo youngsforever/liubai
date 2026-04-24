@@ -117,7 +117,7 @@ export function useTcTopbar(
 
 
     if (!name || !company) return
-    const isTheSame = name === company
+    const isTheSame = name.includes(company)
     let content = ""
     if (isTheSame) {
       content = t("thread_related.created_by_ai2", { name })
