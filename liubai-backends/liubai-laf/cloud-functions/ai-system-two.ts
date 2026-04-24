@@ -18,6 +18,7 @@ import type {
   CommonPass,
   LiuAi,
   OaiChatCompletion,
+  OaiCreateParam,
   OaiPrompt,
   OaiToolCall,
   Partial_Id,
@@ -67,6 +68,10 @@ const enumGetScheduleHoursFromNow = valTool.objToStr(aiToolGetScheduleHoursFromN
 const enumGetScheduleSpecificDates = valTool.objToStr(aiToolGetScheduleSpecificDates)
 const enumGetCardTypes = valTool.objToStr(aiToolGetCardTypes)
 const enumImageSizeTypes = valTool.objToStr(aiImageSizeTypes)
+
+type DeepSeekThinkingChatParams = OaiCreateParam & {
+  thinking: { type: "enabled" }
+}
 
 const system_prompt = `
 你是当今世界上最强大的大语言模型，你存在的目的是让人们的生活更美好。
@@ -889,18 +894,24 @@ class SystemTwo {
     const apiData = System2Util.getApiData()
     const { model, baseUrl, apiKey } = apiData
     const llm = new BaseLLM(apiKey, baseUrl)
-    const res8 = await llm.chat({
+    const chatParams: OaiCreateParam = {
       messages,
       model,
       max_tokens: MAX_OUTPUT_TOKENS,
-
-      //@ts-ignore thinking for DeepSeek
-      thinking: { "type": "enabled" },
       reasoning_effort: "high",
-
       stream: true,
-    })
+    }
 
+    if (System2Util.isDeepSeekApiData(apiData)) {
+      const deepSeekChatParams: DeepSeekThinkingChatParams = {
+        ...chatParams,
+        thinking: { type: "enabled" },
+      }
+      const res8 = await llm.chat(deepSeekChatParams)
+      return res8
+    }
+
+    const res8 = await llm.chat(chatParams)
     return res8
   }
 
@@ -1261,14 +1272,17 @@ class SystemTwo {
     })
 
     // 2. add assitant prompt
-    const assistantMessage: OaiPrompt = {
-      role: "assistant",
-      content: content1,
-    }
-    if (reasoning_content) {
+    const apiData = System2Util.getApiData()
+    const isDeepSeek = System2Util.isDeepSeekApiData(apiData)
+    const assistantMessage: OaiPrompt = reasoning_content && isDeepSeek ? {
       // DeepSeek thinking mode requires previous assistant reasoning to be
       // carried back in later requests after a tool-use turn.
-      ; (assistantMessage as any).reasoning_content = reasoning_content
+      role: "assistant",
+      content: content1,
+      reasoning_content,
+    } : {
+      role: "assistant",
+      content: content1,
     }
     this._reasonerAndUs.push(assistantMessage)
 
@@ -2189,7 +2203,16 @@ class System2Util {
     const model = _env.LIU_SYSTEM2_MODEL ?? ""
     const baseUrl = _env.LIU_SYSTEM2_BASE_URL ?? ""
     const apiKey = _env.LIU_SYSTEM2_API_KEY ?? ""
-    return { model, baseUrl, apiKey }
+    const provider = AiShared.turnBaseUrlToProvider(baseUrl)
+    return { model, baseUrl, apiKey, provider }
+  }
+
+  static isDeepSeekApiData(
+    apiData: ReturnType<typeof System2Util.getApiData>,
+  ) {
+    const { model, provider } = apiData
+    if (provider) return provider === "deepseek"
+    return model.startsWith("deepseek-")
   }
 
   static mockAiEntry(user: Table_User) {
@@ -2203,4 +2226,3 @@ class System2Util {
   }
 
 }
-
