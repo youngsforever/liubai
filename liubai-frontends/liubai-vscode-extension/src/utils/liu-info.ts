@@ -19,28 +19,29 @@ const getIdeType = (): LiuIDEType | undefined => {
   Logger.info("see uriScheme: ", uriScheme)
   Logger.info("see remoteName: ", remoteName)
 
-  if(appHost === "vscode.dev") return "vscode.dev"
-  if(appHost === "github.dev") return "github.dev"
-  if(appName === "Visual Studio Code") return "vscode"
-  if(appName === "Visual Studio Code - Insiders") return "vscode-insiders"
-  if(appName === "Cursor") return "cursor"
-  if(appName === "Windsurf") return "windsurf"
-  if(appName === "Antigravity") return "antigravity"
-  if(appName === "VSCodium") return "vscodium"
-  if(appName === "Gitpod Code" || appHost === "Gitpod") return "gitpod.io"
-  if(appName === "StackBlitz") return "stackblitz.com"
-  if(appName === "Project IDX") return "project-idx"
+  if (appHost === "vscode.dev") return "vscode.dev"
+  if (appHost === "github.dev") return "github.dev"
+  if (appName === "Visual Studio Code") return "vscode"
+  if (appName === "Visual Studio Code - Insiders") return "vscode-insiders"
+  if (appName === "Cursor") return "cursor"
+  if (appName === "Windsurf") return "windsurf"
+  if (appName === "Antigravity") return "antigravity"
+  if (appName === "VSCodium") return "vscodium"
+  if (appName === "Gitpod Code" || appHost === "Gitpod") return "gitpod.io"
+  if (appName === "StackBlitz") return "stackblitz.com"
+  if (appName === "Project IDX") return "project-idx"
 
   // Products from Tencent Coding Group
-  if(uriScheme === "cloud-studio") return "tencent-cloud-studio"
-  if(uriScheme === "antigravity") return "antigravity"
-  if(remoteName?.endsWith(".cnb.cool")) return "cnb.cool"
-  if(remoteName?.endsWith(".cnb.space")) return "cnb.cool"
-  if(appName === "code-server" && uriScheme === "code-oss") return "cnb.cool"
+  if (uriScheme === "cloud-studio") return "tencent-cloud-studio"
+  if (uriScheme === "antigravity") return "antigravity"
+  if (uriScheme === "antigravity-ide") return "antigravity"
+  if (remoteName?.endsWith(".cnb.cool")) return "cnb.cool"
+  if (remoteName?.endsWith(".cnb.space")) return "cnb.cool"
+  if (appName === "code-server" && uriScheme === "code-oss") return "cnb.cool"
 
   // Trae
-  if(appName === "Trae" || uriScheme === "trae") return "trae"
-  if(uriScheme === "trae-cn") return "trae"
+  if (appName === "Trae" || uriScheme === "trae") return "trae"
+  if (uriScheme === "trae-cn") return "trae"
 }
 
 const _getDeviceData = (isWeb: boolean) => {
@@ -50,22 +51,22 @@ const _getDeviceData = (isWeb: boolean) => {
   try {
 
     // for node
-    if(!isWeb && typeof process !== "undefined") {
+    if (!isWeb && typeof process !== "undefined") {
       deviceStr = getDeviceStrForNode()
       const os = require("os")
       const hostname = os.hostname()
-      if(hostname && typeCheck.isString(hostname)) {
+      if (hostname && typeCheck.isString(hostname)) {
         deviceName = hostname
       }
     }
 
     // for web
     //@ts-expect-error: navigator
-    if(isWeb && typeof navigator !== "undefined") {
+    if (isWeb && typeof navigator !== "undefined") {
       deviceStr = getDeviceStrForWeb()
     }
   }
-  catch(err) {
+  catch (err) {
     console.warn("_getDeviceData err: ")
     console.log(err)
   }
@@ -79,9 +80,9 @@ const _getDeviceData = (isWeb: boolean) => {
 const init = (context: vscode.ExtensionContext) => {
   const extensionId = context.extension.id
   const _env = vscode.env
-  
+
   let ideType = getIdeType()
-  if(!ideType) ideType = "vscode"
+  if (!ideType) ideType = "vscode"
 
   const isDesktop = _env.uiKind === vscode.UIKind.Desktop
   const isWeb = _env.uiKind === vscode.UIKind.Web
@@ -93,9 +94,9 @@ const init = (context: vscode.ExtensionContext) => {
 
   let machineId: string | undefined = _env.machineId
   let sessionId: string | undefined = _env.sessionId
-  if(machineId === "someValue.machineId") machineId = undefined
-  if(sessionId === "someValue.sessionId") sessionId = undefined
-  
+  if (machineId === "someValue.machineId") machineId = undefined
+  if (sessionId === "someValue.sessionId") sessionId = undefined
+
   _info = {
     ideType,
     isDesktop,
