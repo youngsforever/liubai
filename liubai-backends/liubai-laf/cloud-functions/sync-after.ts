@@ -61,17 +61,17 @@ const fastAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     "computingProvider": "aliyun-bailian",
-    "model": "qwen3.5-plus",
+    "model": "qwen3.7-plus",
     "character": "tongyi-qwen",
   },
   {
     "computingProvider": "aliyun-bailian",
-    "model": "qwen3.5-plus-2026-02-15",
+    "model": "qwen3.7-plus-2026-05-26",
     "character": "tongyi-qwen",
   },
   {
     "computingProvider": "aliyun-bailian",
-    "model": "qwen3.5-397b-a17b",
+    "model": "qwen3.7-max-2026-06-08",
     "character": "tongyi-qwen",
   },
   {

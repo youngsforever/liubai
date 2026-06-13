@@ -96,31 +96,31 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen3.6-plus-2026-04-02",
+    model: "qwen3.7-plus-2026-05-26",
     character: "tongyi-qwen",
     stream: true,
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen3.5-plus",
+    model: "qwen3.7-plus",
     character: "tongyi-qwen",
     stream: true,
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen3.5-plus-2026-04-20",
-    character: "tongyi-qwen",
-    stream: true,
-  },
-  {
-    computingProvider: "aliyun-bailian",
-    model: "qwen3-235b-a22b-instruct-2507",
+    model: "qwen3.6-flash",
     character: "tongyi-qwen",
     stream: true,
   },
   {
     computingProvider: "aliyun-bailian",
     model: "qwen3.5-397b-a17b",
+    character: "tongyi-qwen",
+    stream: true,
+  },
+  {
+    computingProvider: "aliyun-bailian",
+    model: "qwen3.5-122b-a10b",
     character: "tongyi-qwen",
     stream: true,
   },
@@ -159,13 +159,13 @@ export const img2TxtWorkers: LiuAi.AiWorker[] = [
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen3.5-plus",
+    model: "qwen3.7-plus",
     character: "tongyi-qwen",
     stream: true,
   },
   {
     computingProvider: "aliyun-bailian",
-    model: "qwen3.5-plus-2026-04-20",
+    model: "qwen3.7-plus-2026-05-26",
     character: "tongyi-qwen",
     stream: true,
   }
