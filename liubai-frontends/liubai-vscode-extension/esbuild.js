@@ -12,23 +12,23 @@ function handleEnv() {
 	const cfg1 = dotenv.config().parsed || {}
 
 	// load .env.local
-  const cfg2 = dotenv.config({ 
+	const cfg2 = dotenv.config({
 		path: path.resolve(__dirname, '.env.local')
 	}).parsed || {}
 
 	// load .env.production or .env.development
 	const proOrDev = production ? "production" : "development"
 	const envFile3 = `.env.${proOrDev}`
-	const cfg3 = dotenv.config({ 
+	const cfg3 = dotenv.config({
 		path: path.resolve(__dirname, envFile3),
 	}).parsed || {}
 
 	// load .env.development.local or .env.production.local
 	const envFile4 = `.env.${proOrDev}.local`
-	const cfg4 = dotenv.config({ 
+	const cfg4 = dotenv.config({
 		path: path.resolve(__dirname, envFile4),
 	}).parsed || {}
-	
+
 	// merge environment variables
 	const mergedEnvConfig = { ...cfg1, ...cfg2, ...cfg3, ...cfg4 }
 
@@ -37,7 +37,7 @@ function handleEnv() {
 		"LIU_ENV.EXT_VERSION": JSON.stringify(version),
 		"LIU_ENV.MODE": JSON.stringify(proOrDev),
 	}
-	for(const key in mergedEnvConfig) {
+	for (const key in mergedEnvConfig) {
 		_liuEnv[`LIU_ENV.${key}`] = JSON.stringify(mergedEnvConfig[key])
 	}
 	return _liuEnv
@@ -67,45 +67,45 @@ const esbuildProblemMatcherPlugin = {
 
 async function buildNodeExtension() {
 	const ctx = await esbuild.context({
-    entryPoints: ['src/extension.ts'],
-    bundle: true,
-    format: 'cjs',
-    minify: production,
-    sourcemap: !production,
-    sourcesContent: false,
-    platform: 'node',
-    outfile: 'dist/node/extension.js',
-    external: ['vscode'],
-    logLevel: 'silent',
+		entryPoints: ['src/extension.ts'],
+		bundle: true,
+		format: 'cjs',
+		minify: production,
+		sourcemap: !production,
+		sourcesContent: false,
+		platform: 'node',
+		outfile: 'dist/node/extension.js',
+		external: ['vscode'],
+		logLevel: 'silent',
 		define: {
 			...liuEnv,
 		},
-    plugins: [esbuildProblemMatcherPlugin],
-  })
-  if (watch) {
-    await ctx.watch()
-  } else {
-    await ctx.rebuild()
-    await ctx.dispose()
-  }
+		plugins: [esbuildProblemMatcherPlugin],
+	})
+	if (watch) {
+		await ctx.watch()
+	} else {
+		await ctx.rebuild()
+		await ctx.dispose()
+	}
 }
 
 async function buildWebExtension() {
 	const ctx = await esbuild.context({
 		entryPoints: ['src/extension.ts'], // 通用入口文件
-    bundle: true,
-    format: 'cjs',
-    minify: production,
-    sourcemap: !production,
-    sourcesContent: false,
+		bundle: true,
+		format: 'cjs',
+		minify: production,
+		sourcemap: !production,
+		sourcesContent: false,
 		platform: 'browser',
 		outfile: "dist/web/extension.js",
 		external: ['vscode'],
 		logLevel: 'silent',
 		define: {
 			...liuEnv,
-      global: 'globalThis',
-    },
+			global: 'globalThis',
+		},
 		plugins: [
 			polyfill.polyfillNode({
 				globals: {
@@ -119,11 +119,11 @@ async function buildWebExtension() {
 		]
 	})
 	if (watch) {
-    await ctx.watch()
-  } else {
-    await ctx.rebuild()
-    await ctx.dispose()
-  }
+		await ctx.watch()
+	} else {
+		await ctx.rebuild()
+		await ctx.dispose()
+	}
 }
 
 async function main() {

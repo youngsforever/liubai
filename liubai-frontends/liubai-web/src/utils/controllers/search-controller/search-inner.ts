@@ -16,6 +16,9 @@ export async function searchInner(param: SearchOpt) {
       text,
       hits: list.length,
     })
+    if(list.length < 1) {
+      return searchInnerLegacy(param)
+    }
     return list
   }
   catch(err) {

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import VueDatePicker from '@vuepic/vue-datepicker';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { enUS, zhCN, zhTW } from 'date-fns/locale';
+import type { Locale } from 'date-fns';
 import type { SupportedLocale } from '~/types/types-locale';
 import liuUtil from "~/utils/liu-util";
 import { initDatePicker } from "./index"
@@ -13,6 +15,14 @@ const systemStore = useSystemStore()
 const { supported_theme } = storeToRefs(systemStore)
 const { locale, t } = useI18n()
 const dayNames = liuUtil.getDayNames()
+
+// v14 of vue-datepicker requires a date-fns `Locale` object instead of a string
+const dpLocale = computed<Locale>(() => {
+  const lang = locale.value as SupportedLocale
+  if(lang === "zh-Hans") return zhCN
+  if(lang === "zh-Hant") return zhTW
+  return enUS
+})
 
 const {
   enable,
@@ -52,9 +62,9 @@ const previewDate = computed(() => {
   >
     <div class="liu-dp-bg" @click.stop="onTapCancel"></div>
 
-    <VueDatePicker 
-      :locale="locale" 
-      :dayNames="dayNames" 
+    <VueDatePicker
+      :locale="dpLocale"
+      :dayNames="dayNames"
       weekStart="0" 
       :dark="supported_theme === 'dark'"
       inline
@@ -189,28 +199,28 @@ const previewDate = computed(() => {
   --dp-menu-padding: 0;
   --dp-cell-padding: 0;
 
-  .dp__flex_display {
+  .dp--flex-display {
     width: min-content;
     justify-content: center;
 
-    .dp__outer_menu_wrap {
+    .dp--outer-menu-wrap {
       display: flex;
       justify-content: center;
     }
   }
 
-  .dp__theme_light  {
+  .dp--theme-light  {
     --dp-primary-color: var(--primary-color);
     --dp-background-color: var(--card-bg);
     --dp-border-color: var(--line-default);
   }
 
-  .dp__theme_dark {
+  .dp--theme-dark {
     --dp-primary-color: var(--primary-color);
     --dp-background-color: var(--card-bg);
     --dp-text-color: var(--main-text);
 
-    .dp__range_end, .dp__range_start, .dp__active_date {
+    .dp--range-border-end, .dp--range-border-start, .dp--active {
       color: var(--on-primary);
     }
   }
@@ -219,7 +229,7 @@ const previewDate = computed(() => {
     padding: 20px 20px 10px;
     border-radius: 20px;
 
-    .dp__button {
+    .dp--button {
       border-radius: 4px;
     }
 
@@ -231,11 +241,11 @@ const previewDate = computed(() => {
 
   .dp-custom-calendar-wrapper {
 
-    .dp__calendar_header {
+    .dp--calendar-header {
       margin-block-start: 10px;
     }
 
-    .dp__calendar_header_item {
+    .dp--calendar-header-item {
       width: 46px;
       height: 35px;
       max-width: 13vw;
@@ -243,7 +253,7 @@ const previewDate = computed(() => {
       flex-grow: 0;
     }
 
-    .dp__calendar_item {
+    .dp--calendar-item {
       outline: none;
       flex-grow: 0;
     }
@@ -259,70 +269,70 @@ const previewDate = computed(() => {
     }
   }
 
-  .dp__action_row {
+  .dp--action-row {
     padding: 5px 0px 10px 10px;
 
-    .dp__action_buttons {
+    .dp--action-buttons {
       flex: 1; 
     }
   }
 
   /********************* hover & active style for Mobile ****************/
-  .dp__button:hover, 
-  .dp__month_year_select:hover, 
-  .dp__overlay_cell:hover, 
-  .dp__time_display:hover:enabled, 
-  .dp__date_hover_end:hover, 
-  .dp__date_hover_start:hover,
-  .dp__date_hover:hover {
+  .dp--button:hover, 
+  .dp--month-year-select:hover, 
+  .dp--overlay-cell:hover, 
+  .dp--time-display:hover:enabled, 
+  .dp--date-hoverable-end:hover, 
+  .dp--date-hoverable-start:hover,
+  .dp--date-hoverable:hover {
     background: none;
   }
 
-  .dp__cell_offset.dp__date_hover:hover {
+  .dp--cell-offset.dp--date-hoverable:hover {
     color: var(--dp-secondary-color);
   }
 
-  .dp__inc_dec_button:hover {
+  .dp--inc-dec-button:hover {
     background: none;
     color: var(--dp-icon-color);
   }
 
   @media(hover: hover) {
-    .dp__button:hover,
-    .dp__month_year_select:hover, 
-    .dp__overlay_cell:hover,
-    .dp__time_display:hover:enabled,
-    .dp__date_hover_end:hover, 
-    .dp__date_hover_start:hover,
-    .dp__date_hover:hover {
+    .dp--button:hover,
+    .dp--month-year-select:hover, 
+    .dp--overlay-cell:hover,
+    .dp--time-display:hover:enabled,
+    .dp--date-hoverable-end:hover, 
+    .dp--date-hoverable-start:hover,
+    .dp--date-hoverable:hover {
       background: var(--dp-hover-color);
     }
 
-    .dp__cell_offset.dp__date_hover:hover {
+    .dp--cell-offset.dp--date-hoverable:hover {
       color: var(--dp-hover-text-color);
     }
 
-    .dp__inc_dec_button:hover {
+    .dp--inc-dec-button:hover {
       background: var(--dp-hover-color);
       color: var(--dp-primary-color);
     }
   }
 
-  .dp__button:active,
-  .dp__month_year_select:active, 
-  .dp__overlay_cell:active,
-  .dp__time_display:active:enabled,
-  .dp__date_hover_end:active, 
-  .dp__date_hover_start:active,
-  .dp__date_hover:active {
+  .dp--button:active,
+  .dp--month-year-select:active, 
+  .dp--overlay-cell:active,
+  .dp--time-display:active:enabled,
+  .dp--date-hoverable-end:active, 
+  .dp--date-hoverable-start:active,
+  .dp--date-hoverable:active {
     background: var(--dp-hover-color);
   }
 
-  .dp__cell_offset.dp__date_hover:active {
+  .dp--cell-offset.dp--date-hoverable:active {
     color: var(--dp-hover-text-color);
   }
 
-  .dp__inc_dec_button:active {
+  .dp--inc-dec-button:active {
     background: var(--dp-hover-color);
     color: var(--dp-primary-color);
   }
@@ -334,7 +344,7 @@ const previewDate = computed(() => {
       padding: 10px 10px 10px;
     }
 
-    .dp__action_row {
+    .dp--action-row {
       padding: 5px 0 5px 5px;
     }
   }
@@ -345,7 +355,7 @@ const previewDate = computed(() => {
       padding: 10px 2vw 10px;
     }
 
-    .dp__action_row {
+    .dp--action-row {
       padding: 0px;
       padding-inline-start: 5px;
     }
