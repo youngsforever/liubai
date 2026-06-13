@@ -76,42 +76,37 @@ const fastAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     "computingProvider": "zhipu",
-    "model": "glm-4.5-x",
+    "model": "glm-5-turbo",
     "character": "zhipu",
   },
   {
     "computingProvider": "zhipu",
-    "model": "glm-4.7",
+    "model": "glm-5",
     "character": "zhipu",
   },
   {
     "computingProvider": "zhipu",
-    "model": "glm-4.5-airx",
+    "model": "glm-5.1",
     "character": "zhipu",
   },
   {
     "computingProvider": "moonshot",
-    "model": "kimi-k2-0905-preview",
+    "model": "kimi-k2.6",
     "character": "kimi",
   },
   {
     "computingProvider": "siliconflow",
-    "model": "moonshotai/Kimi-K2-Instruct-0905",
-    "character": "kimi",
-  },
-  {
-    "computingProvider": "siliconflow",
-    "model": "moonshotai/Kimi-K2-Instruct",
-    "character": "kimi",
-  },
-  {
-    "computingProvider": "siliconflow",
-    "model": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+    "model": "Qwen/Qwen3.6-27B",
     "character": "tongyi-qwen",
   },
   {
     "computingProvider": "siliconflow",
-    "model": "zai-org/GLM-4.6",
+    "model": "Qwen/Qwen3.6-35B-A3B",
+    "character": "tongyi-qwen",
+  },
+  {
+    "computingProvider": "siliconflow",
+    "model": "Pro/zai-org/GLM-5.1",
     "character": "zhipu",
   }
 ]

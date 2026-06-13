@@ -91,7 +91,7 @@ type BufferResolver = (res: Buffer | undefined) => void
 export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
   {
     computingProvider: "stepfun",
-    model: "step-3",
+    model: "step-3.5-flash",
     character: "yuewen",
   },
   {
@@ -126,7 +126,7 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
   },
   {
     computingProvider: "zhipu",
-    model: "glm-4.7",
+    model: "glm-5.1",
     character: "zhipu",
     stream: true,
   }
@@ -136,7 +136,7 @@ export const txt2TxtAiWorkers: LiuAi.AiWorker[] = [
 export const img2TxtWorkers: LiuAi.AiWorker[] = [
   {
     computingProvider: "stepfun",
-    model: "step-3",
+    model: "step-3.7-flash",
     character: "yuewen",
   },
   {
@@ -375,7 +375,7 @@ export class BaseLLM {
     if (!chatCompletion) return
     if (!this._isStepfun) return
 
-    // 1. turn reasoning into reasoning_content for step-r1-v-mini
+    // 1. turn reasoning into reasoning_content for step-3.7-flash
     const theChoice = chatCompletion?.choices?.[0]
     if (!theChoice) return
     const message = theChoice?.message as any
@@ -2650,7 +2650,7 @@ export class Palette {
     }
 
     // 2. construct url
-    const model = "step-1x-medium"
+    const model = "step-2x-large"
     const url = baseUrl + "images/generations"
     const headers = { "Authorization": `Bearer ${apiKey}` }
     const body = {
@@ -3131,7 +3131,7 @@ export class TextToSpeech {
     // 3. to request
     const client = new OpenAI({ apiKey, baseURL: baseUrl })
     const body = {
-      model: "step-tts-vivid",
+      model: "stepaudio-2.5-tts",
       input: text,
       voice,
       extra_body: {
