@@ -26,11 +26,23 @@ import { type CeEmits, ceProps } from "./tools/types";
 import { useDraftIdChanged } from "./tools/useDraftIdChanged";
 import { useEditorHeight } from "./tools/useEditorHeight";
 import { usePhoneBound } from "./tools/usePhoneBound";
+import { computed } from "vue";
+import { storeToRefs } from "pinia";
+import { useLayoutStore } from "~/views/useLayoutStore";
 
 const { t } = useI18n()
 
 const props = defineProps(ceProps)
 const emits = defineEmits<CeEmits>()
+
+const layout = useLayoutStore()
+const { sidebarStatus } = storeToRefs(layout)
+const descPlaceholder = computed(() => {
+  if (sidebarStatus.value === "fullscreen") {
+    return t("common.desc_ph_expanded")
+  }
+  return t("common.desc_ph")
+})
 
 const { 
   editorCoreRef, 
@@ -148,6 +160,7 @@ usePhoneBound(props, ceData)
       purpose="thread-edit"
       :hash-trigger="true"
       :min-height="'' + minEditorHeight + 'px'"
+      :desc-placeholder="descPlaceholder"
       is-in-card
     ></EditorCore>
 

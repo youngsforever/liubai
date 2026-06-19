@@ -115,13 +115,62 @@ function getThemeFromSystem(): SupportedTheme {
   return "light"
 }
 
+/**
+ * 根据日期计算当天应该切换主题的时间点（日出和日落时间）
+ * 
+ * 1月1日：日出时间 7:00，日落时间 17:00
+ * 7月1日：日出时间 5:00，日落时间 19:00
+ * 在中间的日期，每天按照差值进行线性渐变过渡。
+ * 
+ * @param date 当前日期
+ * @returns 
+ * - sunrise: 日出时间点（在此时间点及之后、日落之前使用浅色模式），单位是“小时”的十进制数值（例如：6.5 代表早上 6:30）
+ * - sunset: 日落时间点（在此时间点及之后、次日日出之前使用深色模式），单位是“小时”的十进制数值（例如：17.75 代表下午 5:45）
+ */
+export function getSunriseSunset(date: Date): { sunrise: number; sunset: number } {
+  const year = date.getFullYear()
+  const jan1Utc = Date.UTC(year, 0, 1)
+  const jul1Utc = Date.UTC(year, 6, 1)
+  const currentUtc = Date.UTC(year, date.getMonth(), date.getDate())
+
+  if (currentUtc < jul1Utc) {
+    // 上半年：1月1日 -> 7月1日
+    const totalDays = (jul1Utc - jan1Utc) / time.DAY
+    const elapsedDays = (currentUtc - jan1Utc) / time.DAY
+    const ratio = elapsedDays / totalDays
+    
+    // 日出：从 7 点渐变到 5 点
+    const sunrise = 7.0 - 2.0 * ratio
+    // 日落：从 17 点渐变到 19 点
+    const sunset = 17.0 + 2.0 * ratio
+    return { sunrise, sunset }
+  } else {
+    // 下半年：7月1日 -> 下一年1月1日
+    const jan1NextUtc = Date.UTC(year + 1, 0, 1)
+    const totalDays = (jan1NextUtc - jul1Utc) / time.DAY
+    const elapsedDays = (currentUtc - jul1Utc) / time.DAY
+    const ratio = elapsedDays / totalDays
+    
+    // 日出：从 5 点渐变到 7 点
+    const sunrise = 5.0 + 2.0 * ratio
+    // 日落：从 19 点渐变到 17 点
+    const sunset = 19.0 - 2.0 * ratio
+    return { sunrise, sunset }
+  }
+}
+
 // 从当前时间判断要显示哪个主题
-// 目前规则: 6:00 ~ 17:59 显示浅色模式，否则显示深色模式
 function getThemeFromTime(): SupportedTheme {
   const now = time.getTime()
   const date = new Date(now)
-  const hr = date.getHours()
-  if (hr >= 6 && hr <= 17) return "light"
+  const { sunrise, sunset } = getSunriseSunset(date)
+  
+  // 计算今天 0 点的时间戳
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+  // 计算当前时间距离今天 0 点的毫秒数，并转换为十进制小时数
+  const currentHour = (now - startOfDay) / time.HOUR
+
+  if (currentHour >= sunrise && currentHour < sunset) return "light"
   return "dark"
 }
 

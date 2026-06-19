@@ -81,6 +81,15 @@ export function useEditorCore(
     })
   }
 
+  // 监听 descPlaceholder 的变化。由于 Tiptap/ProseMirror 无法感知 Vue prop 的响应式更新，
+  // 我们需要在占位文字变化时派发一个空的 Transaction 强制视图重绘，从而让 Tiptap Placeholder 插件重新计算并更新 DOM 上的 data-placeholder
+  watch(() => props.descPlaceholder, () => {
+    const e = editor.value
+    if (e && !e.isDestroyed) {
+      e.view.dispatch(e.state.tr)
+    }
+  })
+
   const styles = getStyles(props)
   const transition = ref("0")
   onMounted(async () => {
