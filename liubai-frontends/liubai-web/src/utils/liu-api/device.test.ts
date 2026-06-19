@@ -18,12 +18,15 @@ describe("getSunriseSunset", () => {
   });
 
   it("should interpolate correctly on Apr 1st (mid-point of first half)", () => {
-    const date = new Date(2026, 5, 19); // 6 月 19 日
+    const date = new Date(2026, 3, 1); // Apr 1
     const { sunrise, sunset } = getSunriseSunset(date);
 
-    console.log("6/19 日出、日落时间🌄:")
-    console.log(sunrise)
-    console.log(sunset)
+    // Jan 1 -> Jul 1 is 181 days. Apr 1 is day 90.
+    // ratio = 90 / 181 = 0.497237569
+    // sunrise = 7.0 - 2.0 * ratio = 6.0055
+    // sunset = 17.0 + 2.0 * ratio = 17.9945
+    expect(sunrise).toBeCloseTo(6.0055, 4);
+    expect(sunset).toBeCloseTo(17.9945, 4);
   });
 
   it("should interpolate correctly on Oct 1st (mid-point of second half)", () => {

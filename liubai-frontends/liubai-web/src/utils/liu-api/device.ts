@@ -129,14 +129,14 @@ function getThemeFromSystem(): SupportedTheme {
  */
 export function getSunriseSunset(date: Date): { sunrise: number; sunset: number } {
   const year = date.getFullYear()
-  const dJan1 = new Date(year, 0, 1)
-  const dJul1 = new Date(year, 6, 1)
-  const dCurrent = new Date(year, date.getMonth(), date.getDate())
+  const jan1Utc = Date.UTC(year, 0, 1)
+  const jul1Utc = Date.UTC(year, 6, 1)
+  const currentUtc = Date.UTC(year, date.getMonth(), date.getDate())
 
-  if (dCurrent.getTime() < dJul1.getTime()) {
+  if (currentUtc < jul1Utc) {
     // 上半年：1月1日 -> 7月1日
-    const totalDays = (dJul1.getTime() - dJan1.getTime()) / time.DAY
-    const elapsedDays = (dCurrent.getTime() - dJan1.getTime()) / time.DAY
+    const totalDays = (jul1Utc - jan1Utc) / time.DAY
+    const elapsedDays = (currentUtc - jan1Utc) / time.DAY
     const ratio = elapsedDays / totalDays
     
     // 日出：从 7 点渐变到 5 点
@@ -146,9 +146,9 @@ export function getSunriseSunset(date: Date): { sunrise: number; sunset: number 
     return { sunrise, sunset }
   } else {
     // 下半年：7月1日 -> 下一年1月1日
-    const dJan1Next = new Date(year + 1, 0, 1)
-    const totalDays = (dJan1Next.getTime() - dJul1.getTime()) / time.DAY
-    const elapsedDays = (dCurrent.getTime() - dJul1.getTime()) / time.DAY
+    const jan1NextUtc = Date.UTC(year + 1, 0, 1)
+    const totalDays = (jan1NextUtc - jul1Utc) / time.DAY
+    const elapsedDays = (currentUtc - jul1Utc) / time.DAY
     const ratio = elapsedDays / totalDays
     
     // 日出：从 5 点渐变到 7 点
