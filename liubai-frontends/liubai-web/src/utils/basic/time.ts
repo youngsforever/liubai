@@ -153,6 +153,14 @@ const getTimezone = () => {
   return t2
 }
 
+const getTimezoneIANA = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch (e) {
+    return ""
+  }
+}
+
 /**
  * check if the stamp is within a range of milliseconds
  * @param stamp some last stamp
@@ -189,6 +197,7 @@ export default {
   getDate,
   getLocalTimeStr,
   getTimezone,
+  getTimezoneIANA,
   isWithinMillis,
   getBasicStampWhileAdding,
   SECOND,

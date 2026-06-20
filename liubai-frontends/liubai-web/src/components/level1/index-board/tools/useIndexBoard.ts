@@ -170,11 +170,6 @@ async function toCloseA2HS(
     ctx.ibData.a2hs = false
   }
 
-  if (liuApi.canIUse.isArcBrowser()) {
-    _close()
-    return
-  }
-
   if (liuApi.canIUse.isRunningStandalone()) {
     _close()
     return

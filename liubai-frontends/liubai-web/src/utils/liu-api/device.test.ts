@@ -87,3 +87,92 @@ describe("getThemeFromTime", () => {
     expect(theme).toBe("light");
   });
 });
+
+describe("getLocation", () => {
+  const originalNavigator = globalThis.navigator;
+  const originalWindow = (globalThis as any).window;
+
+  afterEach(() => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: originalNavigator,
+      writable: true,
+      configurable: true,
+    });
+    if (originalWindow === undefined) {
+      delete (globalThis as any).window;
+    } else {
+      (globalThis as any).window = originalWindow;
+    }
+  });
+
+  it("should resolve with position data on success", async () => {
+    (globalThis as any).window = {};
+    const mockPosition = {
+      coords: {
+        latitude: 37.7749,
+        longitude: -122.4194,
+        accuracy: 10,
+        altitude: null,
+        altitudeAccuracy: null,
+        heading: null,
+        speed: null,
+      },
+      timestamp: 123456789,
+    };
+
+    const getCurrentPositionMock = vi.fn((success) => success(mockPosition));
+
+    Object.defineProperty(globalThis, "navigator", {
+      value: {
+        geolocation: {
+          getCurrentPosition: getCurrentPositionMock,
+        },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    const res = await device.getLocation();
+    expect(res).toEqual(mockPosition);
+    expect(getCurrentPositionMock).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 3600000,
+      }
+    );
+  });
+
+  it("should reject with error on failure", async () => {
+    (globalThis as any).window = {};
+    const mockError = new Error("Permission denied");
+
+    const getCurrentPositionMock = vi.fn((success, error) => error(mockError));
+
+    Object.defineProperty(globalThis, "navigator", {
+      value: {
+        geolocation: {
+          getCurrentPosition: getCurrentPositionMock,
+        },
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    await expect(device.getLocation()).rejects.toThrow("Permission denied");
+  });
+
+  it("should reject if geolocation is not supported", async () => {
+    (globalThis as any).window = {};
+    Object.defineProperty(globalThis, "navigator", {
+      value: {},
+      writable: true,
+      configurable: true,
+    });
+
+    await expect(device.getLocation()).rejects.toThrow();
+  });
+});
+

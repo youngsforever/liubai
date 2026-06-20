@@ -14,9 +14,6 @@ export function useShowAddToHomeScreen() {
   if(cha.isInWebView || cha.isFirefox) {
     return {}
   }
-  if(liuApi.canIUse.isArcBrowser()) {
-    return {}
-  }
 
   const isStanda = liuApi.canIUse.isRunningStandalone()
   if(isStanda) {
@@ -28,7 +25,6 @@ export function useShowAddToHomeScreen() {
 
   const _beforeInstallPrompt = (e: Event) => {
     e.preventDefault()
-    if(liuApi.canIUse.isArcBrowser()) return
     deferredPrompt = e
     showButtonForA2HS.value = true
   }
@@ -77,12 +73,6 @@ async function whenA2HS(
   deferredPrompt: Event | null,
   rr: RouteAndLiuRouter,
 ) {
-
-  if(liuApi.canIUse.isArcBrowser()) {
-    cannotSupportA2HS()
-    showButtonForA2HS.value = false
-    return
-  }
 
   const cha = liuApi.getCharacteristic()
   if(cha.isSafari) {
