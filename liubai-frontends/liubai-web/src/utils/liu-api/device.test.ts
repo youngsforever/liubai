@@ -39,6 +39,52 @@ describe("getSunriseSunset", () => {
     expect(sunrise).toBeCloseTo(6.0, 5);
     expect(sunset).toBeCloseTo(18.0, 5);
   });
+
+  describe("timezone / location compensation", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("should apply 2 hours compensation for Asia/Urumqi when timezone is 8", () => {
+      vi.spyOn(time, "getTimezone").mockReturnValue(8);
+      vi.spyOn(time, "getTimezoneIANA").mockReturnValue("Asia/Urumqi");
+
+      const date = new Date(2026, 0, 1); // Jan 1st (standard sunrise: 7.0, sunset: 17.0)
+      const { sunrise, sunset } = getSunriseSunset(date);
+      expect(sunrise).toBe(9.0);
+      expect(sunset).toBe(19.0);
+    });
+
+    it("should apply 1 hour compensation for Asia/Chongqing when timezone is 8", () => {
+      vi.spyOn(time, "getTimezone").mockReturnValue(8);
+      vi.spyOn(time, "getTimezoneIANA").mockReturnValue("Asia/Chongqing");
+
+      const date = new Date(2026, 0, 1);
+      const { sunrise, sunset } = getSunriseSunset(date);
+      expect(sunrise).toBe(8.0);
+      expect(sunset).toBe(18.0);
+    });
+
+    it("should NOT apply compensation for Asia/Urumqi when timezone is not 8", () => {
+      vi.spyOn(time, "getTimezone").mockReturnValue(6);
+      vi.spyOn(time, "getTimezoneIANA").mockReturnValue("Asia/Urumqi");
+
+      const date = new Date(2026, 0, 1);
+      const { sunrise, sunset } = getSunriseSunset(date);
+      expect(sunrise).toBe(7.0);
+      expect(sunset).toBe(17.0);
+    });
+
+    it("should NOT apply compensation for Asia/Shanghai when timezone is 8", () => {
+      vi.spyOn(time, "getTimezone").mockReturnValue(8);
+      vi.spyOn(time, "getTimezoneIANA").mockReturnValue("Asia/Shanghai");
+
+      const date = new Date(2026, 0, 1);
+      const { sunrise, sunset } = getSunriseSunset(date);
+      expect(sunrise).toBe(7.0);
+      expect(sunset).toBe(17.0);
+    });
+  });
 });
 
 describe("getThemeFromTime", () => {
