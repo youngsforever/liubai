@@ -133,30 +133,46 @@ export function getSunriseSunset(date: Date): { sunrise: number; sunset: number 
   const jul1Utc = Date.UTC(year, 6, 1)
   const currentUtc = Date.UTC(year, date.getMonth(), date.getDate())
 
+  let sunrise = 0
+  let sunset = 0
+
   if (currentUtc < jul1Utc) {
     // 上半年：1月1日 -> 7月1日
     const totalDays = (jul1Utc - jan1Utc) / time.DAY
     const elapsedDays = (currentUtc - jan1Utc) / time.DAY
     const ratio = elapsedDays / totalDays
-    
+
     // 日出：从 7 点渐变到 5 点
-    const sunrise = 7.0 - 2.0 * ratio
+    sunrise = 7.0 - 2.0 * ratio
     // 日落：从 17 点渐变到 19 点
-    const sunset = 17.0 + 2.0 * ratio
-    return { sunrise, sunset }
+    sunset = 17.0 + 2.0 * ratio
   } else {
     // 下半年：7月1日 -> 下一年1月1日
     const jan1NextUtc = Date.UTC(year + 1, 0, 1)
     const totalDays = (jan1NextUtc - jul1Utc) / time.DAY
     const elapsedDays = (currentUtc - jul1Utc) / time.DAY
     const ratio = elapsedDays / totalDays
-    
+
     // 日出：从 5 点渐变到 7 点
-    const sunrise = 5.0 + 2.0 * ratio
+    sunrise = 5.0 + 2.0 * ratio
     // 日落：从 19 点渐变到 17 点
-    const sunset = 19.0 - 2.0 * ratio
-    return { sunrise, sunset }
+    sunset = 19.0 - 2.0 * ratio
   }
+
+  // 针对特定城市的用户在东八区（UTC+8）下的偏差进行补偿
+  const tz = time.getTimezone()
+  if (tz === 8) {
+    const iana = time.getTimezoneIANA()
+    if (iana === "Asia/Urumqi") {
+      sunrise += 2.0
+      sunset += 2.0
+    } else if (iana === "Asia/Chongqing") {
+      sunrise += 1.0
+      sunset += 1.0
+    }
+  }
+
+  return { sunrise, sunset }
 }
 
 // 从当前时间判断要显示哪个主题
@@ -164,7 +180,7 @@ function getThemeFromTime(): SupportedTheme {
   const now = time.getTime()
   const date = new Date(now)
   const { sunrise, sunset } = getSunriseSunset(date)
-  
+
   // 计算今天 0 点的时间戳
   const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
   // 计算当前时间距离今天 0 点的毫秒数，并转换为十进制小时数
@@ -219,6 +235,31 @@ const clearAppBadge = async () => {
   const res = await navigator.clearAppBadge()
   return res
 }
+// Geolocation API (extremely precise, requires user permission dialog)
+const getLocation = (options?: PositionOptions): Promise<GeolocationPosition> => {
+  const _wait = (a: (val: GeolocationPosition) => void, b: (err: any) => void) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        a(position);
+      },
+      (error) => {
+        b(error);
+      },
+      {
+        enableHighAccuracy: true,
+
+        // 超时: 10 秒
+        timeout: 10 * time.SECOND,
+
+        // 缓存: 1 hr
+        maximumAge: time.HOUR,
+        ...options
+      }
+    );
+  }
+
+  return new Promise(_wait)
+}
 
 
 export default {
@@ -231,4 +272,5 @@ export default {
   getLanguageFromSystem,
   setAppBadge,
   clearAppBadge,
+  getLocation,
 }

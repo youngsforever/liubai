@@ -26,6 +26,7 @@ export default {
   getLanguageFromSystem: device.getLanguageFromSystem,
   setAppBadge: device.setAppBadge,
   clearAppBadge: device.clearAppBadge,
+  getLocation: device.getLocation,
   getStorageSync: storage.getStorageSync,
   setStorageSync: storage.setStorageSync,
   removeStorageSync: storage.removeStorageSync,
